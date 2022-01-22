@@ -1,0 +1,322 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap');
+
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+  display:flex;
+  position: relative;
+  background-color: #fefefe;
+  border-radius: 10px;
+  margin: auto;
+  padding: 0;
+  /* border: 1px solid #888; */
+  max-width: 660px;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  -webkit-animation-name: animatetop;
+  -webkit-animation-duration: 0.4s;
+  animation-name: animatetop;
+  animation-duration: 0.4s
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+  from {top:-300px; opacity:0} 
+  to {top:0; opacity:1}
+}
+
+@keyframes animatetop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
+/* The Close Button */
+.close {
+  position: absolute;
+  top: 18px;
+  right: 10px;
+  z-index: 9;
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 0;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-header {
+  min-height: 20px;
+  padding: 2px 8px;
+}
+
+/* Edit modal */
+
+#modal-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 40%;
+  background-color: whitesmoke;
+  padding: 15px;
+  border-radius: 10px 0 0 10px;
+}
+
+#modal-left > fieldset {
+  margin-top: auto;
+  margin-bottom: 10px;
+}
+
+#modal-left input {
+  margin-bottom: 0
+}
+
+#modal-left button {
+  display: block;
+  width: 100%;
+  max-height: 34px;
+  margin-top: 2px;
+}
+
+#modal-right {
+  display: flex;
+  flex-direction: column;
+  width: 60%;
+  padding: 10px 30px;
+}
+
+#modal-right>div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+#modal fieldset {
+  padding:0;
+}
+
+#modal-right>div:last-of-type {
+  margin: 15px 0;
+}
+
+#modal-right div > fieldset:first-of-type {
+  max-width: 70px;
+}
+
+
+#modal-right h2{
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+
+
+/* View modal */
+
+/* View modal left */
+#modal-left-view {
+  display: flex;
+  justify-content: center;
+}
+
+#modal-left-view > *{
+  border:none;
+  padding:0;
+  border-radius: 10px 0 0 10px;
+}
+
+/* View modal right */
+#modal-right-view {
+  display:flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 50px 30px;
+}
+
+#modal-right-view h2 {
+  margin: 0 0 5px 0;
+  font-size: 2em;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+}
+
+#modal-right-view h3 {
+  display:flex;
+  margin:0 0 5px 0;
+  font-size: 0.9em;
+}
+
+#modal-right-view p {
+  margin: 0;
+}
+
+#modal-right-view .desired {
+  font-size: 0.8em;
+  margin: 0;
+}
+
+
+/* Annet */
+
+.modal-content section img {
+  display: block;
+  max-width: 350px;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid lightgray;
+}
+
+form label {
+  padding-left: 5px;
+  padding-bottom: 0;
+  font-size: 0.8em;
+}
+
+fieldset {
+  border: none;
+}
+
+.co-wish-search-field, input[type=text], select, textarea {
+  width: 100%;
+  padding: 8px 10px;
+  margin: 2px 0 12px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  resize: none;
+  font-family: inherit;
+  font-size: 0.8em;
+}
+
+input.co-wish-search-field {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+button.co-wish-search-field {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.form-options input[type='checkbox'] + label:before {
+  padding-right: 7px;
+  font-size: 1.8em;
+  line-height: 0;
+  font-family: FontAwesome;
+  color:#9d4045;
+}
+
+/* @keyframes desiredCheckedAnimation {
+  0% {content:"\f08a"}
+  100% {content:"\f004";}
+} */
+.form-options input[type='checkbox'] + label:before {
+  content:"\f08a";
+}
+
+.form-options input[type='checkbox']:checked + label:before {
+  content:"\f004";
+  /*animation: desiredCheckedAnimation 1s;*/
+}
+
+.form-options input[type='checkbox'], #img_url {
+  display: none;
+}
+
+.form-options label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+label[for="co_wisher"] {
+  visibility:hidden;
+}
+
+
+.form-options label span {
+  margin-left: 5px;
+}
+
+.form-options{
+  display: flex;
+  align-content: center;
+  justify-content: space-between;
+}
+
+#co_wishers_list {
+  display: none;
+  list-style: none;
+  padding:0;
+  margin:0;
+}
+
+#co_wishers_list a{
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+#co_wishers_list li {
+  display: inline;
+  font-size: inherit;
+  margin-bottom:20px;
+}
+
+#co_wishers_list li:after {
+  content: ", ";
+}
+
+#co_wishers_list li:last-child:after {
+  content: "";
+}
+
+.button-modal {
+  padding: 10px;
+  text-align: center;
+  text-decoration: none;
+  /*display: inline-block;*/
+  font-size: 16px;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 4px
+}
+
+#add-user-field {
+  margin-bottom: 12px;
+}
+
+#modal-right>fieldset {
+  display: flex;
+  gap: 20px;
+  padding: 0;
+}
+
+#modal-right>fieldset>div:first-child {
+  width: 20%;
+}
+
+
+#modal-right>fieldset>div {
+  width: 80%;
+}
+
+.delete-wish {
+  cursor: pointer;
+}

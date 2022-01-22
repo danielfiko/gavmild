@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+    {{ searchform.hidden_tag() }}
+    {{ searchform.searchbox }}
+    <p id = "datalist"></p>
+    <script>
+        $(document).ready(function(){
+            $("#livebox").on("input",function(e){
+                $("#datalist").empty();
+                $.ajax({
+                    method:"post",
+                    url:"/search",
+                    data:{searchbox:$("#livebox").val(),
+                    csrf_token:$("#csrf_token").val()},
+                    success:function(res){
+                        var data = "<ul>";
+                        $.each(res,function(index,value){
+                            data += "<li>"+value.username+"</li>";
+                        });
+                        data += "</ul>";
+                        $("#datalist").html(data);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

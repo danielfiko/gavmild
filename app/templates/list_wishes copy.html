@@ -1,0 +1,28 @@
+{% if wishes|length < 1 %}
+    <h4>There are no wishes. Create one below!</h4>
+    {% else %}
+    <table>
+        <tr>
+            <th>Wish</th>
+            <th>Description</th>
+            <th>URL</th>
+            <th>Image</th>
+            <th>Added</th>
+            <th>Actions</th>
+        </tr>
+        {% for wish in wishes %}
+            <tr>
+                <td>{{ wish.wish_title }}</td>
+                <td>{{ wish.description }}</td>
+                <td>{{ wish.url }}</td>
+                <td><img src="{{ wish.img_url }}" width="50"></td>
+                <td>{{ wish.date_created.date() }}</td>
+                <td>
+                    <a href="/delete/{{wish.id}}">Delete</a>
+                    <br>
+                    <a href="/update/{{wish.id}}">Update</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% endif %}

@@ -1,0 +1,31 @@
+<section id="modal-left-view">
+  <img src="{{ wish.img_url }}" id="modal-read-img">
+</section>
+<section id="modal-right-view">
+  <span class="close">&times;</span>
+  {% if wish.desired %}
+    <p class="desired">&#9733; Mest ønsket</p>
+  {% endif %}
+  <h2>{{ wish.wish_title }}</h2>
+  <h3>Av&nbsp;<ul id="co_wishers_list">{% if co_wisher[0] is not number %}
+      {% for user in co_wisher %}
+        <li>{{ user }}</li>
+      {% endfor %}
+    {% endif %}
+  </ul></h3>
+  <p id="description">{{ wish.description }}</p>
+  <div>
+    <p>{{ wish.quantity }} stk. –</p>
+    <a href="{{ wish.url }}" id="product-url">{{ netloc }}</a>
+  </div>
+  <form action="" method="POST">
+    {{ claimform.hidden_tag() }}
+    {{ claimform.claimed_action }}
+    {% if wish.claimed_by_user_id %}
+      {{ claimform.unclaim_btn }}
+    {% endif %}
+    {% if not wish.claimed_by_user_id %}
+      {{ claimform.claim_btn }}
+    {% endif %}
+  </form>
+</section>

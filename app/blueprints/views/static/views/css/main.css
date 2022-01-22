@@ -1,0 +1,133 @@
+* {
+    box-sizing: border-box;
+  }
+
+html, body {
+    font-family: Helvetica, sans-serif;
+    background-color: #F5F5F5;
+    color: #121212;
+}
+
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+}
+
+nav {
+    min-width: 200px;
+    margin-top: 50px;
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.button {
+    background-color:#9d4045; /* Green */
+    border: none;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    text-decoration: none;
+    /*display: inline-block;*/
+    font-size: 16px;
+    margin: 6px 0px;
+    cursor: pointer;
+    border-radius: 4px
+  }
+
+header {
+    padding: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+}
+
+header ul  > li {
+    list-style: none;
+    display: inline;
+}
+
+header ul > :first-child {
+    text-transform: capitalize;
+    margin-right: 4px;
+}
+
+header h1 {
+    font-family: 'Brush Script MT', cursive;
+    font-size: 2.8em;
+    background-color: lightseagreen;
+    border-radius: 4px;
+    color:white;
+    -webkit-text-stroke: 1px rgb(33, 145, 139);
+    margin: 0;
+    padding: 5px 18px;
+}
+
+header img {
+    width: 200px;
+    margin-top: 0px;
+}
+
+#main-content {
+    width: 100%;
+}
+
+.wishes-list {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0 4px;
+}
+
+.wish-item {
+    /*display: flex;
+    flex-direction: column;
+    align-items: center;*/
+    margin-top: 8px;
+    padding: 10px;
+    cursor: zoom-in;
+}
+
+.wish-item:hover {
+    background-color: #e2e2e2;
+    border-radius: 10px;
+}
+
+.wish-item p {
+    font-size: .8em;
+    font-weight: bold;
+    padding: 0 5px;
+    margin-top: 2px;
+}
+
+.wish-item img {
+      width: 100%;
+      border-radius: 10px;
+      background: #efefef;
+  }
+
+.column {
+    flex: 25%;
+    max-width: 25%;
+    padding: 0 4px;
+  }
+  
+
+  
+@media (max-width: 800px) {
+    .column {
+      flex: 50%;
+      max-width: 50%;
+    }
+  }
+  
+@media (max-width: 600px) {
+    .column {
+      flex: 100%;
+      max-width: 100%;
+    }
+  }

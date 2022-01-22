@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Gavmild</title>
+<script src="{{ url_for('views.static', filename='script.js') }}"></script>
+<script>
+
+</script>
+{% endblock %}
+
+{% block modal %}
+    <div id="modal" class="modal">
+        <div class="modal-content" id="modal-content">
+            {% include "wish_modal.html" %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block nav %}
+    {% include "nav_logged_in.html" %}
+{% endblock %}
+
+{% block body %}
+    {% include "list_wishes.html" %}
+{% endblock %}
