@@ -7,7 +7,7 @@ from app import db
 
 api_bp = Blueprint("api", __name__,
                    template_folder='templates',
-                   static_folder='static', static_url_path='')
+                   static_folder='static', url_prefix="/api")
 
 default_image = "https://static.vecteezy.com/system/resources/previews/000/384/023/original/"\
     "sketch-of-a-wrapped-gift-box-vector.jpg"

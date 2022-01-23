@@ -9,7 +9,7 @@ var co_wisher_list = [];
 function ajaxCall(route, data, callback) {
     return $.ajax({
         method: "post",
-        url: "/"+route,
+        url: "/api/"+route,
         data: data,
         success: callback
     })
