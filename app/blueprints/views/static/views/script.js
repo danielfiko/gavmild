@@ -16,7 +16,7 @@ function ajaxCall(route, data, callback) {
 }
 
 function printAllWishes() {
-    ajaxCall("wishes", {
+    ajaxCall("wish/all", {
         filter: $("#filter").val(),
         csrf_token: $("#csrf_token").val()
     }).then(function(res) {

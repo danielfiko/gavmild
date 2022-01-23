@@ -118,6 +118,13 @@ def claim():
         # return redirect(url_for(file))
 
 
+@api_bp.route("/wish/all", methods=["POST"])
+def all_wishes():
+    form = GetWishesForm()
+    if form.validate():
+        return wishes_json("all_but_own", 4)
+
+
 @api_bp.route("/wish", methods=["POST"])
 def wish():
     return 0
