@@ -15,17 +15,17 @@ def validate_username(username):
 
 
 class RegisterForm(FlaskForm):
-    first_name = StringField(validators=[InputRequired(), Length(min=1, max=50)])
-    last_name = StringField(validators=[Length(max=50)])
-    email = EmailField(validators=[InputRequired(), Email()], render_kw={"placeholder": "E-post"})
-    password = PasswordField(validators=[InputRequired(), Length(min=4, max=90)], render_kw={"placeholder": "Passord"})
-    date_of_birth = DateField(validators=[InputRequired()])
+    first_name = StringField("Fornavn", validators=[InputRequired(), Length(min=1, max=50)])
+    last_name = StringField("Etternavn", validators=[Length(max=50)])
+    email = EmailField("E-post", validators=[InputRequired(), Email()], render_kw={"placeholder": "E-post"})
+    password = PasswordField("Passord", validators=[InputRequired(), Length(min=8, max=90)], render_kw={"placeholder": "Passord"})
+    date_of_birth = DateField("Fødselsdato", validators=[InputRequired()])
     submit = SubmitField("Opprett konto")
 
 
 class LoginForm(FlaskForm):
-    email = EmailField(validators=[InputRequired(), Email()], render_kw={"placeholder": "E-post"})
-    password = PasswordField(validators=[InputRequired(), Length(min=4, max=90)], render_kw={"placeholder": "Passord"})
+    email = EmailField("E-post", validators=[InputRequired(), Email()], render_kw={"placeholder": "E-post"})
+    password = PasswordField("Passord", validators=[InputRequired(), Length(min=4, max=90)], render_kw={"placeholder": "Passord"})
     submit = SubmitField("Logg inn")
 
 

@@ -1,3 +1,4 @@
+import random as rand
 from flask import Blueprint, render_template, redirect, url_for
 from flask_login import login_required, login_user, logout_user
 from app import db
@@ -18,25 +19,42 @@ def login():
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
-                return redirect(url_for("index"))
+                return redirect(url_for("views.index"))
     return "Noe gikk galt, du ble ikke logget inn"
 
 
-@auth_bp.route("/logout", methods=["POST"])
+@auth_bp.route("/logout", methods=["POST", "GET"])
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("index"))
+    return redirect(url_for("views.index"))
 
 
 @auth_bp.route("/register", methods=["POST"])
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
+        email = User.query.filter_by(email=form.email.data).first()
+        if email:
+            return "E-post allerede registrert."
+        username = form.first_name.data.split()[0].casefold() + form.last_name.data[:1].casefold()
+        username_query = "1"
+        for i in range(10):
+            if username_query != "1":
+                username = username + str(rand.randint(10, 99))
+            username_query = User.query.filter_by(username=username).first()
+            if not username_query:
+                break
+        if username_query:
+            return "Det oppstod en feil ved registrering av brukeren"
         hashed_password = bcrypt.generate_password_hash(form.password.data)
-        new_user = User(first_name=form.first_name.data, last_name=form.last_name.data, email=form.email.data,
-                        password=hashed_password, date_of_birth=form.date_of_birth.data)
+        new_user = User(first_name=form.first_name.data.title(),
+                        last_name=form.last_name.data.title(),
+                        email=form.email.data.casefold(),
+                        password=hashed_password,
+                        date_of_birth=form.date_of_birth.data,
+                        username=username)
         db.session.add(new_user)
         db.session.commit()
-        return redirect(url_for("login"))
+        return redirect(url_for("views.login"))
     return "Noe gikk galt, registreringen ble ikke fullført"

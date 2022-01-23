@@ -1,6 +1,8 @@
 from urllib.parse import urlsplit
 
 from flask import Blueprint, render_template
+from flask_login import current_user
+
 from app import db
 from app.forms import ClaimForm
 from app.models import Wish, User, CoWishUser
@@ -10,35 +12,12 @@ wishes_bp = Blueprint("wishes", __name__,
                       static_folder='static', static_url_path='')
 
 
-class WishData:
-    def __init__(self, wish_id):
-        self.__wish = db.session.query(Wish, User.first_name).join(User, User.id == Wish.user_id).filter(
-            Wish.id == wish_id).one()
-        self.co_wisher = db.session.query(User.username, User.id).join(CoWishUser).filter(
-            CoWishUser.id == wish_id).all()
-        self.username = self.wish[1]
-        self.desired = self.wish[0].desired
-        self.title = self.wish[0].wish_title
-        self.description = self.wish[0].description
-        self.quantity = self.self.wish[0].quantity
-        self.url = self.wish[0].url
-        self.img_url = self.self.wish[0].img_url
-
 def wish_data_view(wish_id):
-    wish = db.session.query(Wish, User.first_name).join(User, User.id == Wish.user_id).filter(
-        Wish.id == wish_id).one()
-    co_wisher = db.session.query(User.username, User.id).join(CoWishUser).filter(
-        CoWishUser.id == wish_id).all()
-    if co_wisher:
-        if len(co_wisher) > 1:
-            co_wisher = [[[" ," + e.email.capitalize(), e.id]] for e in co_wisher]
-            co_wisher[-1] = " og " + str(co_wisher[-1].email.capitalize())
-        else:
-            co_wisher = [[co_wisher[0].email.capitalize(), co_wisher[0].id]]
+    wish = db.session.query(Wish).filter(Wish.id == wish_id).one()
     claimform = ClaimForm()
-    netloc = "{0.netloc}".format(urlsplit(self.wish[0].url))
-    co_wisher.insert(0, self.wish[1])
-    return render_template("wish_modal_view_content.html", wish=self.wish[0], claimform=claimform, netloc=netloc,
+    co_wisher = wish.co_wisher()
+    netloc = "{0.netloc}".format(urlsplit(wish.url))
+    return render_template("wish_modal_view_content.html", wish=wish, claimform=claimform, netloc=netloc,
                            co_wisher=co_wisher, form_values=form_values, form_action="")
 
 

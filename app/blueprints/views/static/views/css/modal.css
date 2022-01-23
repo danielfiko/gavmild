@@ -191,7 +191,7 @@ fieldset {
   border: none;
 }
 
-.co-wish-search-field, input[type=text], select, textarea {
+.co-wish-search-field, input, select, textarea {
   width: 100%;
   padding: 8px 10px;
   margin: 2px 0 12px 0;
@@ -281,6 +281,10 @@ label[for="co_wisher"] {
 
 #co_wishers_list li:after {
   content: ", ";
+}
+
+#co_wisher_list li:nth-last-child(2):after {
+  content: " og ";
 }
 
 #co_wishers_list li:last-child:after {

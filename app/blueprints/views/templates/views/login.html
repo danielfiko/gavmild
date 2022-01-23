@@ -7,12 +7,14 @@
 {% block body %}
 <h1>Logg inn</h1>
 
-<form method="POST" action="">
+<form method="POST" action="" class="login-form">
     {{ form.hidden_tag() }}
-    {{ form.username }}
+    {{ form.email.label }}
+    {{ form.email }}
+    {{ form.password.label }}
     {{ form.password }}
     {{ form.submit }}
 </form>
 
-<a href="{{url_for('register')}}">Har du ikke en konto? Opprett en konto her.</a>
+<a href="{{url_for('views.register')}}">Har du ikke en konto? Opprett en konto her.</a>
 {% endblock %}

@@ -29,6 +29,12 @@ class Wish(db.Model):
     claimed_by_user_id = db.Column(db.Integer, db.ForeignKey("user.id"), default=0)
     desired = db.Column(db.Boolean, default=0)
 
+    def user_name(self):
+        return db.session.query(User.first_name).filter(id == self.user_id).one()
+
+    def co_wisher(self):
+        co_wisher = db.session.query(User.first_name, User.id).join(CoWishUser).filter(CoWishUser.id == self.id).all()
+
     def tojson(self):
         if self.user_id == current_user.id:
             claimed = 0  # Eget ønske

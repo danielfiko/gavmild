@@ -115,7 +115,10 @@ header img {
     max-width: 25%;
     padding: 0 4px;
   }
-  
+
+.register-form, .login-form {
+    max-width: 40%;
+}
 
   
 @media (max-width: 800px) {
