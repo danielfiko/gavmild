@@ -22,7 +22,7 @@ class Wish(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    title = db.Column(db.String(30), nullable=False)
+    title = db.Column(db.String(90), nullable=False)
     description = db.Column(db.String(255))
     quantity = db.Column(db.Integer, nullable=False, default=1)
     url = db.Column(db.String(255))

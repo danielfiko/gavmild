@@ -41,7 +41,14 @@ def change_pw():
                     user.force_pw_change = 0
                     db.session.commit()
                     return "Passordet ble endret, videresender til forsiden..."
-    return "Noe gikk galt."
+                else:
+                    return "Passordet er for kort"
+            else:
+                return "Gammelt passord er feil"
+        else:
+            return "Finner ikke bruker"
+    else:
+        return "Skjema ble ikke validert"
 
 
 @auth_bp.route("/logout", methods=["POST", "GET"])
