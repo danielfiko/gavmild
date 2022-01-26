@@ -25,7 +25,6 @@ def login():
             return "wrong password"
         return "no user"
     return "LoginForm not validated"
-    return "Noe gikk galt, du ble ikke logget inn"
 
 
 @auth_bp.route("/change-pw", methods=["POST"])
