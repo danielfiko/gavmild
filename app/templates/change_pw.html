@@ -6,7 +6,7 @@
             $("#pw-form").submit(function (event) {
                 ajaxCall("/api/change-pw", {
                     csrf_token: $("#csrf_token").val(),
-                    email: {{ email }},
+                    email: "{{ email }}",
                     password: $("#password").val(),
                     new_password: $("#new_password").val()
                 }).then(function (res) {
