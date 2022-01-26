@@ -1,2 +1,5 @@
 *.db
+<<<<<<< HEAD
 config.py
+=======
+>>>>>>> 2991fc6 (Added gitignore)
