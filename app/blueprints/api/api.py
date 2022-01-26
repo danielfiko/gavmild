@@ -72,7 +72,11 @@ def update():
                 wish.url = wishform.wish_url.data
                 wish.img_url = wishform.wish_img_url.data
                 wish.desired = 1 if wishform.desired.data else 0
-                add_co_wisher(wishform.co_wisher.data, wish.id)
+                form_co_wishers = wishform.co_wisher.data.split(",")
+                co_wishers = []
+                for w in form_co_wishers:
+                    co_wishers.append(int(w))
+                add_co_wisher(co_wishers, wish.id)
                 if len(wish.img_url) < 5:
                     wish.img_url = url_for('views.static', filename='gift-default.png')
                 try:
