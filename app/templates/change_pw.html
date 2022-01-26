@@ -38,9 +38,9 @@
 <body>
 <h1>Du må bytte passord!</h1>
 <h3 style="display:none">Passord endret, vidresender til forsiden</h3>
-<form action="/api/change-pw" id="pw-form" method="POST">
+<form method="POST" action="/api/change-pw" id="pw-form">
     {{ form.hidden_tag() }}
-    {{ form.password.label }}
+    {{ form.password.label(value="Gammel passord") }}
     {{ form.password }}
     {{ form.new_password.label }}
     {{ form.new_password }}
