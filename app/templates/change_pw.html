@@ -2,32 +2,33 @@
 <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
+        $(document).ready(function () {
+            $("#pw-form").submit(function (event) {
+                ajaxCall("/api/change-pw", {
+                    csrf_token: $("#csrf_token").val(),
+                    email: {{ email }},
+                    password: $("#password").val(),
+                    new_password: $("#new_password").val()
+                }).then(function (res) {
+                    $("#pw-form").hide();
+                    $("h1").hide();
+                    $("h3").show();
+                    setTimeout(function () {
+                        window.location = "https://gavmild.sekta.no/"
+                    }, 3000);
+                })
+                event.preventDefault();
+            })
+        });
+
         function ajaxCall(route, data, callback) {
-        return $.ajax({
-            method: "post",
-            url: route,
-            data: data,
-            success: callback
+            return $.ajax({
+                method: "post",
+                url: route,
+                data: data,
+                success: callback
             })
         }
-        $("#pw-form").submit(function(event) {
-            ajaxCall("/api/change-pw", {
-                csrf_token: $("#csrf_token").val(),
-                email: {{ email }},
-                password: $("#password").val(),
-                new_password: $("#new_password").val()
-            }).then(function (res) {
-                $("#pw-form").hide();
-                $("h1").hide();
-                $("h3").show();
-                setTimeout(function () {
-                    window.location = "https://gavmild.sekta.no/"
-                }, 3000);
-            })
-            event.preventDefault();
-        })
-
-
     </script>
 </head>
 <body>
