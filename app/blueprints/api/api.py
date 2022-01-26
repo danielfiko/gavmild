@@ -173,7 +173,7 @@ def new_wish():
     wish_form = WishForm()
     claim_form = ClaimForm()
     empty_wish = Wish(user_id="", title="", description="", url="",
-                      img_url=url_for('views.static', filename=default_img), desired="")
+                      img_url=url_for('views.static', filename='gift-default.png'), desired="")
     return render_template("wish_modal_edit_content.html", wish=empty_wish, wish_form=wish_form, claimform=claim_form,
                            form_action="add")
 
