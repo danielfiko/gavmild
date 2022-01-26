@@ -39,6 +39,7 @@ def change_pw():
                     login_user(user)
                     hashed_password = bcrypt.generate_password_hash(form.new_password.data)
                     user.password = hashed_password
+                    user.force_pw_change = 0
                     db.session.commit()
                     return "Passord endret"
     return "Noe gikk galt."
