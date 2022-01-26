@@ -26,7 +26,7 @@ class RegisterForm(FlaskForm):
 class LoginForm(FlaskForm):
     email = EmailField("E-post", validators=[InputRequired(), Email()], render_kw={"placeholder": "E-post"})
     password = PasswordField("Passord", validators=[InputRequired(), Length(min=4, max=90)], render_kw={"placeholder": "Passord"})
-    new_password = PasswordField("Nytt passord", validators=[Length(min=4, max=90)], render_kw={"placeholder": "Nytt passord"})
+    new_password = PasswordField("Nytt passord", validators=[Length(min=0, max=90)], render_kw={"placeholder": "Nytt passord"})
     submit = SubmitField("Logg inn")
 
 
