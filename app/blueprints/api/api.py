@@ -78,7 +78,7 @@ def update():
                 try:
                     db.session.commit()
                 except:
-                    pass
+                    return "update failed"
 
                 return redirect(request.referrer)
     return "Noe gikk galt med oppdatering av ønske"
