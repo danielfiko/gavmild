@@ -41,7 +41,7 @@ def change_pw():
                     user.password = hashed_password
                     user.force_pw_change = 0
                     db.session.commit()
-                    return "Passord endret"
+                    return redirect(url_for("views.index"))
     return "Noe gikk galt."
 
 
