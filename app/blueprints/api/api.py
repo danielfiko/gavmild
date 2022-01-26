@@ -77,8 +77,9 @@ def update():
                     pass
 
                 return redirect(request.referrer)
-
-    return wishform.errors
+    else:
+        return wishform.errors
+    return "Noe gikk galt med oppdatering av ønske"
 
 
 @api_bp.route("/delete", methods=["POST"])
