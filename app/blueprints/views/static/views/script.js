@@ -8,6 +8,7 @@ function ajaxCall(route, data, callback) {
     return $.ajax({
         method: "post",
         url: route,
+        dataType: "json",
         data: data,
         success: callback
     })
