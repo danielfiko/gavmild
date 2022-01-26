@@ -7,7 +7,7 @@ $(document).ready(function() {
 function ajaxCall(route, data, callback) {
     return $.ajax({
         method: "post",
-        url: "/api/"+route,
+        url: route,
         data: data,
         success: callback
     })
@@ -22,7 +22,7 @@ function showModal(res) {
     $("#addWishUser").click(        function() {addWishUser() });
     $("#modal-left button").click(  function() {$(this).hide();$("#img_url").show()});
     $("#wishform").submit(function(event){
-       ajaxCall("add", {
+       ajaxCall($("wishform").attr("action"), {
            csrf_token: $("#csrf_token").val(),
            wish_img_url: $("#img_url").val(),
            co_wisher: $("#co_wisher").val().split(","),
@@ -49,7 +49,7 @@ function showModal(res) {
 }
 
 function addNewWish() {
-    ajaxCall("wish/new", {
+    ajaxCall("/api/wish/new", {
             csrf_token: $("#csrf_token").val(),
         }).then(function(res) {
             showModal(res)
@@ -57,7 +57,7 @@ function addNewWish() {
 }
 
 function printWishes() {
-    ajaxCall("wish/" + $("#filter").val(), {
+    ajaxCall("/api/wish/" + $("#filter").val(), {
         csrf_token: $("#csrf_token").val(),
         wish_id : 1,
         columns: 4
@@ -71,7 +71,7 @@ function printWishes() {
 }
 
 function viewWish(id) {
-    ajaxCall("wish", {
+    ajaxCall("/api/wish", {
         csrf_token: $("#csrf_token").val(),
         wish_id: id
     }).then(function(res) {
@@ -94,7 +94,7 @@ function viewWish(id) {
 
 function addWishUser() {
     let co_wisher_list = [];
-    ajaxCall("search", { hello: "hello" }).then(function(users) {
+    ajaxCall("/api/search", { hello: "hello" }).then(function(users) {
         $("#add-user-field").hide();
         $(".typeahead__container").show();
         $('label[for="co_wisher"]').css("visibility", "visible");
@@ -122,7 +122,7 @@ function addWishUser() {
     function addCowisherToTypeahead(item) {
         let co_wisher = item.username;
         if (co_wisher) {
-            ajaxCall("cowisher", { user_id:item.id }).then(function(res){
+            ajaxCall("/api/cowisher", { user_id:item.id }).then(function(res){
                 if(!co_wisher_list.includes(item.id)) {
                     $(".co_wishers_list").append("<li id='"+item.id+"'>" + co_wisher + ' <a id="'+item.id+'" class="delete-co-wisher">(x)</a></li>');
                     $(".co_wishers_list").show();
@@ -144,7 +144,7 @@ function addWishUser() {
 
 function deleteWish(id) {
     if (confirm("Er du sikker på at du vil slette dette ønsket?") == true) {
-        ajaxCall("delete", { id:id }).then(function(res){
+        ajaxCall("/api/delete", { id:id }).then(function(res){
             alert(res);
             printWishes()
             $("#modal").hide();
