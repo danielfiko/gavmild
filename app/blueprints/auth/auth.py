@@ -18,12 +18,29 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
+                if user.force_pw_change:
+                    return render_template("change_pw.html", form=form, email=user.email.data)
                 login_user(user)
                 return redirect(url_for("views.index"))
             return "wrong password"
         return "no user"
     return "LoginForm not validated"
     return "Noe gikk galt, du ble ikke logget inn"
+
+
+@auth_bp.route("/change-pw", methods=["POST"])
+def change_pw():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            if bcrypt.check_password_hash(user.password, form.password.data):
+                login_user(user)
+                hashed_password = bcrypt.generate_password_hash(form.new_password.data)
+                user.password = hashed_password
+                db.session.commit()
+                return "Passord endret"
+    return "Noe gikk galt."
 
 
 @auth_bp.route("/logout", methods=["POST", "GET"])

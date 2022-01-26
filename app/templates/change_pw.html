@@ -1,0 +1,42 @@
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        function ajaxCall(route, data, callback) {
+        return $.ajax({
+            method: "post",
+            url: route,
+            data: data,
+            success: callback
+            })
+        }
+        $("#pw-form").submit(function(event) {
+            ajaxCall("/change-pw", {
+                csrf_token: $("#csrf_token").val(),
+                email: {{ email }},
+                password: $("#password").val(),
+                new_password: $("#new_password").val()
+            }).then(function (res) {
+                $("#pw-form").hide();
+                $("h1").show();
+                setTimeout(function () {
+                    window.location = "https://gavmild.sekta.no/"
+                }, 3000);
+            })
+        })
+
+
+    </script>
+</head>
+<body>
+<h3 style="display:none">Passord endret, vidresender til forsiden</h3>
+<form action="" id="pw-form">
+    {{ form.hidden_tag() }}
+    {{ form.password.label }}
+    {{ form.password }}
+    {{ form.new_password.label }}
+    {{ form.new_password }}
+    {{ form.submit }}
+</form>
+</body>
+</html>

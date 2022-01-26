@@ -12,6 +12,7 @@ class User(db.Model, UserMixin):
     date_of_birth = db.Column(db.DateTime, nullable=False)
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50))
+    force_pw_change = db.Column(db.Integer, default=0)
 
     def tojson(self):
         return {"id": self.id, "username": self.username}
