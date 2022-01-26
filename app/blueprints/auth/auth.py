@@ -34,13 +34,13 @@ def change_pw():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
-                if len(form.password.data) >= 8:
+                if len(form.new_password.data) >= 8:
                     login_user(user)
                     hashed_password = bcrypt.generate_password_hash(form.new_password.data)
                     user.password = hashed_password
                     user.force_pw_change = 0
                     db.session.commit()
-                    return redirect(url_for("views.index"))
+                    return "Passordet ble endret, videresender til forsiden..."
     return "Noe gikk galt."
 
 
