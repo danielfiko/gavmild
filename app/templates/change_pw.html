@@ -12,11 +12,14 @@
                 }).then(function (res) {
                     $("#pw-form").hide();
                     $("h1").hide();
+                    $("h3").val(res);
                     $("h3").show();
                     setTimeout(function () {
                         window.location = "https://gavmild.sekta.no/"
                     }, 3000);
-                })
+                }), function () {
+                    console.log("feilet");
+                }
                 event.preventDefault();
             })
         });
