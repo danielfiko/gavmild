@@ -38,6 +38,8 @@ def search():
 def add():
     form = WishForm()
     if form.validate():
+        if len(form.wish_img_url.data) < 5:
+            form.wish_img_url.data = url_for('views.static', filename='gift-default.png')
         new_wish = Wish(user_id=current_user.id, title=form.wish_title.data,
                         description=form.wish_description.data, url=form.wish_url.data, img_url=form.wish_img_url.data,
                         desired=form.desired.data)
@@ -71,6 +73,8 @@ def update():
                 wish.img_url = wishform.wish_img_url.data
                 wish.desired = 1 if wishform.desired.data else 0
                 add_co_wisher(wishform.co_wisher.data, wish.id)
+                if len(wish.img_url) < 5:
+                    wish.img_url = url_for('views.static', filename='gift-default.png')
                 try:
                     db.session.commit()
                 except:
@@ -169,7 +173,7 @@ def new_wish():
     wish_form = WishForm()
     claim_form = ClaimForm()
     empty_wish = Wish(user_id="", title="", description="", url="",
-                      img_url=url_for('views.static', filename='gift-default.png'), desired="")
+                      img_url=url_for('views.static', filename=default_img), desired="")
     return render_template("wish_modal_edit_content.html", wish=empty_wish, wish_form=wish_form, claimform=claim_form,
                            form_action="add")
 
