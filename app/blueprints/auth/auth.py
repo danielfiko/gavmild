@@ -35,11 +35,12 @@ def change_pw():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
-                login_user(user)
-                hashed_password = bcrypt.generate_password_hash(form.new_password.data)
-                user.password = hashed_password
-                db.session.commit()
-                return "Passord endret"
+                if len(form.password.data) >= 8:
+                    login_user(user)
+                    hashed_password = bcrypt.generate_password_hash(form.new_password.data)
+                    user.password = hashed_password
+                    db.session.commit()
+                    return "Passord endret"
     return "Noe gikk galt."
 
 
