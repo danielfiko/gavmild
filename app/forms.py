@@ -31,7 +31,7 @@ class LoginForm(FlaskForm):
 
 
 class WishForm(FlaskForm):
-    wish_title = StringField("Ønske", validators=[InputRequired(), Length(min=2, max=30)], id="title",
+    wish_title = StringField("Ønske", validators=[InputRequired(), Length(min=2, max=90)], id="title",
                              render_kw={"placeholder": "Hva ønsker du deg?", "form": "wishform"})
     wish_description = \
         TextAreaField("Detaljer", validators=[Length(min=0, max=255)],
