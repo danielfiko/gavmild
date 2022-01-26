@@ -19,7 +19,7 @@ def login():
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
                 if user.force_pw_change:
-                    return render_template("change_pw.html", form=form, email=user.email.data)
+                    return render_template("change_pw.html", form=form, email=form.email.data)
                 login_user(user)
                 return redirect(url_for("views.index"))
             return "wrong password"
