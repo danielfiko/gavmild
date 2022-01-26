@@ -22,7 +22,7 @@ function showModal(res) {
     $("#addWishUser").click(        function() {addWishUser() });
     $("#modal-left button").click(  function() {$(this).hide();$("#img_url").show()});
     $("#wishform").submit(function(event){
-       ajaxCall("/api/"+$("wishform").attr("action"), {
+       ajaxCall($("#wishform").attr("action"), {
            csrf_token: $("#csrf_token").val(),
            wish_img_url: $("#img_url").val(),
            co_wisher: $("#co_wisher").val().split(","),
