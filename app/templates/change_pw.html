@@ -11,7 +11,7 @@
             })
         }
         $("#pw-form").submit(function(event) {
-            ajaxCall("/change-pw", {
+            ajaxCall("/api/change-pw", {
                 csrf_token: $("#csrf_token").val(),
                 email: {{ email }},
                 password: $("#password").val(),
