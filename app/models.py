@@ -21,19 +21,34 @@ class Wish(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    wish_title = db.Column(db.String(30), nullable=False)
+    title = db.Column(db.String(30), nullable=False)
     description = db.Column(db.String(255))
     quantity = db.Column(db.Integer, nullable=False, default=1)
     url = db.Column(db.String(255))
     img_url = db.Column(db.String(255))
     claimed_by_user_id = db.Column(db.Integer, db.ForeignKey("user.id"), default=0)
     desired = db.Column(db.Boolean, default=0)
+    date_claimed = db.Column(db.DateTime)
 
-    def user_name(self):
-        return db.session.query(User.first_name).filter(id == self.user_id).one()
+    def time_since_creation(self):
+        today = datetime.utcnow()
+        difference_in_years = (today - self.date_created).days/365
+        difference = str(difference_in_years) + " år siden"
+        if difference_in_years < 1:
+            difference_in_months = (today - self.date_created).days/30
+            difference = str(difference_in_months) + " måneder siden"
+            if difference_in_months < 1:
+                difference_in_days = (today - self.date_created).days
+                difference = str(difference_in_days) + " dager siden"
+                if difference_in_days < 1:
+                    difference = "i dag"
+        return difference
 
     def co_wisher(self):
-        co_wisher = db.session.query(User.first_name, User.id).join(CoWishUser).filter(CoWishUser.id == self.id).all()
+        return db.session.query(User.first_name, User.id).join(CoWishUser).filter(CoWishUser.id == self.id).all()
+
+    def user_name(self):
+        return db.session.query(User.first_name).filter(User.id == self.user_id).one()
 
     def tojson(self):
         if self.user_id == current_user.id:
@@ -56,7 +71,7 @@ class Wish(db.Model):
             "id": self.id,
             "time_ago": time_ago,
             "user": "",
-            "wish_title": self.wish_title,
+            "wish_title": self.title,
             "description": self.description,
             "url": self.url,
             "img_url": self.img_url,

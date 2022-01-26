@@ -12,15 +12,9 @@ wishes_bp = Blueprint("wishes", __name__,
                       static_folder='static', static_url_path='')
 
 
-def wish_data_view(wish_id):
-    wish = db.session.query(Wish).filter(Wish.id == wish_id).one()
-    claimform = ClaimForm()
-    co_wisher = wish.co_wisher()
-    netloc = "{0.netloc}".format(urlsplit(wish.url))
-    return render_template("wish_modal_view_content.html", wish=wish, claimform=claimform, netloc=netloc,
-                           co_wisher=co_wisher, form_values=form_values, form_action="")
 
 
+'''
     # Spør etter eget ønske
     if self.wish[0].user_id == current_user.id:
         delete = '<a id="' + str(self.wish[0].id) + '"class="delete-wish">Slett</a>'
@@ -100,4 +94,4 @@ def wish_data_edit(wish_id):
     # Henter alle ønsker
     else:
         filter = form.filter.data
-        return wishes_json(filter)
+        return wishes_json(filter)'''

@@ -6,22 +6,24 @@
   {% if wish.desired %}
     <p class="desired">&#9733; Mest ønsket</p>
   {% endif %}
-  <h2>{{ wish.wish_title }}</h2>
-  <h3>Av&nbsp;<ul id="co_wishers_list">{% if co_wisher[0] is not number %}
-      {% for user in co_wisher %}
-        <li>{{ user }}</li>
-      {% endfor %}
-    {% endif %}
-  </ul></h3>
-  <p id="description">{{ wish.description }}</p>
-  <div>
-    <p>{{ wish.quantity }} stk. –</p>
+  <h2>{{ wish.title }}</h2>
+  <div class="display-wish-footer">
     <a href="{{ wish.url }}" id="product-url">{{ netloc }}</a>
   </div>
-  <form action="" method="POST">
+  <h3>Av&nbsp;<ul class="co_wishers_list">
+      <li>{{ user.first_name }}</li>
+        {% if co_wisher|length > 0 %}
+            {% for user in co_wisher %}
+                <li>{{ user.first_name }}</li>
+            {% endfor %}
+        {% endif %}
+  </ul></h3>
+  <p class="wish-description">{{ wish.description }}</p>
+  <form action="{{ url_for("api.claim") }}" method="POST">
     {{ claimform.hidden_tag() }}
+  {{ claimform.claimed_wish_id(value=wish.id) }}
     {{ claimform.claimed_action }}
-    {% if wish.claimed_by_user_id %}
+    {% if wish.claimed_by_user_id == current_user.id %}
       {{ claimform.unclaim_btn }}
     {% endif %}
     {% if not wish.claimed_by_user_id %}

@@ -7,6 +7,7 @@ from app.models import Wish, User, CoWishUser
 views_bp = Blueprint("views", __name__,
                      template_folder='templates/views',
                      static_folder='static/views', url_prefix='/')
+other_users = User.query.filter(id != current_user).all()
 
 
 @views_bp.route("/")
@@ -16,20 +17,10 @@ def index():
         claimform = ClaimForm()
         wishform = WishForm()
         return render_template("wishes.html", getform=get_wishes_form, claimform=claimform, wishform=wishform,
-                               filter_value="all_but_own")
+                               filter_value="all", other_users=other_users)
     else:
         form = LoginForm()
         return render_template("login.html", form=form)
-
-
-@views_bp.route("/test")
-def db_test():
-    wish_id = 5
-    wish = db.session.query(Wish, User.first_name).join(User, User.id == Wish.user_id).filter(
-        Wish.id == wish_id).one()
-    co_wisher = db.session.query(User.username, User.id).join(CoWishUser).filter(
-        CoWishUser.id == wish_id).all()
-    return jsonify(wish)
 
 
 @views_bp.route("/user/<int:user_id>")
@@ -37,7 +28,8 @@ def db_test():
 def user(user_id):
     get_wishes_form = GetWishesForm()
     wishform = WishForm()
-    return render_template("wishes.html", getform=get_wishes_form, wishform=wishform, filter_value="own")
+    return render_template("wishes.html", getform=get_wishes_form, wishform=wishform, filter_value="user/"+str(user_id),
+                           other_users=other_users)
 
 
 @views_bp.route("/claimed")
@@ -47,7 +39,7 @@ def claimed():
     claimform = ClaimForm()
     wishform = WishForm()
     return render_template("wishes.html", getform=get_wishes_form, claimform=claimform, wishform=wishform,
-                           filter_value="claimed")
+                           filter_value="claimed", other_users=other_users)
 
 
 @views_bp.route("/dashboard", methods=["GET", "POST"])

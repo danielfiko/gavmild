@@ -1,10 +1,8 @@
 $(document).ready(function() {
-    $("#add-wish").click(function() { viewWish("", newWish = 1) });
-    printAllWishes()
+    $("#add-wish").click(function() { addNewWish()});
+    printWishes()
     //viewport_listener()
 });
-
-var co_wisher_list = [];
 
 function ajaxCall(route, data, callback) {
     return $.ajax({
@@ -15,70 +13,91 @@ function ajaxCall(route, data, callback) {
     })
 }
 
-function printAllWishes() {
-    ajaxCall("wish/all", {
-        filter: $("#filter").val(),
-        csrf_token: $("#csrf_token").val()
+function showModal(res) {
+    $("#modal-content").html(res);
+    $(".typeahead__container").hide();
+    $("#add-user-field").show();
+    $("#modal").show();
+    $(".close").click(              function() {$("#modal").hide()});
+    $("#addWishUser").click(        function() {addWishUser() });
+    $("#modal-left button").click(  function() {$(this).hide();$("#img_url").show()});
+    $("#wishform").submit(function(event){
+       ajaxCall("add", {
+           csrf_token: $("#csrf_token").val(),
+           wish_img_url: $("#img_url").val(),
+           co_wisher: $("#co_wisher").val().split(","),
+           edit_id: $("#co_wisher").val(),
+           wish_title: $("#title").val(),
+           quantity: $("#quantity").val(),
+           wish_description: $("#description").val(),
+           wish_url: $("#url").val()
+       }).then(function(res){
+           $("#modal").hide()
+           $(res).hide().prependTo(".column:first").fadeIn({
+               duration: 1500,
+               start: function(){$(this).css("background-color", "#e2e2e2")},
+               done: function(){$(this).css("background-color", "inherit")}
+           });
+       })
+       event.preventDefault();
+    });
+    window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+}
+
+function addNewWish() {
+    ajaxCall("wish/new", {
+            csrf_token: $("#csrf_token").val(),
+        }).then(function(res) {
+            showModal(res)
+    })
+}
+
+function printWishes() {
+    ajaxCall("wish/" + $("#filter").val(), {
+        csrf_token: $("#csrf_token").val(),
+        wish_id : 1,
+        columns: 4
     }).then(function(res) {
         $(".wishes-list").empty();
-        $.each(res, function(index, col) {
-            $(".wishes-list").append('<div class="column"></div>');
-            $.each(col, function(row, value) {
-                $(".column").last().append('<div class="wish-item"></div>');
-                $(".wish-item").last().append('<img src=' + value.img_url + '>').attr("id", value.id);
-                $(".wish-item").last().append('<p>' + (value.desired ? "&#9733; " : "") +
-                    value.wish_title + " " + value.id + '</p>');
-            });
-        });
+        $(".wishes-list").append(res);
         $(".wish-item").click(function() { viewWish(this.id) });
     }, function(reason) {
         console.log("kunne ikke hente data, ", reason);
     });
 }
 
-function viewWish(id, n) {
-    ajaxCall("wishes", {
-        filter: $("#filter").val(),
+function viewWish(id) {
+    ajaxCall("wish", {
         csrf_token: $("#csrf_token").val(),
-        id: id,
-        new_wish: n
+        wish_id: id
     }).then(function(res) {
-        $("#modal-content").html(res);
-        $(".typeahead__container").hide();
-        $("#add-user-field").show();
-        $("#modal").show();
-        if ($("#co_wishers_list li:first").length) {
+        showModal(res);
+        if ($(".co_wishers_list li:first").length) {
             $(".typeahead__container").show();
-            $("#co_wishers_list").show();
+            $(".co_wishers_list").show();
             $("#add-user-field").hide();
-            $("#co_wishers_list li").each(function(index, value) {$(this).append(' <a id="'+value.id+'" class="delete-co-wisher">(x)</a>')})
             addWishUser();
-            $("#co_wishers_list a").click(function(){
-                $("#co_wishers_list li[id='"+this.id+"']").remove();
+            $(".co_wishers_list a").click(function(){
+                $(".co_wishers_list li[id='"+this.id+"']").remove();
             })
             $('label[for="co_wisher"]').css("visibility", "visible"); 
         }
-        $(".close").click(function() {              $("#modal").hide()});
-        $("#addWishUser").click(function() {        addWishUser() });
-        $("#modal-left button").click(function(){   $(this).hide();$("#img_url").show()});
-        $(".delete-wish").click(function(){         deleteWish(this.id)})
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
+        $(".delete-wish").click(function(){deleteWish(this.id)})
     }, function(reason) {
         console.log("kunne ikke hente data, ", reason);
     });
 }
 
 function addWishUser() {
-    co_wisher_list = $("#co_wishers_list").children();
+    let co_wisher_list = [];
     ajaxCall("search", { hello: "hello" }).then(function(users) {
         $("#add-user-field").hide();
         $(".typeahead__container").show();
         $('label[for="co_wisher"]').css("visibility", "visible");
-        var co_wisher_list = [];
         $(".js-typeahead").typeahead({
             order: "asc",
             display: "username",
@@ -89,38 +108,45 @@ function addWishUser() {
             debug: true,
             selector:{query:"input"},
             callback: {
+                onClick: function (node, a, item, event){
+                    addCowisherToTypeahead(item)
+                },
                 onSubmit: function(node, form, item, event){
                     event.preventDefault();
-                    var co_wisher = item.username;
-                    if (co_wisher) {
-                        ajaxCall("cowisher", { user_id:item.id }).then(function(res){
-                            if(!co_wisher_list.includes(item.id)) {
-                                $("#co_wishers_list").append("<li id='"+item.id+"'>" + co_wisher + ' <a id="'+item.id+'" class="delete-co-wisher">(x)</a></li>');
-                                $("#co_wishers_list").show();
-                                co_wisher_list.push(item.id);
-                                $("#co_wisher").val(co_wisher_list);
-                                $(".js-typeahead").val("")
-                                $("#co_wishers_list a").click(function(){
-                                    co_wisher_list.splice(co_wisher_list.indexOf(this.id), 1);
-                                    $("#co_wishers_list li[id='"+this.id+"']").remove();
-                                });
-                                console.log(co_wisher_list)
-                            }
-                        }, function(reason){
-                            alert("Ugyldig bruker");
-                        });
-                    }
+                    addCowisherToTypeahead(item)
                 }
             }
         });
     });
+    /* FIXME: Oppdaterer co wisher list på alle ønsker i bakgrunnen også */
+    function addCowisherToTypeahead(item) {
+        let co_wisher = item.username;
+        if (co_wisher) {
+            ajaxCall("cowisher", { user_id:item.id }).then(function(res){
+                if(!co_wisher_list.includes(item.id)) {
+                    $(".co_wishers_list").append("<li id='"+item.id+"'>" + co_wisher + ' <a id="'+item.id+'" class="delete-co-wisher">(x)</a></li>');
+                    $(".co_wishers_list").show();
+                    co_wisher_list.push(item.id);
+                    $("#co_wisher").val(co_wisher_list);
+                    console.log(co_wisher_list);
+                    $(".js-typeahead").val("")
+                    $(".co_wishers_list a").click(function(){
+                        co_wisher_list.splice(co_wisher_list.indexOf(this.id), 1);
+                        $(".co_wishers_list li[id='"+this.id+"']").remove();
+                    });
+                }
+            }, function(reason){
+                alert("Ugyldig bruker");
+            });
+        }
+    }
 }
 
 function deleteWish(id) {
     if (confirm("Er du sikker på at du vil slette dette ønsket?") == true) {
         ajaxCall("delete", { id:id }).then(function(res){
             alert(res);
-            printAllWishes()
+            printWishes()
             $("#modal").hide();
         });
     }

@@ -20,6 +20,9 @@ def login():
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
                 return redirect(url_for("views.index"))
+            return "wrong password"
+        return "no user"
+    return "LoginForm not validated"
     return "Noe gikk galt, du ble ikke logget inn"
 
 

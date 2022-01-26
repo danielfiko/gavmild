@@ -1,8 +1,11 @@
-{#% if json_wishes[0]|length < 1 %}
-    <h4>There are no wishes. Create one below!</h4>
+{% if wishes[0]|length < 1 %}
+    <h4>Det er ingen ønsker å vise.</h4>
 {% else %}
-{% endif %#}
-{{ getform.hidden_tag() }}
-{{ getform.filter(value=filter_value) }}
-<div class="wishes-list">
-</div>
+    {% for column in wishes %}
+        <div class="column">
+        {% for wish, user in column %}
+            {% include "list_item.html" %}
+        {% endfor %}
+        </div>
+    {% endfor %}
+{% endif %}

@@ -1,95 +1,79 @@
-{% extends "wish_modal.html" %}
-
-{% block img_url %}
-    {{ wish.img_url }}
-{% endblock %}
-{% block content_left %}
-<fieldset>
-  {{ wishform.wish_img_url.label }}
-  {% if form_values[3] is not number %}
-    {{ wishform.wish_img_url(value=form_values[3]) }}
-  {% else %}
-    {{ wishform.wish_img_url }}
-  {% endif %}
-  <button type="button" class="button-modal button">
-    <i class="fa fa-pencil-square-o"></i>
-  </button>
-</fieldset>
-{% endblock %}
-{% block header %}Ønskedetaljer{% endblock %}
-{% block content_right %}
-<form id="wishform" action="/{{ form_action }}" method="POST">
-  {{ wishform.csrf_token }}
-  {{ wishform.co_wisher }}
-  {{ wishform.edit_id(value=form_values[5]) }}
-
-</form>
-  {{ wishform.wish_title.label }}
-  {% if form_values[0] is not number %}
-    {{ wishform.wish_title(value=form_values[0]) }}
-  {% else %}
-    {{ wishform.wish_title }}
-  {% endif %}
-  <div>
+<section id="modal-left">
+    <img src="{{ wish.img_url }}" id="wish-img">
     <fieldset>
-      {{ wishform.quantity.label }}
-      {{ wishform.quantity }}
+        {{ wish_form.wish_img_url.label }}
+        {{ wish_form.wish_img_url(value=wish.img_url) }}
+        <button type="button" class="button-modal button">
+            <i class="fa fa-pencil-square-o"></i>
+        </button>
     </fieldset>
-    <fieldset>
-      {{ wishform.co_wisher.label }}
-      <div>
-        <div id="add-user-field">
-          <button id="addWishUser" class="button-modal button .js-typeahead" form="none" type="button">
-            <i class="fa fa-user-plus"></i>
-          </button>
-          <label for="addWishUser">Ønsk sammen med noen</label>
-        </div>
-        <form>
-          <div class="typeahead__container">
-            <div class="typeahead__field">
-                <div class="typeahead__query">
-                    <input class="js-typeahead" name="co_wisher" autocomplete="off">
-                </div>
-                <div class="typeahead__button">
-                    <button type="submit" id="addWisherBtn">
+</section>
+<section id="modal-right">
+    <span class="close">&times;</span>
+    <h2>Ønskedetaljer</h2>
+    <form id="wishform" action="/api/{{ form_action }}" method="POST">
+        {{ wish_form.csrf_token }}
+        {{ wish_form.co_wisher }}
+        {{ wish_form.edit_id(value=wish.id) }}
+    </form>
+    {{ wish_form.wish_title.label }}
+    {{ wish_form.wish_title(value=wish.title) }}
+    <div>
+        <fieldset>
+            {{ wish_form.quantity.label }}
+            {{ wish_form.quantity(value=wish.quantity) }}
+        </fieldset>
+        <fieldset>
+            {{ wish_form.co_wisher.label }}
+            <div>
+                <div id="add-user-field">
+                    <button id="addWishUser" class="button-modal button .js-typeahead" form="none" type="button">
                         <i class="fa fa-user-plus"></i>
                     </button>
+                    <label for="addWishUser">Ønsk sammen med noen</label>
                 </div>
+                <form>
+                    <div class="typeahead__container">
+                        <div class="typeahead__field">
+                            <div class="typeahead__query">
+                                <input class="js-typeahead" name="co_wisher" autocomplete="off">
+                            </div>
+                            <div class="typeahead__button">
+                                <button type="submit" id="addWisherBtn">
+                                    <i class="fa fa-user-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
-          </div>
-        </form>
-      </div>
-      <ul id="co_wishers_list">
-        {% if form_values[4][0][0] is not number %}
-          {% for user in form_values[4] %}
-            <li id="{{ user[1] }}">{{ user[0] }}</li>
-          {% endfor %}
-        {% endif %}
-      </ul>
-    </fieldset>
-  </div>
-  {{ wishform.wish_description.label }}
-  {% if form_values[1] is not number %}
-    {{ wishform.wish_description(value=form_values[1]) }}
-  {% else %}
-    {{ wishform.wish_description }}
-  {% endif %}
-  {{ wishform.wish_url.label }}
-  {% if form_values[2] is not number %}
-    {{ wishform.wish_url(value=form_values[2]) }}
-  {% else %}
-    {{ wishform.wish_url }}
-  {% endif %}
-  <div class="form-options">
-    {% if wish.desired is true %}
-      {{ wishform.desired(checked="true") }}
-    {% else %}
-      {{ wishform.desired }}
-    {% endif %}
-    {{ wishform.desired.label }}
-    <div>
-      {{ delete|safe }}
-      {{ wishform.submit(class_="button-modal button") }}
+            <ul class="co_wishers_list">
+                {% if co_wisher|length < 0 %}
+                    {% for user in co_wisher %}
+                        <li id="{{ user.id }}">
+                            {{ user.first_name }}
+                            {{ ' <a id={{ user.id }} class="delete-co-wisher">(x)</a>'
+                            if wish.id == current_user.id }}
+                        </li>
+                    {% endfor %}
+                {% endif %}
+            </ul>
+        </fieldset>
     </div>
-  </div>
-{% endblock %}
+    {{ wish_form.wish_description.label }}
+    {{ wish_form.wish_description(value=wish.description) }}
+    {{ wish_form.wish_url.label }}
+    {{ wish_form.wish_url(value=wish.url) }}
+    <div class="form-options">
+        {% if wish.desired is true %}
+            {{ wish_form.desired(checked="true") }}
+        {% else %}
+            {{ wish_form.desired }}
+        {% endif %}
+        {{ wish_form.desired.label }}
+        <div class="form-actions">
+            {{ '<a id="%s" class="delete-wish">Slett</a>'|safe % wish.id if wish.user_id == current_user.id }}
+            {{ wish_form.submit(class_="button-modal button") }}
+        </div>
+    </div>
+</section>

@@ -9,9 +9,7 @@
 </ul>
 <h4>Personer</h4>
 <ul>
-    <li>Yasmin</li>
-    <li>Stian</li>
-    <li>Merete</li>
-    <li>Tim</li>
-    <li>Sofia</li>
+    {% for user in other_users %}
+    <li><a href="{{ url_for("views.user", user_id=user.id) }}">{{ user.first_name }}</a></li>
+    {% endfor %}
 </ul>

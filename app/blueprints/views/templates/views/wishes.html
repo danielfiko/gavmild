@@ -11,7 +11,6 @@
 {% block modal %}
     <div id="modal" class="modal">
         <div class="modal-content" id="modal-content">
-            {% include "wish_modal.html" %}
         </div>
     </div>
 {% endblock %}
@@ -21,5 +20,8 @@
 {% endblock %}
 
 {% block body %}
-    {% include "list_wishes.html" %}
+    {{ getform.hidden_tag() }}
+    {{ getform.filter(value=filter_value) }}
+    <div class="wishes-list">
+    </div>
 {% endblock %}
