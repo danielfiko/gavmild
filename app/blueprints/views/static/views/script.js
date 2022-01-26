@@ -25,7 +25,7 @@ function showModal(res) {
        ajaxCall($("#modal-right #wishform").attr("action"), {
            csrf_token: $("#csrf_token").val(),
            wish_img_url: $("#img_url").val(),
-           co_wisher: $("#co_wisher").val().split(","),
+           co_wisher: $("#co_wisher").val().replace(/, +/g, ",").split(",").map(Number),
            edit_id: $("#co_wisher").val(),
            wish_title: $("#title").val(),
            quantity: $("#quantity").val(),

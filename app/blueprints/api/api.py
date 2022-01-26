@@ -213,11 +213,11 @@ def add_co_wisher(co_wisher, wish_id):
     if co_wisher:
         for user in co_wisher:
             new_co_wisher = CoWishUser(id=wish_id, co_wish_user_id=user)
-            try:
-                db.session.add(new_co_wisher)
-                db.session.commit()
-            except:
-                return "Det oppstod en feil ved oppretting av ønsket"
+            db.session.add(new_co_wisher)
+        try:
+            db.session.commit()
+        except:
+            return "Det oppstod en feil ved oppretting av ønsket"
 
 
 def populate_colums(wishes, columns):
