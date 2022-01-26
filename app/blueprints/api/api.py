@@ -81,8 +81,6 @@ def update():
                     pass
 
                 return redirect(request.referrer)
-    else:
-        return wishform.errors
     return "Noe gikk galt med oppdatering av ønske"
 
 
