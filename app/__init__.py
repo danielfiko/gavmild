@@ -4,7 +4,8 @@ from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config.from_object("config")
+app.config.from_object("config.ProductionConfig")
+print(app.config['SQLALCHEMY_DATABASE_URI'])
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
