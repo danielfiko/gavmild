@@ -1,5 +1,7 @@
 from datetime import datetime
 from flask_login import UserMixin, current_user
+from sqlalchemy.orm import relationship
+
 from app import db
 
 
@@ -13,9 +15,18 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50))
     force_pw_change = db.Column(db.Integer, default=0)
+    wishes = relationship("Wish", back_populates="user")
+
 
     def tojson(self):
         return {"id": self.id, "username": self.username}
+
+
+class ClaimedWish(db.Model):
+    wish_id = db.Column(db.Integer, db.ForeignKey("wish.id"), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
+    quantity = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow())
 
 
 class Wish(db.Model):
@@ -27,9 +38,11 @@ class Wish(db.Model):
     quantity = db.Column(db.Integer, nullable=False, default=1)
     url = db.Column(db.String(255))
     img_url = db.Column(db.String(255))
-    claimed_by_user_id = db.Column(db.Integer, db.ForeignKey("user.id"), default=0)
     desired = db.Column(db.Boolean, default=0)
     date_claimed = db.Column(db.DateTime)
+    user = relationship("User", back_populates="wishes")
+    claimers = relationship("ClaimedWish")
+    co_wishers = relationship("CoWishUser")
 
     # TODO: Viser "i dag", dagen etter. Bør stå "i dag" og "1 dag siden"
     def time_since_creation(self):
@@ -45,6 +58,10 @@ class Wish(db.Model):
                 if difference_in_days < 1:
                     difference = "i dag"
         return difference
+
+    def get_claimer_ids(self):
+        return [claimer.id for claimer in self.claimers]
+
 
     def co_wisher(self):
         return db.session.query(User.first_name, User.id).join(CoWishUser).filter(CoWishUser.id == self.id).all()
@@ -96,6 +113,9 @@ class CoWishUser(db.Model):
     id = db.Column(db.Integer, db.ForeignKey("wish.id"), primary_key=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     co_wish_user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
+
+    def get_id(self):
+        return self.id
 
 
 class GroupMember(db.Model):

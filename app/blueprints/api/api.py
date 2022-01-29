@@ -41,20 +41,23 @@ def add():
         if len(form.wish_img_url.data) < 5:
             form.wish_img_url.data = url_for('views.static', filename='gift-default.png')
         new_wish = Wish(user_id=current_user.id, title=form.wish_title.data,
-                        description=form.wish_description.data, url=form.wish_url.data, img_url=form.wish_img_url.data,
-                        desired=form.desired.data)
+                        description=form.wish_description.data, quantity=form.quantity, url=form.wish_url.data,
+                        img_url=form.wish_img_url.data, desired=form.desired.data)
         if new_wish:
             try:
                 db.session.add(new_wish)
                 db.session.commit()
-                print("Wish ID: " + str(new_wish.id))
             except:
                 return "Det oppstod en feil ved oppretting av ønsket"
 
-            add_co_wisher(form.co_wisher.data, new_wish.id)
+            # FIXME: Kun ta i mot liste (tar i mot string nå og lagrer komma i tabellen)
+            if form.co_wisher:
+                for user_id in form.co_wisher:
+                    new_co_wisher = CoWishUser(id=new_wish.id, co_wish_user_id=user_id)
+                    db.session.add(new_co_wisher)
+                db.session.commit()
 
-            return render_template("list_item.html", wish=new_wish, user=new_wish.user_name(),
-                                   co_wisher=new_wish.co_wisher())
+            return jsonify({'success': True}), 200, {'ContentType': 'application/json'}
 
     return "Noe gikk galt, fikk ikke lagt til ønske."
 
@@ -62,23 +65,30 @@ def add():
 # TODO: Ikke ta i mot GET, håndter alt i ajax så bruker ikke ser denne ruta
 @api_bp.route("/update", methods=["POST"])
 def update():
+    print("update - 1")
     wishform = WishForm()
     if wishform.validate():
+        print("update - 2")
         if wishform.edit_id.data:
+            print("update - 3")
             wish = Wish.query.get(wishform.edit_id.data)
             if wish.user_id == current_user.id:
+                print("update - 4")
                 wish.title = wishform.wish_title.data
                 wish.description = wishform.wish_description.data
+                wish.quantity = wishform.quantity.data
                 wish.url = wishform.wish_url.data
-                wish.img_url = wishform.wish_img_url.data
-                wish.desired = 1 if wishform.desired.data else 0
-                form_co_wishers = wishform.co_wisher.data.split(",")
-                co_wishers = []
-                for w in form_co_wishers:
-                    co_wishers.append(int(w))
-                add_co_wisher(co_wishers, wish.id)
                 if len(wish.img_url) < 5:
                     wish.img_url = url_for('views.static', filename='gift-default.png')
+                else:
+                    wish.img_url = wishform.wish_img_url.data
+                wish.desired = 1 if wishform.desired.data else 0
+                form_co_wishers = wishform.co_wisher.data.split(",")
+                if form_co_wishers[0]:
+                    for user_id in form_co_wishers:
+                        new_co_wisher = CoWishUser(id=wishform.edit_id.data, co_wish_user_id=user_id)
+                        if new_co_wisher:
+                            db.session.add(new_co_wisher)
                 try:
                     db.session.commit()
                 except:
@@ -161,12 +171,11 @@ def claimed():
 # TODO: Ha separat "ønsker meg mest" for co wishere
 # TODO: Bestem redigeringsrettigheter/sletterettigheter for co wisher
 @api_bp.route("/wish/user/<int:user_id>", methods=["POST"])
-def user_wishes(user_id):
+def return_user_wishes(user_id):
     form = GetWishesForm()
     if form.validate():
-        wishes = db.session.query(Wish, User).select_from(Wish).join(CoWishUser, isouter=True) \
-            .join(User, User.id == Wish.user_id)\
-            .filter(or_(Wish.user_id == user_id, CoWishUser.co_wish_user_id == user_id)) \
+        wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
+                                       .any(CoWishUser.co_wish_user_id == user_id))) \
             .order_by(Wish.desired.desc(), Wish.date_created.desc()).all()
         return wishes_to_json(wishes)
 
@@ -188,11 +197,11 @@ def new_wish():
 
 
 @api_bp.route("/wish", methods=["POST"])
-def wish():
+def return_modal():
     form = GetWishesForm()
     claim_form = ClaimForm()
     if form.validate():
-        cur_wish = db.session.query(Wish, User).join(User, User.id == Wish.user_id)\
+        cur_wish = db.session.query(Wish, User).join(User, User.id == Wish.user_id) \
             .filter(Wish.id == form.wish_id.data).first()
         co_wisher = cur_wish[0].co_wisher()
 
@@ -220,91 +229,17 @@ def cowisher():
         return "Record not found", 400
 
 
-# FIXME: Kun ta i mot liste (tar i mot string nå og lagrer komma i tabellen)
-def add_co_wisher(co_wisher, wish_id):
-    if co_wisher:
-        for user in co_wisher:
-            new_co_wisher = CoWishUser(id=wish_id, co_wish_user_id=user)
-            db.session.add(new_co_wisher)
-        try:
-            db.session.commit()
-        except:
-            return "Det oppstod en feil ved oppretting av ønsket"
-
-
 def wishes_to_json(wishes):
     wishes_json_string = []
     co_wishers = []
-    for w, u in wishes:
-        for co_wisher in w.co_wisher():
-            co_wishers.append(co_wisher.first_name)
+    for whs in wishes:
         wishes_json_string.append({
-            "id": w.id,
-            "claimed": True if w.claimed_by_user_id and w.user_id != current_user.id else False,
-            "img_url": w.img_url,
-            "first_name": u.first_name,
-            "co_wisher": co_wishers,
-            "age": w.time_since_creation(),
-            "title": ("<span>&#9733; </span>" if w.desired else "") + w.title
+            "id": whs.id,
+            "claimed": True if whs.claimers and whs.user_id != current_user.id else False,
+            "img_url": whs.img_url,
+            "first_name": whs.user.first_name,
+            "co_wisher": whs.get_claimer_ids(),
+            "age": whs.time_since_creation(),
+            "title": ("<span>&#9733; </span>" if whs.desired else "") + whs.title
         })
     return jsonify(wishes_json_string)
-
-
-def populate_colums(wishes, columns):
-    current_column = 0
-    wishes_by_column = [[] for x in range(columns)]
-    if columns > 4:
-        return "Joe mama"
-    for w in wishes:
-        wishes_by_column[current_column].append(w)
-        if current_column < columns - 1:
-            current_column += 1
-        else:
-            current_column = 0
-    return wishes_by_column
-
-
-def wishes_json(filter, num_of_col=4):
-    # try:
-    desired = []
-    wish = []
-    wishes = Wish.query.order_by(Wish.date_created).all()
-
-    def filter_and_append(w):
-        if w.desired:
-            desired.append(w)
-        else:
-            wish.append(w)
-
-    for w in wishes:
-        if filter == "own" and w.user_id == current_user.id:
-            filter_and_append(w)
-        if filter == "claimed" and w.claimed_by_user_id == current_user.id:
-            filter_and_append(w)
-        if filter == "all_but_own" and w.user_id != current_user.id:
-            filter_and_append(w)
-
-    filtered_wishes = desired + wish
-
-    column_order = []
-    for i in range(num_of_col):
-        if not filtered_wishes: break
-        column_order.append([filtered_wishes.pop(0)])
-
-    while filtered_wishes:
-        for i in range(num_of_col):
-            if not filtered_wishes: break
-            column_order[i].append(filtered_wishes.pop(0))
-
-    wishes_arranged = []
-    for i in range(num_of_col):
-        jsonstring = [e.tojson() for e in column_order[i]]
-        wishes_arranged.append(jsonstring)
-        if i >= len(column_order) - 1:
-            break
-
-    json_output = jsonify(wishes_arranged)
-
-    return json_output
-# except:
-# return "Kunne ikke hente ønsker"

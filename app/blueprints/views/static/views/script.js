@@ -54,7 +54,8 @@ function appendWishesToMain(wishes, columns) {
         $div.append('<img src="'+wish.img_url+'">')
         let $ul = $("<ul>").addClass("co-wisher-list list-no-style").appendTo($div);
         $ul.append('<li>'+wish.first_name+'</li>');
-        $.each(wish.co_wisher, function(co_wisher){
+        $.each(wish.co_wisher, function(i, co_wisher){
+            console.log(co_wisher);
             $ul.append("<li>"+co_wisher+"</li>");
         });
         $div.append('<p class="wish-item-age">'+wish.age+'</p>')
@@ -94,7 +95,7 @@ function submitWishForm(event){
            csrf_token: $("#csrf_token").val(),
            wish_img_url: $("#img_url").val(),
            co_wisher: $("#co_wisher").val(),
-           edit_id: $("#co_wisher").val(),
+           edit_id: $("#edit_id").val(),
            wish_title: $("#title").val(),
            quantity: $("#quantity").val(),
            wish_description: $("#description").val(),
