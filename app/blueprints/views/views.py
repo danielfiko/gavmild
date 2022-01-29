@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, abort
 from flask_login import login_required, current_user
-from app.forms import GetWishesForm, ClaimForm, WishForm, RegisterForm, LoginForm
+from app.forms import GetWishesForm, ClaimForm, WishForm, RegisterForm, LoginForm, AjaxForm
 from app import db
 from app.models import Wish, User, CoWishUser
 
@@ -11,25 +11,22 @@ other_users = User.query.filter(id != current_user).all()
 
 
 @views_bp.route("/")
+@login_required
 def index():
-    if current_user.is_authenticated:
-        get_wishes_form = GetWishesForm()
-        claimform = ClaimForm()
-        wishform = WishForm()
-        return render_template("wishes.html", getform=get_wishes_form, claimform=claimform, wishform=wishform,
-                               filter_value="all", other_users=other_users)
-    else:
-        form = LoginForm()
-        return render_template("login.html", form=form)
+    return logged_in_content("all")
 
 
 @views_bp.route("/user/<int:user_id>")
 @login_required
 def user(user_id):
-    get_wishes_form = GetWishesForm()
+    return logged_in_content("user/"+str(user_id))
+
+
+def logged_in_content(filter):
+    ajaxform = AjaxForm()
     wishform = WishForm()
-    return render_template("wishes.html", getform=get_wishes_form, wishform=wishform, filter_value="user/"+str(user_id),
-                           other_users=other_users)
+    return render_template("logged_in_content.html",
+                           ajaxform=ajaxform, wishform=wishform, filter=filter, other_users=other_users)
 
 
 @views_bp.route("/claimed")

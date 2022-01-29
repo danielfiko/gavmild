@@ -1,14 +1,17 @@
-<button id="add-wish" class="button">(+) Nytt ønske</button>
-<ul>
+<div class="nav-add-wish-button display-none">
+    <button class="new-wish-button button-red"><i class="fas fa-pencil-alt footer-pencil"></i></button>
+    <label class="new-wish-button-label" for="new-wish-button">Nytt ønske</label>
+</div>
+<ul class="list-no-style">
     <li><a href="{{ url_for('views.user', user_id=current_user.id) }}">Min ønskeliste</a></li>
     <li><a href="{{ url_for('views.claimed') }}">Ønsker jeg har tatt</a></li>
 </ul>
 <h4>Kommende bursdager</h4>
-<ul>
+<ul class="list-no-style">
     <li>Robert (8. feb)</li>
 </ul>
 <h4>Personer</h4>
-<ul>
+<ul class="list-no-style">
     {% for user in other_users %}
     <li><a href="{{ url_for("views.user", user_id=user.id) }}">{{ user.first_name }}</a></li>
     {% endfor %}

@@ -5,16 +5,21 @@
 {% endblock %}
 
 {% block body %}
-<h1>Logg inn</h1>
+    <div class="user-auth-wrapper">
+        <header>
+            <a href="/"><img src="{{ url_for('views.static', filename='logo.png') }}" class="site-logo" alt="Gavmild logo"></a>
+        </header>
+        <h1>Logg inn</h1>
 
-<form method="POST" action="/login" class="login-form">
-    {{ form.hidden_tag() }}
-    {{ form.email.label }}
-    {{ form.email }}
-    {{ form.password.label }}
-    {{ form.password }}
-    {{ form.submit }}
-</form>
+        <form method="POST" action="/login" class="login-form">
+            {{ form.hidden_tag() }}
+            {{ form.email.label }}
+            {{ form.email }}
+            {{ form.password.label }}
+            {{ form.password }}
+            {{ form.submit }}
+        </form>
 
-<a href="{{url_for('views.register')}}">Har du ikke en konto? Opprett en konto her.</a>
+        <a href="{{url_for('views.register')}}">Har du ikke en konto? Opprett en konto her.</a>
+    </div>
 {% endblock %}

@@ -31,6 +31,7 @@ class Wish(db.Model):
     desired = db.Column(db.Boolean, default=0)
     date_claimed = db.Column(db.DateTime)
 
+    # TODO: Viser "i dag", dagen etter. Bør stå "i dag" og "1 dag siden"
     def time_since_creation(self):
         today = datetime.utcnow()
         difference_in_years = (today - self.date_created).days/365

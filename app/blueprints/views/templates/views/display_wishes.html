@@ -1,0 +1,11 @@
+{% if wishes[0]|length < 1 %}
+    <h4>Det er ingen ønsker å vise.</h4>
+{% else %}
+    {% for column in wishes %}
+        <div class="wish-column">
+        {% for wish, user in column %}
+            {% include "list_item.html" %}
+        {% endfor %}
+        </div>
+    {% endfor %}
+{% endif %}

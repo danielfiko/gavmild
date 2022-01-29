@@ -5,35 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="{{ url_for('views.static', filename='css/jquery.typeahead.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('views.static', filename='css/jquery-ui.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('views.static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('views.static', filename='css/modal.css') }}">
+    <script src="https://kit.fontawesome.com/a8a4964545.js" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="{{ url_for('views.static', filename='external/jquery/jquery.js') }}"></script>
+    <script src="{{ url_for('views.static', filename='jquery-ui.min.js') }}"></script>
     <script src="{{ url_for('views.static', filename='jquery.typeahead.min.js') }}"></script>
+    <script src="{{ url_for('views.static', filename='script.js') }}"></script>
+    <title>Gavmild{% block title %}{% endblock %}</title>
     {% block head %}{% endblock %}
 </head>
 
 <body>
-    <header>
-        <a href="/"><img src="{{ url_for('views.static', filename='logo.png') }}"></a>
-        {% if current_user.is_authenticated %}
-        <ul>
-            <li>{{ current_user.username }}</li>
-            <li><a href="{{ url_for('auth.logout') }}">Logg ut</a></li>
-        </ul>
-
-        {% endif %}
-    </header>
-    <main>
-        {% block modal %}{% endblock %}
-        <nav>
-            {% block nav %}{% endblock %}
-        </nav>
-        <section id="main-content">
-            {% block body %}{% endblock %}
-        </section>
-    </main>
+{% block body %}{% endblock %}
 </body>
-
 </html>

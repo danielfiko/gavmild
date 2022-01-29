@@ -16,8 +16,8 @@ api_bp = Blueprint("api", __name__,
 # TODO: Finn et bedre navn på ruta
 # TODO: Ikke returner valgte navn
 # TODO: Verifiser at det ikke er duplikater
-@api_bp.route("/search", methods=["GET", "POST"])
-def search():
+@api_bp.route("/typeahead", methods=["GET", "POST"])
+def typeahead():
     searchform = SearchForm()
     if request.method == "POST":
         if searchform.validate():
@@ -31,7 +31,7 @@ def search():
             jsonstring = jsonify([e.tojson() for e in result])
             return jsonstring
     else:
-        return render_template("search.html", searchform=searchform)
+        return "MeRkElIgE gReIeR", 500
 
 
 @api_bp.route("/add", methods=["POST"])
@@ -127,12 +127,20 @@ def claim():
 
 
 @api_bp.route("/wish/all", methods=["POST"])
+def wish_mobile():
+    wishes = db.session.query(Wish, User).select_from(Wish).join(CoWishUser, isouter=True) \
+        .join(User, User.id == Wish.user_id) \
+        .order_by(Wish.date_created, Wish.desired.desc()).limit(30).all()
+
+    return wishes_to_json(wishes)
+
+
 def new_all_wishes():
     form = GetWishesForm()
     if form.validate():
         wishes = db.session.query(Wish, User).select_from(Wish).join(CoWishUser, isouter=True) \
             .join(User, User.id == Wish.user_id).filter(User.id != current_user.id) \
-            .order_by(Wish.date_created.desc(), Wish.desired.desc()).limit(30).all()
+            .order_by(Wish.date_created, Wish.desired.desc()).limit(30).all()
 
     wishes = populate_colums(wishes, form.columns.data)
     return render_template("list_wishes.html", wishes=wishes)
@@ -160,8 +168,7 @@ def user_wishes(user_id):
             .join(User, User.id == Wish.user_id)\
             .filter(or_(Wish.user_id == user_id, CoWishUser.co_wish_user_id == user_id)) \
             .order_by(Wish.desired.desc(), Wish.date_created.desc()).all()
-        wishes = populate_colums(wishes, form.columns.data)
-        return render_template("list_wishes.html", wishes=wishes)
+        return wishes_to_json(wishes)
 
 
 def all_wishes():
@@ -203,6 +210,7 @@ def wish():
         return "getwishesform didn't validate"
 
 
+# FIXME: Tullete å kalle denne for hver bruker som blir lagt i lista
 @api_bp.route("/cowisher", methods=["POST"])
 def cowisher():
     user_id = User.query.get(request.values.get("user_id"))
@@ -222,6 +230,24 @@ def add_co_wisher(co_wisher, wish_id):
             db.session.commit()
         except:
             return "Det oppstod en feil ved oppretting av ønsket"
+
+
+def wishes_to_json(wishes):
+    wishes_json_string = []
+    co_wishers = []
+    for w, u in wishes:
+        for co_wisher in w.co_wisher():
+            co_wishers.append(co_wisher.fist_name)
+        wishes_json_string.append({
+            "id": w.id,
+            "claimed": True if w.claimed_by_user_id and w.user_id != current_user.id else False,
+            "img_url": w.img_url,
+            "first_name": u.first_name,
+            "co_wisher": co_wishers,
+            "age": w.time_since_creation(),
+            "title": ("<span>&#9733; </span>" if w.desired else "") + w.title
+        })
+    return jsonify(wishes_json_string)
 
 
 def populate_colums(wishes, columns):

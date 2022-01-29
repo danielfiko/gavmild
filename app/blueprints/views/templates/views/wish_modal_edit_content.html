@@ -1,15 +1,14 @@
-<section id="modal-left">
-    <img src="{{ wish.img_url }}" id="wish-img">
+{% extends "modal.html" %}
+{% block modal_left %}
     <fieldset>
         {{ wish_form.wish_img_url.label }}
         {{ wish_form.wish_img_url(value=wish.img_url) }}
-        <button type="button" class="button-modal button">
+        <button type="button" class="add-wish-image-from-url-button button-red button">
             <i class="fa fa-pencil-square-o"></i>
         </button>
     </fieldset>
-</section>
-<section id="modal-right">
-    <span class="close">&times;</span>
+{% endblock %}
+{% block modal_right %}
     <h2>Ønskedetaljer</h2>
     <form id="wishform" action="/api/{{ form_action }}" method="POST">
         {{ wish_form.csrf_token }}
@@ -18,16 +17,16 @@
     </form>
     {{ wish_form.wish_title.label }}
     {{ wish_form.wish_title(value=wish.title) }}
-    <div>
+    <div class="modal-form-quantity-cowisher-row">
         <fieldset>
             {{ wish_form.quantity.label }}
             {{ wish_form.quantity(value=wish.quantity) }}
         </fieldset>
-        <fieldset>
+        <fieldset class="add-co-wisher">
             {{ wish_form.co_wisher.label }}
             <div>
-                <div id="add-user-field">
-                    <button id="addWishUser" class="button-modal button .js-typeahead" form="none" type="button">
+                <div class="add-co-wisher-button-wrapper">
+                    <button class="add-co-wisher-button button-red .js-typeahead" form="none" type="button">
                         <i class="fa fa-user-plus"></i>
                     </button>
                     <label for="addWishUser">Ønsk sammen med noen</label>
@@ -47,7 +46,7 @@
                     </div>
                 </form>
             </div>
-            <ul class="co_wishers_list">
+            <ul class="co-wisher-list list-no-style">
                 {% if co_wisher|length < 0 %}
                     {% for user in co_wisher %}
                         <li id="{{ user.id }}">
@@ -73,7 +72,7 @@
         {{ wish_form.desired.label }}
         <div class="form-actions">
             {{ '<a id="%s" class="delete-wish">Slett</a>'|safe % wish.id if wish.user_id == current_user.id }}
-            {{ wish_form.submit(class_="button-modal button") }}
+            {{ wish_form.submit(class_="button-red button") }}
         </div>
     </div>
-</section>
+{% endblock %}
