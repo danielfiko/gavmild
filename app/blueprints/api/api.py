@@ -237,7 +237,7 @@ def wishes_to_json(wishes):
     co_wishers = []
     for w, u in wishes:
         for co_wisher in w.co_wisher():
-            co_wishers.append(co_wisher.fist_name)
+            co_wishers.append(co_wisher.first_name)
         wishes_json_string.append({
             "id": w.id,
             "claimed": True if w.claimed_by_user_id and w.user_id != current_user.id else False,
