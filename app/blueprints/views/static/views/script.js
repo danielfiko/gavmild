@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    displayWishes();
+    requestWishes();
     $(".new-wish-button, .new-wish-button-label").click(function() { addNewWish()});
     $(".nav-checkbox").click(toggleHamburger);
     $(".logout-button").click(function(){window.location.href='/logout'}); // FIXME: statisk link
@@ -29,7 +29,7 @@ function toggleHamburger(){
     }
 }
 
-function displayWishes() {
+function requestWishes() {
     ajaxCall("/api/wish/" + $("#filter").val(), {
         csrf_token: $("#csrf_token").val()
     }).then(function(wishes) {
@@ -55,7 +55,7 @@ function appendWishesToMain(wishes, columns) {
         let $ul = $("<ul>").addClass("co-wisher-list list-no-style").appendTo($div);
         $ul.append('<li>'+wish.first_name+'</li>');
         $.each(wish.co_wisher, function(co_wisher){
-            $ul.append("<li>"+co_wisher.first_name+"</li>");
+            $ul.append("<li>"+co_wisher+"</li>");
         });
         $div.append('<p class="wish-item-age">'+wish.age+'</p>')
         let $h3 = $("<h3>").addClass("wish-item-title").appendTo($div);
