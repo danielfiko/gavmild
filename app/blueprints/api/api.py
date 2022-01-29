@@ -129,7 +129,7 @@ def claim():
 @api_bp.route("/wish/all", methods=["POST"])
 def wish_mobile():
     wishes = db.session.query(Wish, User).select_from(Wish).join(CoWishUser, isouter=True) \
-        .join(User, User.id == Wish.user_id) \
+        .join(User, User.id == Wish.user_id).filter(User.id != current_user.id) \
         .order_by(Wish.date_created, Wish.desired.desc()).limit(30).all()
 
     return wishes_to_json(wishes)
