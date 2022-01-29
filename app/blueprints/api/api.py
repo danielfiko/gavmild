@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, jsonify, redirect, url_fo
 from flask_login import current_user
 from sqlalchemy import or_
 
-from app.models import User, Wish, CoWishUser
+from app.models import User, Wish, CoWishUser, ClaimedWish
 from app.forms import SearchForm, WishForm, ClaimForm, GetWishesForm
 from app import db
 
@@ -138,8 +138,7 @@ def claim():
 
 @api_bp.route("/wish/all", methods=["POST"])
 def wish_mobile():
-    wishes = db.session.query(Wish, User).select_from(Wish).join(CoWishUser, isouter=True) \
-        .join(User, User.id == Wish.user_id).filter(User.id != current_user.id) \
+    wishes = Wish.query.filter(User.id != current_user.id) \
         .order_by(Wish.date_created, Wish.desired.desc()).limit(30).all()
 
     return wishes_to_json(wishes)
@@ -160,11 +159,11 @@ def new_all_wishes():
 def claimed():
     form = GetWishesForm()
     if form.validate():
-        wishes = db.session.query(Wish, User).join(User, User.id == Wish.user_id) \
-            .filter(Wish.claimed_by_user_id == current_user.id) \
+        wishes = Wish.query.filter(Wish.claimers.any(ClaimedWish.user_id == current_user.id)) \
             .order_by(Wish.date_claimed.desc()).all()
-    wishes = populate_colums(wishes, form.columns.data)
-    return render_template("list_wishes.html", wishes=wishes)
+    if not wishes:
+        return "Ingen ønsker"
+    return wishes_to_json(wishes)
 
 
 # TODO: Legg til mulighet for å fjerne seg selv som co wisher

@@ -32,11 +32,7 @@ def logged_in_content(filter):
 @views_bp.route("/claimed")
 @login_required
 def claimed():
-    get_wishes_form = GetWishesForm()
-    claimform = ClaimForm()
-    wishform = WishForm()
-    return render_template("wishes.html", getform=get_wishes_form, claimform=claimform, wishform=wishform,
-                           filter_value="claimed", other_users=other_users)
+    return logged_in_content("wish/claimed")
 
 
 @views_bp.route("/dashboard", methods=["GET", "POST"])
