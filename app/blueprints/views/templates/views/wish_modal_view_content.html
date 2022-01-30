@@ -6,10 +6,11 @@
     {% endif %}
     <h2>{{ wish.title }}</h2>
     <div class="display-wish-footer">
-        <span>Kr. {{ wish.price }},-</span>
+        <p>Kr. {{ wish.price }},-
         {% if wish.url|length > 0 %}
             <a href="{{ wish.url }}" id="product-url" target="_blank">{{ netloc }} <i class="fas fa-external-link-alt"></i></a>
         {% endif %}
+        </p>
     </div>
     <h3>Av&nbsp;<ul class="co-wisher-list list-no-style">
         <li>{{ wish.user.first_name }}</li>
