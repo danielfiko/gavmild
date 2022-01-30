@@ -17,7 +17,6 @@ class User(db.Model, UserMixin):
     force_pw_change = db.Column(db.Integer, default=0)
     wishes = relationship("Wish", back_populates="user")
 
-
     def tojson(self):
         return {"id": self.id, "username": self.username}
 
@@ -41,6 +40,7 @@ class Wish(db.Model):
     img_url = db.Column(db.String(255))
     desired = db.Column(db.Boolean, default=0)
     date_claimed = db.Column(db.DateTime)
+    price = db.Column(db.Integer)
     user = relationship("User", back_populates="wishes")
     claimers = relationship("ClaimedWish")
     co_wishers = relationship("CoWishUser")
@@ -48,10 +48,10 @@ class Wish(db.Model):
     # TODO: Viser "i dag", dagen etter. Bør stå "i dag" og "1 dag siden"
     def time_since_creation(self):
         today = datetime.utcnow()
-        difference_in_years = (today - self.date_created).days/365
+        difference_in_years = (today - self.date_created).days / 365
         difference = str(difference_in_years) + " år siden"
         if difference_in_years < 1:
-            difference_in_months = (today - self.date_created).days/30
+            difference_in_months = (today - self.date_created).days / 30
             difference = str(difference_in_months) + " måneder siden"
             if difference_in_months < 1:
                 difference_in_days = (today - self.date_created).days

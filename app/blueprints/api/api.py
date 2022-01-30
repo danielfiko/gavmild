@@ -2,7 +2,7 @@ from datetime import datetime
 from urllib.parse import urlsplit
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for
 from flask_login import current_user
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 
 from app.models import User, Wish, CoWishUser, ClaimedWish
 from app.forms import WishForm, AjaxForm
@@ -59,7 +59,7 @@ def add():
 
             return jsonify({'success': True}), 200, {'ContentType': 'application/json'}
 
-    return "Noe gikk galt, fikk ikke lagt til ønske."
+    return "Noe gikk galt, fikk ikke lagt til ønske.", 400
 
 
 # TODO: Ikke ta i mot GET, håndter alt i ajax så bruker ikke ser denne ruta
@@ -91,7 +91,7 @@ def update():
                 print(str(error.orig) + " for parameters" + str(error.params))
 
             return redirect(request.referrer)
-    return "Noe gikk galt med oppdatering av ønske"
+    return "Noe gikk galt med oppdatering av ønske", 400
 
 
 @api_bp.route("/delete", methods=["POST"])
@@ -103,9 +103,9 @@ def delete():
             db.session.commit()
             return "Ønske slettet"
         except:
-            return "Noe gikk galt - kunne ikke slette ønsket"
+            return "Noe gikk galt - kunne ikke slette ønsket", 400
     else:
-        return "Noe gikk galt"
+        return "Noe gikk galt", 400
 
 
 @api_bp.route("/claim", methods=["POST"])
@@ -113,21 +113,21 @@ def claim():
     form = AjaxForm()
     if form.validate():
         wish = Wish.query.get(form.claimed_wish_id.data)
-        if not wish.claimers and wish.user_id != current_user.id:  # Sjekker ikke om bruker har lov til å ta valgte ønske
+        if not wish.claimers and wish.user_id != current_user.id:# Sjekker ikke om bruker har lov til å ta valgte ønske
             claim = ClaimedWish(wish_id=form.claimed_wish_id.data, user_id=current_user.id, quantity=1)
             db.session.add(claim)
             db.session.commit()
-        elif wish.claimers.any(ClaimedWish.user_id) == current_user.id:
-            wish.claimers = 0
+        elif current_user.id in wish.get_claimers():
+            ClaimedWish.query.filter(ClaimedWish.user_id == current_user.id, ClaimedWish.wish_id == wish.id).delete()
 
         else:
-            return "Feil ved claiming"
+            return "Feil ved claiming", 400
 
         try:
             db.session.commit()
 
         except:
-            return "Det oppstod en feil med å ta ønsket."
+            return "Det oppstod en feil med å ta ønsket.", 500
 
         return redirect(request.referrer)
 
@@ -146,8 +146,6 @@ def claimed():
     if form.validate():
         wishes = Wish.query.filter(Wish.claimers.any(ClaimedWish.user_id == current_user.id)) \
             .order_by(Wish.date_claimed.desc()).all()
-    if not wishes:
-        return "Ingen ønsker"
     return wishes_to_json(wishes)
 
 
@@ -217,4 +215,7 @@ def wishes_to_json(wishes):
             "age": whs.time_since_creation(),
             "title": ("<span>&#9733; </span>" if whs.desired else "") + whs.title
         })
-    return jsonify(wishes_json_string)
+    if wishes_json_string:
+        return jsonify(wishes_json_string)
+    else:
+        return jsonify({}), 200, {'ContentType': 'application/json'}

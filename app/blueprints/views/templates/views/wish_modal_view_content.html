@@ -24,7 +24,7 @@
         {{ claimform.hidden_tag() }}
         {{ claimform.claimed_wish_id(value=wish.id) }}
         {{ claimform.claimed_action }}
-        {% if wish.claimers.user_id == current_user.id %}
+        {% if wish.get_claimers() and current_user.id in wish.get_claimers() %}
             <button class="claim-button unclaim button-red" id="claim_btn" name="claim_btn" type="submit">
                 <i class="fas fa-gift"></i><span>Ikke ta ønske</span>
             </button>

@@ -16,15 +16,15 @@ function ajaxCall(route, data, callback) {
 
 function toggleHamburger(){
     if ($(".nav-checkbox").is(":checked")) {
-        $("main").fadeOut("fast", "linear", function(){
+        $("main").hide(0,function(){
             $(".container").css("grid-template-columns", "1fr 0 0");
-            $(".nav-toggle-item").toggle("slide",600);
+            $(".nav-toggle-item").toggle();
         })
     }
     else {
-        $(".nav-toggle-item").toggle("slide", function(){
+        $(".nav-toggle-item").toggle(0,function(){
             $(".container").css("grid-template-columns", "0 1fr 1fr");
-            $("main").fadeIn("fast")
+            $("main").show(0)
         })
     }
 }
@@ -33,7 +33,14 @@ function requestWishes() {
     ajaxCall("/api/wish/" + $("#filter").val(), {
         csrf_token: $("#csrf_token").val()
     }).then(function(wishes) {
-        appendWishesToMain(wishes, Math.min(Math.max(Math.round($(window).width()/200),1),4));
+        if (!Object.keys(wishes).length) {
+            $("main").append("<h2>Ingen ønsker</h2>");
+            console.log(Object.keys(wishes).length)
+        }
+        else {
+            console.log(Object.keys(wishes).length)
+            appendWishesToMain(wishes, Math.min(Math.max(Math.round($(window).width()/200),1),4));
+        }
         $(window).resize(function(){
             appendWishesToMain(wishes, Math.min(Math.max(Math.round($(window).width()/200),1),4))
         })
@@ -55,7 +62,6 @@ function appendWishesToMain(wishes, columns) {
         let $ul = $("<ul>").addClass("co-wisher-list list-no-style").appendTo($div);
         $ul.append('<li>'+wish.first_name+'</li>');
         $.each(wish.co_wisher, function(i, co_wisher){
-            console.log(co_wisher);
             $ul.append("<li>"+co_wisher+"</li>");
         });
         $div.append('<p class="wish-item-age">'+wish.age+'</p>')
@@ -135,7 +141,6 @@ function viewWish(id) {
     }).then(function(res) {
         showModal(res);
         if ($(".modal .co-wisher-list li:first").length) {
-            console.log("det finnes cowishere")
             $(".typeahead__container").show();
             $(".modal .co-wisher-list").show();
             $("#add-user-field").hide();

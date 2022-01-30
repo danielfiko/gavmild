@@ -118,7 +118,7 @@
 }
 
 .modal-right h2 {
-  margin: 0 0 5px 0;
+  margin: 0 0 25px 0;
   font-size: 2em;
   font-family: 'Poppins', sans-serif;
   font-weight: 300;
@@ -192,14 +192,19 @@
   border: none;
 }
 
-.modal-form-quantity-cowisher-row {
-    display: flex;
-  gap: 10px;
+.modal-form-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  column-gap: 10px;
 }
 
-.modal-form-quantity-cowisher-row select {
-  display: block;
+.modal-form-row select{
+  grid-column-start: 1
 }
+
+/*.modal-form-quantity-cowisher-row select {*/
+/*  display: block;*/
+/*}*/
 
 
 .co-wish-search-field, select, input, textarea {
@@ -281,6 +286,13 @@ label[for="co_wisher"] {
 .typeahead__field .typeahead__button {
   align-self: flex-end;
 }
+.typeahead__container fieldset {
+  padding: 0;
+}
+
+.modal .co-wisher-list {
+  margin: 3px 0 12px 3px;
+}
 
 .add-co-wisher-button {
   padding: 10px;
@@ -294,7 +306,6 @@ label[for="co_wisher"] {
 
 .delete-co-wisher {
   cursor: pointer;
-  margin-right: 2px;
   color: #333333;
 }
 

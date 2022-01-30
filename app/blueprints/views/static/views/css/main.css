@@ -178,6 +178,7 @@ main {
     flex-direction: column;
     position: relative;
     cursor: zoom-in;
+    padding: 6px;
 }
 
 .wish-item > * {
@@ -352,7 +353,7 @@ footer input[type="checkbox"]:checked ~ .hamburger-lines .line3 {
         "footer         footer  footer";
     }
     .background-white {
-    background-color: transparent;
+        background-color: transparent;
 }
     .display-none {
         display: block;
