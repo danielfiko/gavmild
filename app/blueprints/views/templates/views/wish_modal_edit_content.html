@@ -48,7 +48,7 @@
                 </div>
             </form>
         </div>
-        <ul class="co-wisher-list list-no-style">
+        <ul class="co-wisher-list list-no-style edit-style">
             {% if wish.co_wishers|length < 0 %}
                 {% for user in wish.co_wishers %}
                     <li id="{{ user.user_id }}">
