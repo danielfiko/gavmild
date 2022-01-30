@@ -4,7 +4,6 @@ from flask import Blueprint, render_template
 from flask_login import current_user
 
 from app import db
-from app.forms import ClaimForm
 from app.models import Wish, User, CoWishUser
 
 wishes_bp = Blueprint("wishes", __name__,

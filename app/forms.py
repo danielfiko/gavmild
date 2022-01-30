@@ -50,22 +50,6 @@ class WishForm(FlaskForm):
     submit = SubmitField("Lagre", render_kw={"form": "wishform"})
 
 
-class ClaimForm(FlaskForm):
-    claimed_wish_id = StringField(render_kw={"type": "hidden"}, id="claimed_wish_id")
-    unclaim_btn = SubmitField("Ikke ta", render_kw={"class": "claim-button button-red"})
-    claim_btn = SubmitField("Ta", render_kw={"class": "claim-button button-red"})
-
-
-class SearchForm(FlaskForm):
-    searchbox = StringField(id="livebox")
-
-
-class GetWishesForm(FlaskForm):
-    filter = StringField(render_kw={"type": "hidden"})
-    wish_id = IntegerField()
-    columns = IntegerField()
-
-
 class AjaxForm(FlaskForm):
     # Claiming
     claimed_wish_id = StringField(render_kw={"type": "hidden"}, id="claimed_wish_id")

@@ -47,9 +47,9 @@
                 </form>
             </div>
             <ul class="co-wisher-list list-no-style">
-                {% if co_wisher|length < 0 %}
-                    {% for user in co_wisher %}
-                        <li id="{{ user.id }}">
+                {% if wish.co_wishers|length < 0 %}
+                    {% for user in wish.co_wishers %}
+                        <li id="{{ user.user_id }}">
                             {{ user.first_name }}
                             {{ ' <a id={{ user.id }} class="delete-co-wisher">(x)</a>'
                             if wish.id == current_user.id }}
@@ -64,7 +64,7 @@
     {{ wish_form.wish_url.label }}
     {{ wish_form.wish_url(value=wish.url) }}
     <div class="form-options">
-        {% if wish.desired is true %}
+        {% if wish.desired %}
             {{ wish_form.desired(checked="true") }}
         {% else %}
             {{ wish_form.desired }}

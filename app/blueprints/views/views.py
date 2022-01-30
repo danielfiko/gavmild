@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, jsonify, abort
 from flask_login import login_required, current_user
-from app.forms import GetWishesForm, ClaimForm, WishForm, RegisterForm, LoginForm, AjaxForm
+from app.forms import WishForm, RegisterForm, LoginForm, AjaxForm
 from app import db
 from app.models import Wish, User, CoWishUser
 
@@ -32,7 +32,7 @@ def logged_in_content(filter):
 @views_bp.route("/claimed")
 @login_required
 def claimed():
-    return logged_in_content("wish/claimed")
+    return logged_in_content("claimed")
 
 
 @views_bp.route("/dashboard", methods=["GET", "POST"])

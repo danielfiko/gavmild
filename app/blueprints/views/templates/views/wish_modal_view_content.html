@@ -11,10 +11,10 @@
         {% endif %}
     </div>
     <h3>Av&nbsp;<ul class="co-wisher-list list-no-style">
-        <li>{{ user.first_name }}</li>
-        {% if co_wisher|length > 0 %}
-            {% for user in co_wisher %}
-                <li>{{ user.first_name }}</li>
+        <li>{{ wish.user.first_name }}</li>
+        {% if wish.co_wishers|length > 0 %}
+            {% for user in wish.co_wishers %}
+                <li>{{ user.user.first_name }}</li>
             {% endfor %}
         {% endif %}
     </ul>
@@ -24,12 +24,12 @@
         {{ claimform.hidden_tag() }}
         {{ claimform.claimed_wish_id(value=wish.id) }}
         {{ claimform.claimed_action }}
-        {% if wish.claimed_by_user_id == current_user.id %}
+        {% if wish.claimers.user_id == current_user.id %}
             <button class="claim-button unclaim button-red" id="claim_btn" name="claim_btn" type="submit">
                 <i class="fas fa-gift"></i><span>Ikke ta ønske</span>
             </button>
         {% endif %}
-        {% if not wish.claimed_by_user_id %}
+        {% if not wish.claimers %}
             <button class="claim-button button-red" id="claim_btn" name="claim_btn" type="submit">
                 <i class="fas fa-gift"></i><span>Ta ønske</span>
             </button>

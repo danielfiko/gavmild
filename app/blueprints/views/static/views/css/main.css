@@ -200,7 +200,7 @@ main {
 
 .co-wisher-list li {
     display: inline;
-    font-size: 0.9em;
+    font-size: 0.9rem;
 }
 
 .co-wisher-list li:after {
@@ -225,10 +225,10 @@ main {
 
 .claim-check-mark {
     position: absolute;
-    top: 18px;
-    right: 18px;
+    top: 6px;
+    right: 6px;
     color: #3A7734;
-    font-size: 2em;
+    font-size: 1.5em;
 }
 
 /*

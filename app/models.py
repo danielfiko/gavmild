@@ -27,6 +27,7 @@ class ClaimedWish(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
     quantity = db.Column(db.Integer, nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow())
+    user = relationship("User")
 
 
 class Wish(db.Model):
@@ -59,9 +60,8 @@ class Wish(db.Model):
                     difference = "i dag"
         return difference
 
-    def get_claimer_ids(self):
-        return [claimer.id for claimer in self.claimers]
-
+    def get_claimers(self):
+        return {int(claimer.user_id): claimer.user.first_name for claimer in self.claimers} if self.claimers else None
 
     def co_wisher(self):
         return db.session.query(User.first_name, User.id).join(CoWishUser).filter(CoWishUser.id == self.id).all()
@@ -113,6 +113,7 @@ class CoWishUser(db.Model):
     id = db.Column(db.Integer, db.ForeignKey("wish.id"), primary_key=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     co_wish_user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
+    user = relationship("User")
 
     def get_id(self):
         return self.id

@@ -5,7 +5,7 @@ from flask_login import current_user
 from sqlalchemy import or_
 
 from app.models import User, Wish, CoWishUser, ClaimedWish
-from app.forms import SearchForm, WishForm, ClaimForm, GetWishesForm
+from app.forms import WishForm, AjaxForm
 from app import db
 
 api_bp = Blueprint("api", __name__,
@@ -18,7 +18,7 @@ api_bp = Blueprint("api", __name__,
 # TODO: Verifiser at det ikke er duplikater
 @api_bp.route("/typeahead", methods=["GET", "POST"])
 def typeahead():
-    searchform = SearchForm()
+    searchform = AjaxForm()
     if request.method == "POST":
         if searchform.validate():
             searchbox = searchform.searchbox.data
@@ -65,36 +65,32 @@ def add():
 # TODO: Ikke ta i mot GET, håndter alt i ajax så bruker ikke ser denne ruta
 @api_bp.route("/update", methods=["POST"])
 def update():
-    print("update - 1")
     wishform = WishForm()
-    if wishform.validate():
-        print("update - 2")
-        if wishform.edit_id.data:
-            print("update - 3")
-            wish = Wish.query.get(wishform.edit_id.data)
-            if wish.user_id == current_user.id:
-                print("update - 4")
-                wish.title = wishform.wish_title.data
-                wish.description = wishform.wish_description.data
-                wish.quantity = wishform.quantity.data
-                wish.url = wishform.wish_url.data
-                if len(wish.img_url) < 5:
-                    wish.img_url = url_for('views.static', filename='gift-default.png')
-                else:
-                    wish.img_url = wishform.wish_img_url.data
-                wish.desired = 1 if wishform.desired.data else 0
-                form_co_wishers = wishform.co_wisher.data.split(",")
-                if form_co_wishers[0]:
-                    for user_id in form_co_wishers:
-                        new_co_wisher = CoWishUser(id=wishform.edit_id.data, co_wish_user_id=user_id)
-                        if new_co_wisher:
-                            db.session.add(new_co_wisher)
-                try:
-                    db.session.commit()
-                except:
-                    return "update failed"
+    if wishform.validate() and wishform.edit_id.data:
+        wish = Wish.query.get(wishform.edit_id.data)
+        if wish.user_id == current_user.id:
+            print("update - 4")
+            wish.title = wishform.wish_title.data
+            wish.description = wishform.wish_description.data
+            wish.quantity = wishform.quantity.data
+            wish.url = wishform.wish_url.data
+            if len(wish.img_url) < 5:
+                wish.img_url = url_for('views.static', filename='gift-default.png')
+            else:
+                wish.img_url = wishform.wish_img_url.data
+            wish.desired = 1 if wishform.desired.data else 0
+            form_co_wishers = wishform.co_wisher.data.split(",")
+            if form_co_wishers[0]:
+                for user_id in form_co_wishers:
+                    new_co_wisher = CoWishUser(id=wishform.edit_id.data, co_wish_user_id=user_id)
+                    if new_co_wisher:
+                        db.session.add(new_co_wisher)
+            try:
+                db.session.commit()
+            except Exception as error:
+                print(str(error.orig) + " for parameters" + str(error.params))
 
-                return redirect(request.referrer)
+            return redirect(request.referrer)
     return "Noe gikk galt med oppdatering av ønske"
 
 
@@ -114,15 +110,15 @@ def delete():
 
 @api_bp.route("/claim", methods=["POST"])
 def claim():
-    form = ClaimForm()
+    form = AjaxForm()
     if form.validate():
         wish = Wish.query.get(form.claimed_wish_id.data)
-        if not wish.claimed_by_user_id and wish.user_id != current_user.id:  # Sjekker ikke om bruker har lov til å ta valgte ønske
-            wish.claimed_by_user_id = current_user.id
-            wish.date_claimed = datetime.utcnow()
-
-        elif wish.claimed_by_user_id == current_user.id:
-            wish.claimed_by_user_id = 0
+        if not wish.claimers and wish.user_id != current_user.id:  # Sjekker ikke om bruker har lov til å ta valgte ønske
+            claim = ClaimedWish(wish_id=form.claimed_wish_id.data, user_id=current_user.id, quantity=1)
+            db.session.add(claim)
+            db.session.commit()
+        elif wish.claimers.any(ClaimedWish.user_id) == current_user.id:
+            wish.claimers = 0
 
         else:
             return "Feil ved claiming"
@@ -138,26 +134,15 @@ def claim():
 
 @api_bp.route("/wish/all", methods=["POST"])
 def wish_mobile():
-    wishes = Wish.query.filter(User.id != current_user.id) \
+    wishes = Wish.query.filter(Wish.user_id != current_user.id) \
         .order_by(Wish.date_created, Wish.desired.desc()).limit(30).all()
 
     return wishes_to_json(wishes)
 
 
-def new_all_wishes():
-    form = GetWishesForm()
-    if form.validate():
-        wishes = db.session.query(Wish, User).select_from(Wish).join(CoWishUser, isouter=True) \
-            .join(User, User.id == Wish.user_id).filter(User.id != current_user.id) \
-            .order_by(Wish.date_created, Wish.desired.desc()).limit(30).all()
-
-    wishes = populate_colums(wishes, form.columns.data)
-    return render_template("list_wishes.html", wishes=wishes)
-
-
 @api_bp.route("/wish/claimed", methods=["POST"])
 def claimed():
-    form = GetWishesForm()
+    form = AjaxForm()
     if form.validate():
         wishes = Wish.query.filter(Wish.claimers.any(ClaimedWish.user_id == current_user.id)) \
             .order_by(Wish.date_claimed.desc()).all()
@@ -171,7 +156,7 @@ def claimed():
 # TODO: Bestem redigeringsrettigheter/sletterettigheter for co wisher
 @api_bp.route("/wish/user/<int:user_id>", methods=["POST"])
 def return_user_wishes(user_id):
-    form = GetWishesForm()
+    form = AjaxForm()
     if form.validate():
         wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
                                        .any(CoWishUser.co_wish_user_id == user_id))) \
@@ -179,16 +164,10 @@ def return_user_wishes(user_id):
         return wishes_to_json(wishes)
 
 
-def all_wishes():
-    form = GetWishesForm()
-    if form.validate():
-        return wishes_json(form.filter.data)
-
-
 @api_bp.route("/wish/new", methods=["POST"])
 def new_wish():
     wish_form = WishForm()
-    claim_form = ClaimForm()
+    claim_form = AjaxForm()
     empty_wish = Wish(user_id="", title="", description="", url="",
                       img_url=url_for('views.static', filename='gift-default.png'), desired="")
     return render_template("wish_modal_edit_content.html", wish=empty_wish, wish_form=wish_form, claimform=claim_form,
@@ -197,23 +176,20 @@ def new_wish():
 
 @api_bp.route("/wish", methods=["POST"])
 def return_modal():
-    form = GetWishesForm()
-    claim_form = ClaimForm()
+    form = AjaxForm()
+    claim_form = AjaxForm()
     if form.validate():
-        cur_wish = db.session.query(Wish, User).join(User, User.id == Wish.user_id) \
-            .filter(Wish.id == form.wish_id.data).first()
-        co_wisher = cur_wish[0].co_wisher()
+        wish = Wish.query.filter(Wish.id == form.wish_id.data).first()
 
         # Returnere redigerbart ønske
-        if cur_wish[0].user_id == current_user.id:
+        if wish.user_id == current_user.id:
             wish_form = WishForm()
-            return render_template("wish_modal_edit_content.html", wish=cur_wish[0], user=cur_wish[1],
-                                   co_wisher=co_wisher, claimform=claim_form, wish_form=wish_form, form_action="update")
+            return render_template("wish_modal_edit_content.html", wish=wish,
+                                   claimform=claim_form, wish_form=wish_form, form_action="update")
         # Returnere andres ønske
         else:
-            netloc = "{0.netloc}".format(urlsplit(cur_wish[0].url))
-            return render_template("wish_modal_view_content.html", wish=cur_wish[0], user=cur_wish[1],
-                                   claimform=claim_form, netloc=netloc, co_wisher=co_wisher)
+            netloc = "{0.netloc}".format(urlsplit(wish.url))
+            return render_template("wish_modal_view_content.html", wish=wish, claimform=claim_form, netloc=netloc)
     else:
         return "getwishesform didn't validate"
 
@@ -237,7 +213,7 @@ def wishes_to_json(wishes):
             "claimed": True if whs.claimers and whs.user_id != current_user.id else False,
             "img_url": whs.img_url,
             "first_name": whs.user.first_name,
-            "co_wisher": whs.get_claimer_ids(),
+            "co_wisher": whs.get_claimers(),
             "age": whs.time_since_creation(),
             "title": ("<span>&#9733; </span>" if whs.desired else "") + whs.title
         })
