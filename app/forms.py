@@ -40,7 +40,7 @@ class WishForm(FlaskForm):
         TextAreaField("Detaljer", validators=[Length(min=0, max=255)],
                       render_kw={"placeholder": "Farge, størrelse o.l.", "form": "wishform"},
                       id="description")
-    wish_url = URLField("Lenke", validators=[Length(min=0, max=255)],
+    wish_url = StringField("Lenke", validators=[Length(min=0, max=255)],
                         render_kw={"placeholder": "Lenke til nettside for produktet",
                                    "form": "wishform"}, id="url")
     wish_img_url = URLField("Legg til nytt bilde", validators=[Length(min=0, max=255)],
