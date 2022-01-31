@@ -105,9 +105,11 @@ function submitWishForm(event){
            wish_title: $("#title").val(),
            quantity: $("#quantity").val(),
            wish_description: $("#description").val(),
-           wish_url: $("#url").val()
+           wish_url: $("#url").val(),
+           price: $("#price").val()
        }).then(function(res){
-
+           $("#modal").hide()
+           requestWishes();
        })
        event.preventDefault();
     }

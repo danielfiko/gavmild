@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from markupsafe import Markup
 from wtforms import StringField, PasswordField, EmailField, DateField, SubmitField, TextAreaField, BooleanField, \
     HiddenField, SelectField, IntegerField, URLField
-from wtforms.validators import InputRequired, Length, ValidationError, Email, NumberRange
+from wtforms.validators import InputRequired, Length, ValidationError, Email, NumberRange, Optional
 
 from .models import User
 
@@ -40,17 +40,17 @@ class WishForm(FlaskForm):
         TextAreaField("Detaljer", validators=[Length(min=0, max=255)],
                       render_kw={"placeholder": "Farge, størrelse o.l.", "form": "wishform"},
                       id="description")
-    wish_url = StringField("Lenke", validators=[Length(min=0, max=255)],
+    wish_url = URLField("Lenke", validators=[Length(min=0, max=255)],
                         render_kw={"placeholder": "Lenke til nettside for produktet",
                                    "form": "wishform"}, id="url")
-    wish_img_url = URLField("Legg til nytt bilde", validators=[Length(min=0, max=255)],
+    wish_img_url = StringField("Legg til nytt bilde", validators=[Length(min=0, max=255)],
                             render_kw={"placeholder": "Lenke til bilde av produktet", "form": "wishform"},
                             id="img_url")
     desired = BooleanField(Markup(" Ønsker meg mest"), render_kw={"form": "wishform"})
     co_wisher = HiddenField("Ønsk sammen med", render_kw={"form": "wishform"})
     quantity = SelectField("Antall", render_kw={"form": "wishform"}, choices=[(i, i) for i in range(1, 11)])
     price = IntegerField("Pris", render_kw={"form": "wishform", "placeholder": "Pr. stk.", "min": 0},
-                         validators=[NumberRange(max=1000000)])
+                         validators=[NumberRange(max=1000000), Optional()])
     edit_id = HiddenField(render_kw={"form": "wishform"})
     submit = SubmitField("Lagre", render_kw={"form": "wishform"})
 
