@@ -146,8 +146,7 @@ def wish_mobile():
 def claimed():
     form = AjaxForm()
     if form.validate():
-        wishes = Wish.query.filter(Wish.claimers.any(ClaimedWish.user_id == current_user.id)) \
-            .order_by(Wish.date_claimed.desc()).all()
+        wishes = Wish.query.filter(Wish.claimers.any(ClaimedWish.user_id == current_user.id)).all()
     return wishes_to_json(wishes)
 
 
