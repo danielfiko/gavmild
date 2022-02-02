@@ -8,7 +8,9 @@
 </ul>
 <h4>Kommende bursdager</h4>
 <ul class="list-no-style">
-    <li>Robert (8. feb)</li>
+    {% for user in birthdays %}
+        <li><a href="{{ url_for("views.user", user_id=user.id) }}">{{ user.first_name }} ({{ user.birthday }})</a></li>
+    {% endfor %}
 </ul>
 <h4>Personer</h4>
 <ul class="list-no-style">
