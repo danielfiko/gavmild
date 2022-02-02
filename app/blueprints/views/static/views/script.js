@@ -35,10 +35,8 @@ function requestWishes() {
     }).then(function(wishes) {
         if (!Object.keys(wishes).length) {
             $("main").append("<h2>Ingen ønsker</h2>");
-            console.log(Object.keys(wishes).length)
         }
         else {
-            console.log(Object.keys(wishes).length)
             appendWishesToMain(wishes, Math.min(Math.max(Math.round($(window).width()/200),1),4));
         }
         $(window).resize(function(){
@@ -108,11 +106,22 @@ function submitWishForm(event){
            wish_url: $("#url").val(),
            price: $("#price").val()
        }).then(function(res){
-           $("#modal").hide()
+           animateWishAdded($("#title").val())
            requestWishes();
        })
        event.preventDefault();
     }
+
+function animateWishAdded(title) {
+    $(".close, .modal-right, .modal-left fieldset").hide(800);
+    let $modal = $(".modal-left");
+    $modal.animate({maxWidth:"100%", width:"300px", paddingBottom: "20px", paddingTop: "50px"});
+    let $h3 = $("<h3>").addClass("wish-item-title").css("padding-top", "10px").appendTo($modal);
+    $h3.append(title);
+    $modal.append('<p>lagt til din ønskeliste</p>');
+    $(".modal-left p").css("padding-bottom", "30px");
+    $modal.append('<button class="modal-btn-close-msg">Lukk</button>');
+}
 
 function addNewWish() {
     ajaxCall("/api/wish/new", {

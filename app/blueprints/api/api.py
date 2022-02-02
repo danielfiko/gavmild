@@ -1,6 +1,6 @@
 from datetime import datetime
 from urllib.parse import urlsplit
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import current_user
 from sqlalchemy import or_, and_, exc
 
@@ -45,11 +45,11 @@ def add():
                         img_url=form.wish_img_url.data, desired=form.desired.data, price=form.price.data)
         if new_wish:
             try:
-                print("trying db add")
+                flash("Ønsket ble lagt til")
                 db.session.add(new_wish)
                 db.session.commit()
-            except exc.SQLAlchemyError as e:
-                print(type(e))
+            except:
+                flash("Det oppstod en feil, gi Daniel beskjed")
                 return "Det oppstod en feil ved oppretting av ønsket", 500
 
             # FIXME: Kun ta i mot liste (tar i mot string nå og lagrer komma i tabellen)

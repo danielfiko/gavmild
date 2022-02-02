@@ -344,3 +344,13 @@ label[for="co_wisher"] {
   background-color: #3A7734;
   border-radius: 50%;
 }
+
+.modal-btn-close-msg {
+  background-color: white;
+  color: black;
+  padding: 4px 15px;
+  font-size: 1.2em;
+  border-top: 2px solid #9d4045;
+  border-bottom: 2px solid #9d4045;
+  border-radius: 0;
+}

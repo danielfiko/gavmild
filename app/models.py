@@ -39,7 +39,6 @@ class Wish(db.Model):
     url = db.Column(db.String(255))
     img_url = db.Column(db.String(255))
     desired = db.Column(db.Boolean, default=0)
-    date_claimed = db.Column(db.DateTime)
     price = db.Column(db.Integer)
     user = relationship("User", back_populates="wishes")
     claimers = relationship("ClaimedWish")
