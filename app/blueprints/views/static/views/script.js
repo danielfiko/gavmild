@@ -105,7 +105,7 @@ function submitWishForm(event){
            wish_description: $("#description").val(),
            wish_url: $("#url").val(),
            price: $("#price").val(),
-           disred: $("#desired").val()
+           desired: $("#desired").val()
        }).then(function(res){
            animateWishAdded($("#title").val())
            requestWishes();
