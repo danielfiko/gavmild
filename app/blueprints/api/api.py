@@ -71,11 +71,11 @@ def update():
     if wishform.validate() and wishform.edit_id.data:
         wish = Wish.query.get(wishform.edit_id.data)
         if wish.user_id == current_user.id:
-            print("update - 4")
             wish.title = wishform.wish_title.data
             wish.description = wishform.wish_description.data
             wish.quantity = wishform.quantity.data
             wish.url = wishform.wish_url.data
+            wish.price = wishform.price.data
             if len(wish.img_url) < 5:
                 wish.img_url = url_for('views.static', filename='gift-default.png')
             else:
