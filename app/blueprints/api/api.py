@@ -2,7 +2,7 @@ from datetime import datetime
 from urllib.parse import urlsplit
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import current_user
-from sqlalchemy import or_, and_, exc
+from sqlalchemy import or_, and_, exc, asc, desc
 
 from app.models import User, Wish, CoWishUser, ClaimedWish
 from app.forms import WishForm, AjaxForm
@@ -137,7 +137,7 @@ def claim():
 @api_bp.route("/wish/all", methods=["POST"])
 def wish_mobile():
     wishes = Wish.query.filter(Wish.user_id != current_user.id) \
-        .order_by(Wish.date_created.desc()), Wish.desired.desc().limit(30).all()
+        .order_by(asc(Wish.date_created)), desc(Wish.desired).limit(30).all()
 
     return wishes_to_json(wishes)
 
