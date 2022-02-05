@@ -62,7 +62,7 @@ function appendWishesToMain(wishes, columns) {
         $.each(wish.co_wisher, function(i, co_wisher){
             $ul.append("<li>"+co_wisher+"</li>");
         });
-        $div.append('<p class="wish-item-age">' + str(wish.price) + ' ' + wish.age + '</p>')
+        $div.append('<p class="wish-item-age">' + wish.price + ' ' + wish.age + '</p>')
         let $h3 = $("<h3>").addClass("wish-item-title").appendTo($div);
         if (wish.desired) {
             $h3.append('<span>&#9733; </span>')
