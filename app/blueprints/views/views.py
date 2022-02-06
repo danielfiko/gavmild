@@ -1,10 +1,9 @@
-from flask import Blueprint, render_template, jsonify, abort
+from flask import Blueprint, render_template
 from flask_login import login_required, current_user
 from sqlalchemy import func
 
 from app.forms import WishForm, RegisterForm, LoginForm, AjaxForm
-from app import db
-from app.models import Wish, User, CoWishUser
+from app.models import User
 
 views_bp = Blueprint("views", __name__,
                      template_folder='templates/views',

@@ -6,12 +6,14 @@
     <li><a href="{{ url_for('views.user', user_id=current_user.id) }}">Min ønskeliste</a></li>
     <li><a href="{{ url_for('views.claimed') }}">Ønsker jeg har tatt</a></li>
 </ul>
+{% if birthdays %}
 <h4>Kommende bursdager</h4>
 <ul class="list-no-style">
     {% for user in birthdays %}
         <li><a href="{{ url_for("views.user", user_id=user.id) }}">{{ user.first_name }} ({{ user.birthday }})</a></li>
     {% endfor %}
 </ul>
+{% endif %}
 <h4>Personer</h4>
 <ul class="list-no-style">
     {% for user in other_users %}
