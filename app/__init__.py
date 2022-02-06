@@ -19,11 +19,11 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-from app.blueprints.api.api import api_bp
+from .blueprints.api.api import api_bp
 from .blueprints.auth.auth import auth_bp
 from .blueprints.views.views import views_bp
-from app.blueprints.views.wishes import wishes_bp
-from app.blueprints.bot.routes import bot_app
+from .blueprints.views.wishes import wishes_bp
+from .blueprints.bot.routes import bot_app
 
 app.register_blueprint(api_bp)
 app.register_blueprint(auth_bp)

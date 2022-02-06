@@ -1,4 +1,5 @@
 *.db
+credentials.py
 <<<<<<< HEAD
 config.py
 =======
