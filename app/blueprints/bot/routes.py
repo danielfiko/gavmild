@@ -1,6 +1,6 @@
 from flask import request, make_response, Blueprint
 import telegram
-from app.blueprints.bot import bot
+from . import bot
 from functools import wraps
 from .credentials import CUSTOM_USERNAME
 from .credentials import CUSTOM_PASSWORD
