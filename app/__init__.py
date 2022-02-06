@@ -29,5 +29,6 @@ app.register_blueprint(api_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(views_bp)
 app.register_blueprint(wishes_bp)
+app.register_blueprint(bot_app)
 
 db.create_all()
