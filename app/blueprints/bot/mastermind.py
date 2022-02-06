@@ -5,7 +5,7 @@ import unicodedata
 
 def get_response(msg):
     
-    msg = msg.decode("utf-8").lower()
+    msg = unicodedata.normalize('NFKD', msg).strip().encode("utf-8").decode()
 
     # Here we should implement some sort of AI/NLP/LSTM to give the user a proper reply
     # You could aso use a service like Watson, Luis or Wit.
