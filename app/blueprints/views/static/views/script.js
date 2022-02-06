@@ -62,7 +62,7 @@ function appendWishesToMain(wishes, columns) {
         $.each(wish.co_wisher, function(i, co_wisher){
             $ul.append("<li>"+co_wisher+"</li>");
         });
-        $div.append('<p class="wish-item-age">'+wish.age+'</p>')
+        $div.append('<p class="wish-item-age">' + ((wish.price>0) ? 'kr. ' + wish.price + ',- / ' : "") + wish.age + '</p>')
         let $h3 = $("<h3>").addClass("wish-item-title").appendTo($div);
         if (wish.desired) {
             $h3.append('<span>&#9733; </span>')
@@ -104,7 +104,8 @@ function submitWishForm(event){
            quantity: $("#quantity").val(),
            wish_description: $("#description").val(),
            wish_url: $("#url").val(),
-           price: $("#price").val()
+           price: $("#price").val(),
+           desired: $("#desired").val()
        }).then(function(res){
            animateWishAdded($("#title").val())
            requestWishes();

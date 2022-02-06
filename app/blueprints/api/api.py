@@ -2,7 +2,7 @@ from datetime import datetime
 from urllib.parse import urlsplit
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import current_user
-from sqlalchemy import or_, and_, exc
+from sqlalchemy import or_, and_, exc, asc, desc
 
 from app.models import User, Wish, CoWishUser, ClaimedWish
 from app.forms import WishForm, AjaxForm
@@ -71,11 +71,11 @@ def update():
     if wishform.validate() and wishform.edit_id.data:
         wish = Wish.query.get(wishform.edit_id.data)
         if wish.user_id == current_user.id:
-            print("update - 4")
             wish.title = wishform.wish_title.data
             wish.description = wishform.wish_description.data
             wish.quantity = wishform.quantity.data
             wish.url = wishform.wish_url.data
+            wish.price = wishform.price.data
             if len(wish.img_url) < 5:
                 wish.img_url = url_for('views.static', filename='gift-default.png')
             else:
@@ -137,7 +137,7 @@ def claim():
 @api_bp.route("/wish/all", methods=["POST"])
 def wish_mobile():
     wishes = Wish.query.filter(Wish.user_id != current_user.id) \
-        .order_by(Wish.date_created, Wish.desired.desc()).limit(30).all()
+        .order_by(desc(Wish.date_created), desc(Wish.desired)).limit(30).all()
 
     return wishes_to_json(wishes)
 
@@ -214,8 +214,9 @@ def wishes_to_json(wishes):
             "first_name": whs.user.first_name,
             "co_wisher": whs.get_claimers(),
             "age": whs.time_since_creation(),
-            "title": ("<span>&#9733; </span>" if whs.desired else "") + whs.title,
-            "price": whs.price
+            "title": whs.title,
+            "price": whs.price,
+            "desired": whs.desired
         })
     if wishes_json_string:
         return jsonify(wishes_json_string)
