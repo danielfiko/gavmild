@@ -2,7 +2,8 @@ from queue import Queue
 from threading import Thread
 import telegram
 from flask import Blueprint, request
-from telegram.ext import Dispatcher, CommandHandler
+from telegram import Update
+from telegram.ext import Dispatcher, CommandHandler, CallbackContext
 from ... import app
 from . import bot
 
