@@ -11,4 +11,4 @@ bot_app = Blueprint("bot", __name__, url_prefix='/bot')
 def webhook():
     update = telegram.Update.de_json(request.get_json(force=True), bot)
     update_queue.put(update)
-    return
+    return "ok"
