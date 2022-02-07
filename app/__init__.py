@@ -23,7 +23,7 @@ from .blueprints.api.api import api_bp
 from .blueprints.auth.auth import auth_bp
 from .blueprints.views.views import views_bp
 from .blueprints.views.wishes import wishes_bp
-from .blueprints.bot.routes import bot_app
+from .blueprints.bot.bot import bot_app
 
 app.register_blueprint(api_bp)
 app.register_blueprint(auth_bp)
