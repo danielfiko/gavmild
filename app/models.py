@@ -132,7 +132,15 @@ class Group(db.Model):
     description = db.Column(db.String(255))
 
 
+class TelegramUser(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(90), nullable=False)
+    suggestions = relationship("Suggestion", back_populates="user")
+
+
 class Suggestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime, default=datetime.utcnow)
-    user = db.Column(db.String(90), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("telegram_user.id"))
+    suggestion = db.Column(db.String)
+    user = relationship("TelegramUser", back_populates="suggestions")
