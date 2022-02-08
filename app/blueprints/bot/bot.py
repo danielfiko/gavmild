@@ -11,7 +11,7 @@ bot_app = Blueprint("bot", __name__, url_prefix='/bot')
 
 
 def forslag(update: Update, context: CallbackContext):
-    context.bot.send_message(chat_id=update.effective_chat.id, text=context)
+    context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
 
 
 # Create bot, update queue and dispatcher instances
