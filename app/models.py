@@ -130,3 +130,9 @@ class Group(db.Model):
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     title = db.Column(db.String(30), nullable=False)
     description = db.Column(db.String(255))
+
+
+class Suggestion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.Column(db.String(90), nullable=False)
