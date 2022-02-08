@@ -134,7 +134,7 @@ class Group(db.Model):
 
 class TelegramUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(90), nullable=False)
+    username = db.Column(db.String(90))
     suggestions = relationship("Suggestion", back_populates="user")
 
 
