@@ -17,7 +17,7 @@ def forslag(update: Update, context: CallbackContext):
     if not msg_cont:
         return "ok"
 
-    user = TelegramUser.get(update.message.from_user.id)
+    user = TelegramUser.query.get(update.message.from_user.id)
     if not user:
         user = TelegramUser(id=update.message.from_user.id, username=update.message.from_user.username)
         try:
