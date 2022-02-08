@@ -47,6 +47,20 @@ def forslag(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
 
 
+def slett(update: Update, context: CallbackContext):
+    suggestion = Suggestion.query.get(int(context.args[0]))
+    if suggestion and update.message.from_user.id == 79156661:
+        try:
+            db.session.delete(suggestion)
+            db.session.commit()
+            msg = 'Forslaget "' + suggestion.suggestion + '" ble slettet fordi det var idiotisk.'
+        except:
+            msg = "Noe gikk galt"
+
+        context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+    elif suggestion:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Du er ikke verdig til å utføre denne handlingen")
+
 # Create bot, update queue and dispatcher instances
 update_queue = Queue()
 dispatcher = Dispatcher(bot, update_queue)
