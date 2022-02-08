@@ -11,14 +11,14 @@ bot_app = Blueprint("bot", __name__, url_prefix='/bot')
 
 
 def forslag(update: Update, context: CallbackContext):
-    context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.from_user.username)
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Hei " + update.message.from_user.username)
     # update.message.text.partition(' ')[2]
 
 
 # Create bot, update queue and dispatcher instances
 update_queue = Queue()
 dispatcher = Dispatcher(bot, update_queue)
-dispatcher.add_handler(CommandHandler("forslag", forslag))
+dispatcher.add_handler(CommandHandler("hei", forslag))
 
 # Start the thread
 thread = Thread(target=dispatcher.start, name='dispatcher')
