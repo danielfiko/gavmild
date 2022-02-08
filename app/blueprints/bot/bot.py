@@ -11,6 +11,12 @@ from ...models import TelegramUser, Suggestion
 bot_app = Blueprint("bot", __name__, url_prefix='/bot')
 
 
+def start(update: Update, context: CallbackContext):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Hei! Jeg kan legge til nye forslag du har for "
+                                                                    "ønskelisteappen, bare skriv /forslag <ditt "
+                                                                    "forslag> i chatten.")
+
+
 def forslag(update: Update, context: CallbackContext):
     msg = ""
     msg_cont = update.message.text.partition(' ')[2]
@@ -43,6 +49,7 @@ def forslag(update: Update, context: CallbackContext):
 # Create bot, update queue and dispatcher instances
 update_queue = Queue()
 dispatcher = Dispatcher(bot, update_queue)
+dispatcher.add_handler(CommandHandler("start", start))
 dispatcher.add_handler(CommandHandler("forslag", forslag))
 
 # Start the thread
