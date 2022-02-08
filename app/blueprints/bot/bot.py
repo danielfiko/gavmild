@@ -66,6 +66,7 @@ update_queue = Queue()
 dispatcher = Dispatcher(bot, update_queue)
 dispatcher.add_handler(CommandHandler("start", start))
 dispatcher.add_handler(CommandHandler("forslag", forslag))
+dispatcher.add_handler(CommandHandler("slett", slett))
 
 # Start the thread
 thread = Thread(target=dispatcher.start, name='dispatcher')
