@@ -2,11 +2,15 @@ from queue import Queue
 from threading import Thread
 import telegram
 from flask import Blueprint, request
+from sqlalchemy import desc
 from telegram import Update
 from telegram.ext import Dispatcher, CommandHandler, CallbackContext
 from ... import app, db
 from . import bot
 from ...models import TelegramUser, Suggestion
+from bs4 import BeautifulSoup as bs
+import requests
+import validators
 
 bot_app = Blueprint("bot", __name__, url_prefix='/bot')
 
@@ -48,7 +52,10 @@ def forslag(update: Update, context: CallbackContext):
 
 
 def slett(update: Update, context: CallbackContext):
-    suggestion = Suggestion.query.get(int(context.args[0]))
+    if context.args[0] == "siste":
+        suggestion = Suggestion.query.order_by(desc(Suggestion.id)).first()
+    else:
+        suggestion = Suggestion.query.get(int(context.args[0]))
     if suggestion and update.message.from_user.id == 79156661:
         try:
             db.session.delete(suggestion)
@@ -60,6 +67,17 @@ def slett(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
     elif suggestion:
         context.bot.send_message(chat_id=update.effective_chat.id, text="Du er ikke verdig til å utføre denne handlingen")
+
+
+def ønske(update: Update, context: CallbackContext):
+    url = update.message.text.partition(' ')[2]
+    if validators.url(url):
+        response = requests.get(url)
+        html = response.content
+        soup = bs(html)
+        body = soup.body
+
+
 
 # Create bot, update queue and dispatcher instances
 update_queue = Queue()
