@@ -21,6 +21,7 @@ def forslag(update: Update, context: CallbackContext):
     msg = ""
     msg_cont = update.message.text.partition(' ')[2]
     if not msg_cont:
+        context.bot.send_message(chat_id=update.effective_chat.id, text='Du må skrive "/forslag Dette er mitt forslag"')
         return "ok"
 
     user = TelegramUser.query.get(update.message.from_user.id)
