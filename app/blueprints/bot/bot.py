@@ -56,16 +56,18 @@ def slett(update: Update, context: CallbackContext):
         suggestion = Suggestion.query.order_by(desc(Suggestion.id)).first()
     else:
         suggestion = Suggestion.query.get(int(context.args[0]))
-    if suggestion and update.message.from_user.id == 79156661:
-        try:
-            db.session.delete(suggestion)
-            db.session.commit()
-            msg = 'Forslaget "' + suggestion.suggestion + '" ble slettet fordi det var idiotisk.'
-        except:
-            msg = "Noe gikk galt"
-
+    if update.message.from_user.id == 79156661:
+        if suggestion:
+            try:
+                db.session.delete(suggestion)
+                db.session.commit()
+                msg = 'Forslaget "' + suggestion.suggestion + '" ble slettet fordi det var idiotisk.'
+            except:
+                msg = "Noe gikk galt"
+        else:
+            msg = "Fant ikke ønsket med denne IDen"
         context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
-    elif suggestion:
+    else:
         context.bot.send_message(chat_id=update.effective_chat.id, text="Du er ikke verdig til å utføre denne handlingen")
 
 
@@ -76,7 +78,6 @@ def ønske(update: Update, context: CallbackContext):
         html = response.content
         soup = bs(html)
         body = soup.body
-
 
 
 # Create bot, update queue and dispatcher instances
