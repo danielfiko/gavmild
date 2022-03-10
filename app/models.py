@@ -50,11 +50,17 @@ class Wish(db.Model):
         difference_in_years = (today - self.date_created).days / 365
         difference = str(difference_in_years) + " år siden"
         if difference_in_years < 1:
-            difference_in_months = (today - self.date_created).days / 30
-            difference = str(difference_in_months) + " måneder siden"
+            difference_in_months = round((today - self.date_created).days / 30)
+            if difference_in_months == 1:
+                difference = str(difference_in_months) + " måned siden"
+            else:
+                difference = str(difference_in_months) + " måneder siden"
             if difference_in_months < 1:
                 difference_in_days = (today - self.date_created).days
-                difference = str(difference_in_days) + " dager siden"
+                if difference_in_days == 1:
+                    difference = str(difference_in_days) + " dag siden"
+                else:
+                    difference = str(difference_in_days) + " dager siden"
                 if difference_in_days < 1:
                     difference = "i dag"
         return difference
