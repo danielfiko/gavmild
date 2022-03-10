@@ -95,23 +95,30 @@ function showModal(res) {
 }
 
 function submitWishForm(event){
-       ajaxCall($("#wishform").attr("action"), {
-           csrf_token: $("#csrf_token").val(),
-           wish_img_url: $("#img_url").val(),
-           co_wisher: $("#co_wisher").val(),
-           edit_id: $("#edit_id").val(),
-           wish_title: $("#title").val(),
-           quantity: $("#quantity").val(),
-           wish_description: $("#description").val(),
-           wish_url: $("#url").val(),
-           price: $("#price").val(),
-           desired: $("#desired").val()
-       }).then(function(res){
-           animateWishAdded($("#title").val())
-           requestWishes();
-       })
-       event.preventDefault();
+    let desired_val;
+    if ($("#desired").is(":checked")) {
+        desired_val = true;
     }
+    else {
+        desired_val = false;
+    }
+   ajaxCall($("#wishform").attr("action"), {
+       csrf_token: $("#csrf_token").val(),
+       wish_img_url: $("#img_url").val(),
+       co_wisher: $("#co_wisher").val(),
+       edit_id: $("#edit_id").val(),
+       wish_title: $("#title").val(),
+       quantity: $("#quantity").val(),
+       wish_description: $("#description").val(),
+       wish_url: $("#url").val(),
+       price: $("#price").val(),
+       desired: desired_val
+   }).then(function(res){
+       animateWishAdded($("#title").val())
+       requestWishes();
+   })
+   event.preventDefault();
+}
 
 function animateWishAdded(title) {
     $(".close, .modal-right, .modal-left fieldset").hide(800);

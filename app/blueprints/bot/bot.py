@@ -68,7 +68,8 @@ def slett(update: Update, context: CallbackContext):
             msg = "Fant ikke ønsket med denne IDen"
         context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Du er ikke verdig til å utføre denne handlingen")
+        context.bot.send_message(chat_id=update.effective_chat.id,
+                                 text="Du er ikke verdig til å utføre denne handlingen")
 
 
 def ønske(update: Update, context: CallbackContext):

@@ -61,7 +61,10 @@
         </ul>
 
     {{ wish_form.wish_description.label }}
-    {{ wish_form.wish_description(value=wish.description) }}
+    {{ wish_form.wish_description }}
+    {% if (wish.description) %}
+    <script>document.getElementById('description').value="{{ wish.description }}";</script>
+    {% endif %}
     {{ wish_form.wish_url.label }}
     {{ wish_form.wish_url(value=wish.url) }}
     <div class="form-options">
