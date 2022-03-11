@@ -40,9 +40,12 @@ def add():
     if form.validate():
         if len(form.wish_img_url.data) < 5:
             form.wish_img_url.data = url_for('views.static', filename='gift-default.png')
-        new_wish = Wish(user_id=current_user.id, title=form.wish_title.data,
+        try:
+            new_wish = Wish(user_id=current_user.id, title=form.wish_title.data,
                         description=form.wish_description.data, quantity=form.quantity.data, url=form.wish_url.data,
                         img_url=form.wish_img_url.data, desired=form.desired.data, price=form.price.data)
+        except:
+            return "Wish model creation failed", 400
         if new_wish:
             try:
                 flash("Ønsket ble lagt til")
@@ -61,7 +64,7 @@ def add():
 
             return jsonify({'success': True}), 200, {'ContentType': 'application/json'}
     print(form.errors)
-    return "Noe gikk galt, fikk ikke lagt til ønske.", 400
+    return "Form did not validate", 400
 
 
 # TODO: Ikke ta i mot GET, håndter alt i ajax så bruker ikke ser denne ruta
