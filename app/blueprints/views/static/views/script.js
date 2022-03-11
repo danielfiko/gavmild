@@ -114,21 +114,23 @@ function submitWishForm(event){
        price: $("#price").val(),
        desired: desired_val
    }).then(function(res){
-       animateWishAdded($("#title").val())
+       animateWishAdded($("#title").val(), $("#img_url").val())
        requestWishes();
    })
    event.preventDefault();
 }
 
-function animateWishAdded(title) {
+function animateWishAdded(title, img) {
     $(".close, .modal-right, .modal-left fieldset").hide(800);
     let $modal = $(".modal-left");
     $modal.animate({maxWidth:"100%", width:"300px", paddingBottom: "20px", paddingTop: "50px"});
     let $h3 = $("<h3>").addClass("wish-item-title").css("padding-top", "10px").appendTo($modal);
     $h3.append(title);
     $modal.append('<p>lagt til din ønskeliste</p>');
+    $(".modal-left img").attr("src", img)
     $(".modal-left p").css("padding-bottom", "30px");
     $modal.append('<button class="modal-btn-close-msg">Lukk</button>');
+    $(".modal-btn-close-msg").click(function() {$("#modal").hide()});
 }
 
 function addNewWish() {

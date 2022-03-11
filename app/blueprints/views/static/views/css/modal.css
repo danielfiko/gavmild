@@ -309,7 +309,7 @@ label[for="co_wisher"] {
   color: #333333;
 }
 
-.delete-wish {
+.delete-wish, .modal-btn-close-msg {
   cursor: pointer;
 }
 
