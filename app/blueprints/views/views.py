@@ -19,21 +19,30 @@ def index():
 @views_bp.route("/user/<int:user_id>")
 @login_required
 def user(user_id):
-    return logged_in_content("user/"+str(user_id))
+    return logged_in_content("user/" + str(user_id))
 
 
-def logged_in_content(filter):
+def logged_in_content(page_filter):
+    page_title = ""
+    if page_filter[:5] == "user/":
+        if int(page_filter.split("/")[1]) != current_user.id:
+            page_title = User.query.get(int(page_filter.split("/")[1])).first_name + "s ønskeliste"
+        else:
+            page_title = "Min ønskeliste"
+    elif page_filter == "claimed":
+        page_title = "Ønsker jeg har tatt"
     months = {1: "jan.", 2: "feb.", 3: "mar.", 4: "apr.", 5: "mai", 6: "jun.", 7: "jul.", 8: "aug.", 9: "sep.",
               10: "okt.", 11: "nov.", 12: "des."}
     other_users = User.query.filter(id != current_user).all()
-    users = User.query.filter(func.strftime("%j", User.date_of_birth) - func.strftime("%j", "now") < 60)\
+    users = User.query.filter(func.strftime("%j", User.date_of_birth) - func.strftime("%j", "now") < 60) \
         .filter(func.strftime("%j", User.date_of_birth) > func.strftime("%j", "now", "-1 days")).all()
     birthdays = [{"id": u.id, "first_name": u.first_name,
-                       "birthday": f"{u.date_of_birth.day}. {months[u.date_of_birth.month]}"} for u in users]
+                  "birthday": f"{u.date_of_birth.day}. {months[u.date_of_birth.month]}"} for u in users]
     ajaxform = AjaxForm()
     wishform = WishForm()
     return render_template("logged_in_content.html",
-                           ajaxform=ajaxform, wishform=wishform, filter=filter, other_users=other_users, birthdays=birthdays)
+                           ajaxform=ajaxform, wishform=wishform, filter=page_filter, other_users=other_users,
+                           birthdays=birthdays, page_title=page_title)
 
 
 @views_bp.route("/claimed")

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz@9..144&display=swap');
+
 * {
     box-sizing: border-box;
     padding: 0;
@@ -148,6 +150,13 @@ header {
 /*      Main
 /*
 */
+
+h1 {
+    font-family: 'Fraunces', serif;
+    color: #131313;
+    font-size: 2.2em;
+    margin-bottom: 20px;
+}
 
 main {
     grid-area: main;

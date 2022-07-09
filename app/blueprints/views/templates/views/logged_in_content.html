@@ -21,6 +21,9 @@
         {% include "nav_logged_in.html" %}
     </nav>
     <main>
+        {% if page_title %}
+            <h1>{{ page_title }}</h1>
+        {% endif %}
         <div class="wishes-list">
         </div>
     </main>

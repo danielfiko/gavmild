@@ -20,6 +20,10 @@ class User(db.Model, UserMixin):
     def tojson(self):
         return {"id": self.id, "username": self.username}
 
+    def get_first_name(self):
+        return self.first_name
+
+
 
 class ClaimedWish(db.Model):
     wish_id = db.Column(db.Integer, db.ForeignKey("wish.id"), primary_key=True)
