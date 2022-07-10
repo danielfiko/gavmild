@@ -218,7 +218,7 @@ def wishes_to_json(wishes):
             "co_wisher": whs.get_claimers(),
             "age": whs.time_since_creation(),
             "title": whs.title,
-            "price": whs.price,
+            "price": f"{whs.price:,}".replace(",", " ") if whs.price else "",
             "desired": whs.desired
         })
     if wishes_json_string:

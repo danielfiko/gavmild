@@ -24,7 +24,6 @@ class User(db.Model, UserMixin):
         return self.first_name
 
 
-
 class ClaimedWish(db.Model):
     wish_id = db.Column(db.Integer, db.ForeignKey("wish.id"), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)

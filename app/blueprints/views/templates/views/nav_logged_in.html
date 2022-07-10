@@ -1,6 +1,10 @@
 <div class="nav-add-wish-button display-none">
-    <button class="new-wish-button button-red"><i class="fas fa-pencil-alt footer-pencil"></i></button>
-    <label class="new-wish-button-label" for="new-wish-button">Nytt ønske</label>
+    <button class="new-wish-button button-red">
+            <span class="fa-stack small add-wish-icon">
+                <i class="fa-solid fa-gift fa-stack-2x"></i>
+                <i class="fa-solid fa-plus fa-inverse fa-stack-1x cornered-lr"></i>
+            </span>
+    </button>
 </div>
 <ul class="list-no-style">
     <li><a href="{{ url_for('views.user', user_id=current_user.id) }}">Min ønskeliste</a></li>
