@@ -71,6 +71,9 @@ class Wish(db.Model):
     def get_claimers(self):
         return {int(claimer.user_id): claimer.user.first_name for claimer in self.claimers} if self.claimers else None
 
+    def get_co_wishers(self):
+        return {int(co_wisher.co_wish_user_id): co_wisher.user.first_name for co_wisher in self.co_wishers} if self.co_wishers else None
+
     def co_wisher(self):
         return db.session.query(User.first_name, User.id).join(CoWishUser).filter(CoWishUser.id == self.id).all()
 

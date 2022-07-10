@@ -215,7 +215,7 @@ def wishes_to_json(wishes):
             "claimed": True if whs.claimers and whs.user_id != current_user.id else False,
             "img_url": whs.img_url,
             "first_name": whs.user.first_name,
-            "co_wisher": whs.get_claimers(),
+            "co_wisher": whs.get_co_wishers(),
             "age": whs.time_since_creation(),
             "title": whs.title,
             "price": f"{whs.price:,}".replace(",", " ") if whs.price else "",
