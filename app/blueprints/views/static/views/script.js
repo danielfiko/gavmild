@@ -53,8 +53,12 @@ function appendWishesToMain(wishes, columns) {
     }
     $.each(wishes, function(index, wish){
         let $div = $("<div>").attr({"class":"wish-item", "id": wish.id}).appendTo(".wish-column:nth-child("+current_column+")");
+        let $icons = $("<div>").addClass("wish-icons").appendTo($div);
         if (wish.claimed) {
-            $div.append('<div class="claimed"><i class="fa fa-check-circle claim-check-mark"></i></div>')
+            $icons.append('<i class="fa fa-check-circle icon-green"></i>')
+        }
+        else if (wish.desired) {
+            $icons.append('<i class="fa-solid fa-star icon-gold"></i>')
         }
         $div.append('<img src="'+wish.img_url+'" alt="Produktbilde av ønsket">')
         let $ul = $("<ul>").addClass("co-wisher-list list-no-style").appendTo($div);
@@ -64,9 +68,9 @@ function appendWishesToMain(wishes, columns) {
         });
         $div.append('<p class="wish-item-age">' + ((wish.price) ? 'kr. ' + wish.price + ',- / ' : "") + wish.age + '</p>')
         let $h3 = $("<h3>").addClass("wish-item-title").appendTo($div);
-        if (wish.desired) {
+        /*if (wish.desired) {
             $h3.append('<span>&#9733; </span>')
-        }
+        }*/
         $h3.append(wish.title);
         if (current_column < columns) {
             current_column++;
