@@ -1,43 +1,42 @@
 {% extends "modal.html" %}
 {% block modal_left %}{% endblock %}
 {% block modal_right %}
-    {% if wish.desired %}
+    <!--{% if wish.desired %}
         <p class="desired">&#9733; Mest ønsket</p>
-    {% endif %}
+    {% endif %}-->
     <h2>{{ wish.title }}</h2>
-    <div class="display-wish-footer">
-        <p>
-        {% if wish.price %}
-        Kr. {{ wish.price }},-
-        {% endif %}
-        {% if wish.url|length > 0 %}
-            <a href="{{ wish.url }}" id="product-url" target="_blank">{{ netloc }} <i class="fas fa-external-link-alt"></i></a>
-        {% endif %}
-        </p>
+    <div class="wish-details">
+            {% if wish.price %}
+                <span class="price">{{ "{0:,}".format(wish.price).replace(",", " ") }} kr</span>
+            {% endif %}
+            {% if wish.price and wish.url%}
+                <span>•</span>
+            {% endif %}
+            {% if wish.url|length > 0 %}
+                <a href="{{ wish.url }}" id="product-url" target="_blank">{{ netloc }}</a>
+            {% endif %}
     </div>
-    <h3>Av&nbsp;<ul class="co-wisher-list list-no-style">
-        <li>{{ wish.user.first_name }}</li>
-        {% if wish.co_wishers|length > 0 %}
-            {% for user in wish.co_wishers %}
-                <li>{{ user.user.first_name }}</li>
-            {% endfor %}
-        {% endif %}
-    </ul>
-    </h3>
+
     <p class="wish-description">{{ wish.description }}</p>
     <form action="{{ url_for("api.claim") }}" method="POST">
         {{ claimform.hidden_tag() }}
         {{ claimform.claimed_wish_id(value=wish.id) }}
         {{ claimform.claimed_action }}
         {% if wish.get_claimers() and current_user.id in wish.get_claimers() %}
+            <button class="claim-button unclaim" id="claim_btn" name="claim_btn" type="submit">
+                <i class="fa-regular fa-circle-check icon-blue"></i><span>Ikke ta ønsket</span>
+            </button><!--
             <button class="claim-button unclaim button-red" id="claim_btn" name="claim_btn" type="submit">
                 <i class="fas fa-gift"></i><span>Ikke ta ønske</span>
-            </button>
+            </button>-->
         {% endif %}
         {% if not wish.claimers %}
+            <button class="claim-button" id="claim_btn" name="claim_btn" type="submit">
+                <i class="fa-regular fa-circle-check icon-blue"></i><span>Ta ønsket</span>
+            </button><!--
             <button class="claim-button button-red" id="claim_btn" name="claim_btn" type="submit">
                 <i class="fas fa-gift"></i><span>Ta ønske</span>
-            </button>
+            </button>-->
         {% endif %}
     </form>
 {% endblock %}

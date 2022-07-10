@@ -198,7 +198,7 @@ main {
     margin: 0
 }
 
-.wish-item ul, p, h3 {
+.wish-item ul, .wish-item p, .wish-item h3 {
     padding-left: 5px;
 }
 
