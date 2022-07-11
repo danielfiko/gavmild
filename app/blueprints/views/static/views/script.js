@@ -80,6 +80,10 @@ function appendWishesToMain(wishes, columns) {
         }
     });
     $(".wish-item").click(function() { viewWish(this.id) });
+
+    $('img').on("error", function() {
+        $(this).attr('src', '/views/gift-default.png');
+    });
 }
 
 function showModal(res) {
