@@ -96,10 +96,13 @@ function showModal(res) {
     $(".add-wish-image-from-url-button").click(  function() {$(this).hide();$("#img_url").show().select()});
     $("#wishform").submit(submitWishForm);
     window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
+        if (event.target == modal) {
+            modal.style.display = "none";
         }
+    }
+    $('img').on("error", function() {
+        $(this).attr('src', '/views/gift-default.png');
+    });
 }
 
 function submitWishForm(event){
