@@ -30,7 +30,7 @@ class LoginForm(FlaskForm):
                              render_kw={"placeholder": "Passord"})
     new_password = PasswordField("Nytt passord", validators=[Length(min=0, max=90)],
                                  render_kw={"placeholder": "Nytt passord"})
-    remember_me = BooleanField(Markup(" Ønsker meg mest"), render_kw={"placeholder": "Husk meg"})
+    remember_me = BooleanField("Husk meg", render_kw={"placeholder": "Husk meg"})
     submit = SubmitField("Logg inn")
 
 
