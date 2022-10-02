@@ -152,19 +152,6 @@ function addNewWish() {
     })
 }
 
-function printWishes(columns=2) {
-    ajaxCall("/api/wish/" + $("#filter").val(), {
-        csrf_token: $("#csrf_token").val(),
-        wish_id : 1,
-        columns: columns
-    }).then(function(res) {
-        $(".wishes-list").empty();
-        $(".wishes-list").append(res);
-        $(".wish-item").click(function() { viewWish(this.id) });
-    }, function(reason) {
-        console.log("kunne ikke hente data, ", reason);
-    });
-}
 
 function viewWish(id) {
     ajaxCall("/api/wish", {
@@ -244,7 +231,7 @@ function deleteWish(id) {
     if (confirm("Er du sikker på at du vil slette dette ønsket?") == true) {
         ajaxCall("/api/delete", { id:id }).then(function(res){
             alert(res);
-            printWishes()
+            requestWishes();
             $("#modal").hide();
         });
     }
