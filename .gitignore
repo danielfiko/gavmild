@@ -4,3 +4,4 @@ credentials.py
 config.py
 =======
 >>>>>>> 2991fc6 (Added gitignore)
+/app/blueprints/views/static/views/undraw_gift_box.svg

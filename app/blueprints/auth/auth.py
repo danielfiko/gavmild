@@ -13,6 +13,7 @@ auth_bp = Blueprint("auth", __name__,
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
+    print("login")
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
@@ -22,11 +23,15 @@ def login():
                     return render_template("change_pw.html", form=form, email=form.email.data)
                 if form.remember_me.data:
                     login_user(user, remember=True)
+                    print("Remember me!!!!!!!!!!!")
                 else:
                     login_user(user)
+                    print("Don't remember me!!!!!!!!! " + str(form.remember_me.data))
+                    #testkommentar
+                    #testkommentar
                 return redirect(url_for("views.index"))
-            return "wrong password"
-        return "no user"
+            return "Feil passord"
+        return "Feil brukernavn eller passord"
     return "LoginForm not validated"
 
 

@@ -378,17 +378,54 @@ footer input[type="checkbox"]:checked ~ .hamburger-lines .line3 {
 /*
 */
 
-.user-auth-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.login {
+    display: grid;
+    width: 100%;
     height: 100%;
-    padding: 10px;
-    margin-top: 5vh;
+    grid-template-areas:
+    "header"
+    "main"
+    "illustration";
+    justify-content: space-between;
+    padding: 15px;
 }
 
-.user-auth-wrapper header {
-    max-width: 50%;
+.login > header {
+    justify-self: left;
+    grid-area: header;
+    max-width: 125px;
+}
+
+.login > img {
+    justify-self: center;
+    grid-area: illustration;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.login > main {
+    justify-self: center;
+    grid-area: main;
+    width: 100%;
+    max-width: 20em;
+    margin: 3vh 0 2vh;
+}
+
+.login > main h1 {
+    font-size: 2.5rem;
+}
+
+.remember-me {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 5px;
+}
+
+.remember-me * {
+    width: auto;
+    margin-bottom: 12px;
+    padding: 0;
 }
 
 /* Media queries */
@@ -439,8 +476,38 @@ footer input[type="checkbox"]:checked ~ .hamburger-lines .line3 {
     footer {
         display: none;
     }
-    .user-auth-wrapper {
-        max-width: 20%;
-        margin: 5vh auto;
+
+}
+
+/* login page  */
+
+@media only screen and (min-width: 820px) {
+    .login {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+        "header ."
+        "illustration main";
+        column-gap: 5vw;
+        row-gap: 10vh;
+        padding: 15px;
+        height: auto;
+    }
+
+    .login > header {
+    }
+
+    .login > img {
+        width: 500px;
+        max-width: 45vw;
+        justify-self: right;
+        align-self: center;
+        padding-left: 20px;
+    }
+
+    .login > main {
+        width: 22em;
+        max-width: 45vw;
+        justify-self: left;
+        align-self: center;
     }
 }
