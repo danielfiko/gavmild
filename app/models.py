@@ -44,8 +44,8 @@ class Wish(db.Model):
     desired = db.Column(db.Boolean, default=0)
     price = db.Column(db.Integer)
     user = relationship("User", back_populates="wishes")
-    claimers = relationship("ClaimedWish")
-    co_wishers = relationship("CoWishUser")
+    claimers = relationship("ClaimedWish", cascade="delete")
+    co_wishers = relationship("CoWishUser", cascade="delete")
 
     # TODO: Viser "i dag", dagen etter. Bør stå "i dag" og "1 dag siden"
     def time_since_creation(self):
