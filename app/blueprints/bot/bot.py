@@ -16,9 +16,10 @@ bot_app = Blueprint("bot", __name__, url_prefix='/bot')
 
 
 def start(update: Update, context: CallbackContext):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Hei! Jeg kan legge til nye forslag du har for "
-                                                                    "ønskelisteappen, bare skriv /forslag <ditt "
-                                                                    "forslag> i chatten.")
+    context.bot.send_message(chat_id=update.effective_chat.id,
+                             text="Hei! Jeg kan legge til nye forslag du har for "
+                            "ønskelisteappen, bare skriv /forslag <ditt "
+                            "forslag> i chatten.")
 
 
 def forslag(update: Update, context: CallbackContext):
@@ -62,6 +63,24 @@ def slett(update: Update, context: CallbackContext):
                 db.session.delete(suggestion)
                 db.session.commit()
                 msg = 'Forslaget "' + suggestion.suggestion + '" ble slettet fordi det var idiotisk.'
+            except:
+                msg = "Noe gikk galt"
+        else:
+            msg = "Fant ikke ønsket med denne IDen"
+        context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id,
+                                 text="Du er ikke verdig til å utføre denne handlingen")
+
+
+def løst(update: Update, context: CallbackContext):
+    if update.message.from_user.id == 79156661:
+        suggestion = Suggestion.query.get(int(context.args[0]))
+        if suggestion:
+            try:
+                db.session.delete(suggestion)
+                db.session.commit()
+                msg = 'Forslaget "' + suggestion.suggestion + '" har blitt utført.'
             except:
                 msg = "Noe gikk galt"
         else:
