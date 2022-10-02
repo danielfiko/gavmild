@@ -73,7 +73,7 @@ def slett(update: Update, context: CallbackContext):
                                  text="Du er ikke verdig til å utføre denne handlingen")
 
 
-def ok(update: Update, context: CallbackContext):
+def løst(update: Update, context: CallbackContext):
     if update.message.from_user.id == 79156661:
         suggestion = Suggestion.query.get(int(context.args[0]))
         if suggestion:
@@ -106,6 +106,7 @@ dispatcher = Dispatcher(bot, update_queue)
 dispatcher.add_handler(CommandHandler("start", start))
 dispatcher.add_handler(CommandHandler("forslag", forslag))
 dispatcher.add_handler(CommandHandler("slett", slett))
+dispatcher.add_handler(CommandHandler("løst", løst))
 
 # Start the thread
 thread = Thread(target=dispatcher.start, name='dispatcher')
