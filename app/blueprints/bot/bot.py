@@ -73,14 +73,14 @@ def slett(update: Update, context: CallbackContext):
                                  text="Du er ikke verdig til å utføre denne handlingen")
 
 
-def løst(update: Update, context: CallbackContext):
+def ok(update: Update, context: CallbackContext):
     if update.message.from_user.id == 79156661:
         suggestion = Suggestion.query.get(int(context.args[0]))
         if suggestion:
             try:
                 db.session.delete(suggestion)
                 db.session.commit()
-                msg = 'Forslaget "' + suggestion.suggestion + '" har blitt utført.'
+                msg = 'Forslaget "' + suggestion.suggestion + '" har blitt utført og fjernet fra listen.'
             except:
                 msg = "Noe gikk galt"
         else:
