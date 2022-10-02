@@ -91,7 +91,7 @@ def løst(update: Update, context: CallbackContext):
                                  text="Du er ikke verdig til å utføre denne handlingen")
 
 
-def ønske(update: Update, context: CallbackContext):
+def solve(update: Update, context: CallbackContext):
     url = update.message.text.partition(' ')[2]
     if validators.url(url):
         response = requests.get(url)
@@ -106,7 +106,7 @@ dispatcher = Dispatcher(bot, update_queue)
 dispatcher.add_handler(CommandHandler("start", start))
 dispatcher.add_handler(CommandHandler("forslag", forslag))
 dispatcher.add_handler(CommandHandler("slett", slett))
-dispatcher.add_handler(CommandHandler("løst", løst))
+dispatcher.add_handler(CommandHandler("solve", solve))
 
 # Start the thread
 thread = Thread(target=dispatcher.start, name='dispatcher')
