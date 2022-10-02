@@ -73,7 +73,7 @@ def slett(update: Update, context: CallbackContext):
                                  text="Du er ikke verdig til å utføre denne handlingen")
 
 
-def løst(update: Update, context: CallbackContext):
+def solve(update: Update, context: CallbackContext):
     if update.message.from_user.id == 79156661:
         suggestion = Suggestion.query.get(int(context.args[0]))
         if suggestion:
@@ -91,7 +91,7 @@ def løst(update: Update, context: CallbackContext):
                                  text="Du er ikke verdig til å utføre denne handlingen")
 
 
-def solve(update: Update, context: CallbackContext):
+def ønske(update: Update, context: CallbackContext):
     url = update.message.text.partition(' ')[2]
     if validators.url(url):
         response = requests.get(url)
