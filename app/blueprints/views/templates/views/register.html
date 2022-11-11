@@ -8,7 +8,7 @@
     <div class="login">
         <main>
             <h1>Opprett konto</h1>
-            <form method="POST" action="" class="register-form">
+            <form method="POST" action="/register" class="register-form">
                 {{ form.first_name.label }}
                 {{ form.first_name }}
                 {{ form.last_name.label }}
@@ -20,8 +20,8 @@
                 {{ form.date_of_birth.label }}
                 {{ form.date_of_birth }}
                 {{ form.submit }}
+                {{ form.hidden_tag() }}
             </form>
-            {{ form.hidden_tag() }}
 
             <a href="{{url_for('views.login')}}">Har du allerede en konto? Logg inn her.</a>
         </main>
