@@ -4,10 +4,10 @@ from flask import Blueprint, render_template, request, jsonify, redirect, url_fo
 from flask_login import current_user
 from sqlalchemy import or_, and_, exc, asc, desc
 
-from bs4 import BeautifulSoup
-import requests
-from io import BytesIO
-from PIL import Image
+# from bs4 import BeautifulSoup
+# import requests
+# from io import BytesIO
+# from PIL import Image
 
 from app.models import User, Wish, CoWishUser, ClaimedWish
 from app.forms import WishForm, AjaxForm
@@ -231,7 +231,7 @@ def wishes_to_json(wishes):
     else:
         return jsonify({}), 200, {'ContentType': 'application/json'}
 
-
+'''
 @api_bp.route("/soup", methods=["GET", "POST"])
 def soup():
     url = request.values.get("input_link")
@@ -257,7 +257,7 @@ def soup():
         print(image_sizes)
 
     return render_template("soup.html", image_sizes=image_sizes)
-
+'''
 
 
 
