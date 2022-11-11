@@ -63,7 +63,7 @@ def login():
     return render_template("login.html", form=form)
 
 
-@views_bp.route("/register")
+@views_bp.route("/superhemmelig-lag-konto-side")
 def register():
     form = RegisterForm()
     return render_template("register.html", form=form)

@@ -5,27 +5,29 @@
 {% endblock %}
 
 {% block body %}
-    <div class="user-auth-wrapper">
+    <div class="login">
+        <main>
+            <h1>Opprett konto</h1>
+            <form method="POST" action="" class="register-form">
+                {{ form.first_name.label }}
+                {{ form.first_name }}
+                {{ form.last_name.label }}
+                {{ form.last_name }}
+                {{ form.email.label }}
+                {{ form.email }}
+                {{ form.password.label }}
+                {{ form.password }}
+                {{ form.date_of_birth.label }}
+                {{ form.date_of_birth }}
+                {{ form.submit }}
+            </form>
+            {{ form.hidden_tag() }}
+
+            <a href="{{url_for('views.login')}}">Har du allerede en konto? Logg inn her.</a>
+        </main>
         <header>
             <a href="/"><img src="{{ url_for('views.static', filename='logo.png') }}" class="site-logo" alt="Gavmild logo"></a>
         </header>
-        <h1>Opprett konto</h1>
-
-        <form method="POST" action="" class="register-form">
-            {{ form.hidden_tag() }}
-            {{ form.first_name.label }}
-            {{ form.first_name }}
-            {{ form.last_name.label }}
-            {{ form.last_name }}
-            {{ form.email.label }}
-            {{ form.email }}
-            {{ form.password.label }}
-            {{ form.password }}
-            {{ form.date_of_birth.label }}
-            {{ form.date_of_birth }}
-            {{ form.submit }}
-        </form>
-
-        <a href="{{url_for('views.login')}}">Har du allerede en konto? Logg inn her.</a>
+        <img src="{{ url_for('views.static', filename='undraw_typewriter.svg') }}" alt="Person skriver inn tekst">
     </div>
 {% endblock %}
