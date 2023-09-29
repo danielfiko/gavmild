@@ -1,0 +1,49 @@
+{% extends "layouts/base.html" %}
+
+{% block head %}
+<title>Login</title>
+{% endblock %}
+
+{% block body %}
+    <div class="login">
+        <header>
+            <a href="/"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Gavmild logo" class="site-logo"></a>
+        </header>
+        <img src="{{ url_for('static', filename='img/undraw_gift_box.svg') }}" alt="Person åpner en gave">
+        <main>
+            <h1>Logg inn</h1>
+
+            {% if form.errors %}
+                <ul class="errors">
+                {% for error in form.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+
+            <form method="POST" action="/api/login" class="login-form">
+                {{ form.hidden_tag() }}
+                {{ form.email.label }}
+                {{ form.email }}
+                {{ form.password.label }}
+                {{ form.password }}
+                <div class="remember-me">
+                    {{ form.remember_me }}
+                    {{ form.remember_me.label }}
+                </div>
+                {{ form.submit }}
+            </form>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul class=flashes>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+
+            <!--<a href="{{url_for('auth.register')}}">Har du ikke en konto? Opprett en konto her.</a>-->
+        </main>
+    </div>
+{% endblock %}

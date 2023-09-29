@@ -1,0 +1,26 @@
+<div class="nav-add-wish-button display-none">
+    <button class="new-wish-button button-red">
+            <span class="fa-stack small add-wish-icon">
+                <i class="fa-solid fa-gift fa-stack-2x"></i>
+                <i class="fa-solid fa-plus fa-inverse fa-stack-1x cornered-lr"></i>
+            </span>
+    </button>
+</div>
+<ul class="list-no-style">
+    <li><a href="{{ url_for('wishlist.user', user_id=current_user.id) }}">Min ønskeliste</a></li>
+    <li><a href="{{ url_for('wishlist.claimed') }}">Ønsker jeg har tatt</a></li>
+</ul>
+{% if birthdays %}
+<h4>Kommende bursdager</h4>
+<ul class="list-no-style">
+    {% for user in birthdays %}
+        <li><a href="{{ url_for('wishlist.user', user_id=user.id) }}">{{ user.first_name }} ({{ user.birthday }})</a></li>
+    {% endfor %}
+</ul>
+{% endif %}
+<h4>Personer</h4>
+<ul class="list-no-style">
+    {% for user in other_users %}
+    <li><a href="{{ url_for('wishlist.user', user_id=user.id) }}">{{ user.first_name }}</a></li>
+    {% endfor %}
+</ul>

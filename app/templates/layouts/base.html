@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.typeahead.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+    <script src="https://kit.fontawesome.com/a8a4964545.js" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='js/jquery/jquery.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.typeahead.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <title>Gavmild{% block title %}{% endblock %}</title>
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+{% block body %}{% endblock %}
+</body>
+</html>

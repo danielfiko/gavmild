@@ -1,7 +1,16 @@
-*.db
-credentials.py
-<<<<<<< HEAD
-config.py
-=======
->>>>>>> 2991fc6 (Added gitignore)
-/app/blueprints/views/static/views/undraw_gift_box.svg
+.venv/
+
+*.pyc
+__pycache__/
+
+instance/
+
+.pytest_cache/
+.coverage
+htmlcov/
+
+dist/
+build/
+*.egg-info/
+
+*.bak

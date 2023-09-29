@@ -1,0 +1,517 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Raleway&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+html, body {
+    width: 100%;
+    height: 100%;
+    font-family: 'Lato', sans-serif;
+    background-color: #F5F5F5;
+    color: #121212;
+    margin: 0;
+}
+
+img {
+    object-fit: cover;
+}
+
+.container {
+    margin: 0 auto;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    max-width: 1200px;
+    display: grid;
+    align-content: stretch;
+    grid-template-columns: 0 1fr 1fr;
+    grid-template-rows: auto auto 2fr 2fr auto;
+    grid-template-areas:
+        "logo           logo    logo"
+        "header-nav     main    main"
+        "sidebar-nav    main    main"
+        "sidebar-nav    main    main"
+        "footer         footer  footer";
+}
+
+.background-white {
+    background-color: white;
+}
+
+.display-none {
+    display: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+a, a:visited, a:active{
+  color: inherit
+}
+
+.list-no-style {
+    list-style: none;
+    margin: 0;
+}
+
+.button-red {
+    background-color:#9d4045;
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    margin: 6px 0px;
+    cursor: pointer;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+/*
+/*
+/*      Header
+/*
+*/
+
+header {
+    max-width: 35%;
+    grid-area: logo;
+    justify-self: center;
+}
+
+.site-logo {
+    width: 100%;
+}
+
+.header-nav-container {
+    grid-area: header-nav;
+}
+.header-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    place-self: stretch;
+    padding: 20px 15px;
+}
+.header-nav li {
+    display: inline-block;
+}
+.header-nav > li:first-of-type {
+    font-size: 1.6em;
+    font-weight: bold;
+}
+
+/*
+/*
+/*      Sidebar navigation
+/*
+*/
+
+.sidebar-nav {
+    display: none;
+    place-self: stretch;
+    grid-area: sidebar-nav;
+    padding-left: 20px;
+}
+
+.nav-add-wish-button {
+    display: none;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-add-wish-button label {
+    cursor: pointer;
+}
+
+@media only screen and (min-width: 980px) {
+    .sidebar-nav {
+        display: block;
+    }
+}
+
+.sidebar-nav > ul > li:not(:last-child) {
+    padding-bottom: 3px;
+}
+
+.sidebar-nav h4 {
+    padding-top: 10px;
+    padding-bottom: 3px;
+}
+
+/*
+/*
+/*      Main
+/*
+*/
+
+h1 {
+    font-family: 'Libre Baskerville', serif;
+    color: #212121;
+    font-size: 2.2em;
+    margin-bottom: 20px;
+}
+
+main {
+    grid-area: main;
+    padding: 0 10px;
+}
+
+/*
+/*
+/*      Wish display
+/*
+*/
+
+.wishes-list {
+    display:flex;
+    gap: 10px;
+}
+
+.wish-column {
+    display: flex;
+    flex: 1 1 0px;
+    flex-direction: column;
+    gap: 25px;
+    padding-bottom: 55px;
+}
+
+.wish-item {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    cursor: zoom-in;
+    padding: 6px;
+}
+
+.wish-item > * {
+    margin: 0
+}
+
+.wish-item ul, .wish-item p, .wish-item h3 {
+    padding-left: 5px;
+}
+
+.wish-item:hover {
+    background-color: #e2e2e2;
+    border-radius: 10px;
+}
+
+.wish-item img {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 5px;
+}
+
+.co-wisher-list a{
+    cursor: pointer;
+}
+
+.co-wisher-list li {
+    display: inline;
+    font-size: 1em;
+}
+
+.co-wisher-list li:after {
+    content: ", ";
+}
+
+.co-wisher-list li:nth-last-child(2):after {
+    content: " og ";
+}
+
+.co-wisher-list li:last-child:after {
+    content: "";
+}
+
+.wish-item-age {
+    font-size: 0.8em;
+}
+
+.wish-item-url {
+    font-size: 0.8em;
+}
+
+.wish-item-title {
+    margin-top: 3px;
+    font-size: 1.2em;
+    color: #212121;
+    font-weight: 400;
+}
+
+.wish-item .co-wisher-list, .wish-item-age, .wish-item-url {
+    color: #3c3c3c;
+}
+
+.wish-icons {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    color: #3A7734;
+    font-size: 1.5em;
+}
+
+.icon-green {
+    color: #3A7734;
+}
+.icon-gold {
+    color: #e8b201;
+}
+
+/*
+/*
+/*      Footer
+/*
+ */
+
+.footer {
+    grid-area: footer;
+    display: flex;
+    justify-content: space-between;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: row;
+    align-items: center;
+    background-color:#9d4045;
+    padding: 12px 15px;
+}
+
+footer .add-wish-icon {
+    color: white;
+    cursor: pointer;
+}
+
+.fa-stack.small {
+    font-size: 1em;
+}
+
+i .fa-solid {
+    vertical-align: middle;
+}
+
+.fa-stack .cornered-lr {
+	position: absolute;
+	top: -5px !important;
+    left: 22px !important;
+	line-height: 1em;
+    font-size: 0.8em;
+}
+
+.icon-red {
+    color: #9d4045;
+}
+
+
+/*  Hamburger
+ */
+footer .hamburger {
+    height: 26px;
+}
+footer .nav-checkbox {
+    position: absolute;
+    display: block;
+    height: 26px;
+    width: 32px;
+    z-index: 5;
+    opacity: 0;
+    cursor: pointer;
+    margin: 0;
+}
+
+footer .hamburger-lines {
+  display: block;
+  height: 26px;
+  width: 32px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+footer .hamburger-lines .line {
+  display: block;
+  height: 4px;
+  width: 100%;
+  border-radius: 10px;
+  background: white;
+}
+
+footer .hamburger-lines .line1 {
+  transform-origin: 0% 0%;
+  transition: transform 0.4s ease-in-out;
+}
+
+footer .hamburger-lines .line2 {
+  transition: transform 0.2s ease-in-out;
+}
+
+footer .hamburger-lines .line3 {
+  transform-origin: 0% 100%;
+  transition: transform 0.4s ease-in-out;
+}
+
+footer input[type="checkbox"]:checked ~ .hamburger-lines .line1 {
+  transform: rotate(45deg);
+}
+
+footer input[type="checkbox"]:checked ~ .hamburger-lines .line2 {
+  transform: scaleY(0);
+}
+
+footer input[type="checkbox"]:checked ~ .hamburger-lines .line3 {
+  transform: rotate(-45deg);
+}
+
+
+
+/*
+/*
+/*      Login/register
+/*
+*/
+
+.login {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    grid-template-areas:
+    "header"
+    "main"
+    "illustration";
+    justify-content: space-between;
+    padding: 15px;
+}
+
+.login > header {
+    justify-self: left;
+    grid-area: header;
+    max-width: 125px;
+}
+
+.login > img {
+    justify-self: center;
+    grid-area: illustration;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.login > main {
+    justify-self: center;
+    grid-area: main;
+    width: 100%;
+    max-width: 20em;
+    margin: 3vh 0 2vh;
+}
+
+.login > main h1 {
+    font-size: 2.5rem;
+}
+
+.remember-me {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 5px;
+}
+
+.remember-me * {
+    width: auto;
+    margin-bottom: 12px;
+    padding: 0;
+}
+
+/* Media queries */
+
+@media only screen and (min-width: 980px) {
+    .container {
+        grid-template-columns: 1fr 2fr 2fr;
+        grid-template-areas:
+        "logo           .       header-nav"
+        "sidebar-nav    main    main"
+        "sidebar-nav    main    main"
+        "sidebar-nav    main    main"
+        "footer         footer  footer";
+    }
+    .background-white {
+        background-color: transparent;
+}
+    .display-none {
+        display: block;
+    }
+    .nav-add-wish-button {
+        display: flex
+    }
+
+    header {
+        max-width: 100%;
+    }
+
+    .header-nav-container {
+        justify-self: end;
+    }
+
+    .header-nav li:first-of-type {
+        display: flex;
+        align-items:center;
+        gap: 4px;
+        font-size: inherit;
+        font-weight: inherit;
+    }
+    .header-nav li:first-of-type i {
+        font-size: 1.3em;
+        color: #9d4045;
+    }
+
+    .sidebar-nav {
+        margin-top: 40px;
+    }
+    footer {
+        display: none;
+    }
+
+}
+
+/* login page  */
+
+@media only screen and (min-width: 820px) {
+    .login {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+        "header ."
+        "illustration main";
+        column-gap: 5vw;
+        row-gap: 10vh;
+        padding: 15px;
+        height: auto;
+    }
+
+    .login > header {
+    }
+
+    .login > img {
+        width: 500px;
+        max-width: 45vw;
+        justify-self: right;
+        align-self: center;
+        padding-left: 20px;
+    }
+
+    .login > main {
+        width: 22em;
+        max-width: 45vw;
+        justify-self: left;
+        align-self: center;
+    }
+}

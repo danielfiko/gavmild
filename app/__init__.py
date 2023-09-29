@@ -1,34 +1,32 @@
+import os
 from flask import Flask
-from flask_bcrypt import Bcrypt
-from flask_login import LoginManager
-from flask_sqlalchemy import SQLAlchemy
+from .database import database
+from .blueprints.auth import views as auth
+# blueprint import
+from .blueprints.auth.views import auth_bp
+from .blueprints.wishlist.views import wishlist_bp
+from app.blueprints.wishlist.api import api_bp
 
-app = Flask(__name__)
-app.config.from_object("config.ProductionConfig")
-db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = "auth.login"
+def create_app(test_config=None):
+    # create and configure the app
+    app = Flask(__name__, instance_relative_config=True)
+    app.config.from_object('config.Config')
 
-from .models import User
+    # a simple page that says hello
+    @app.route('/hello')
+    def hello():
+        return 'Hello, World!!!444'
+
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(wishlist_bp)
+    app.register_blueprint(api_bp)
+
+    # from . import blog
+    # app.register_blueprint(blog.bp)
+    # app.add_url_rule("/", endpoint="index")
 
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-
-from .blueprints.api.api import api_bp
-from .blueprints.auth.auth import auth_bp
-from .blueprints.views.views import views_bp
-from .blueprints.views.wishes import wishes_bp
-from .blueprints.bot.bot import bot_app
-
-app.register_blueprint(api_bp)
-app.register_blueprint(auth_bp)
-app.register_blueprint(views_bp)
-app.register_blueprint(wishes_bp)
-app.register_blueprint(bot_app)
-
-db.create_all()
+    database.init_app(app)
+    auth.init_auth(app)
+    
+    return app
