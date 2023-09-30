@@ -20,7 +20,7 @@ class ClaimedWish(db.Model):
 
 class Wish(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
+    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow())
     user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"))
     title: Mapped[str] = mapped_column(db.String(90), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(db.String(255))
@@ -29,6 +29,7 @@ class Wish(db.Model):
     img_url: Mapped[Optional[str]] = mapped_column(db.String(255))
     desired: Mapped[bool] = mapped_column(db.Boolean, default=0)
     price: Mapped[Optional[int]] = mapped_column(db.Integer)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
     
     # Relationships
     claims: Mapped[List["ClaimedWish"]] = relationship(back_populates="wish", cascade="delete")
@@ -104,9 +105,23 @@ class Wish(db.Model):
     #    return "<Task %r>" % self.id
 
 
+class ArchivedWish(db.Model):
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    date_created: Mapped[datetime] = mapped_column(db.DateTime)
+    user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"))
+    title: Mapped[str] = mapped_column(db.String(90), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(db.String(255))
+    quantity: Mapped[int] = mapped_column(db.Integer, nullable=False)
+    url: Mapped[Optional[str]] = mapped_column(db.String(255))
+    img_url: Mapped[Optional[str]] = mapped_column(db.String(255))
+    desired: Mapped[bool] = mapped_column(db.Boolean, default=0)
+    price: Mapped[Optional[int]] = mapped_column(db.Integer)
+    deleted_at: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow())
+
+
 class WishInGroup(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
+    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow())
     wish_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("wish.id"))
     group_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("group.id"))
 

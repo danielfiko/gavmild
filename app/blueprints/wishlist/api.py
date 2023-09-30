@@ -5,8 +5,9 @@ from app.blueprints.auth.models import User
 from sqlalchemy import func
 from app.forms import WishForm, AjaxForm
 from app.database.database import db
-from app.blueprints.wishlist.models import Wish, CoWishUser, ClaimedWish
+from app.blueprints.wishlist.models import Wish, CoWishUser, ClaimedWish, ArchivedWish
 from sqlalchemy import or_, and_, exc, asc, desc
+from sqlalchemy.exc import SQLAlchemyError
 from urllib.parse import urlsplit
 
 
@@ -97,19 +98,25 @@ def update():
             return redirect(request.referrer)
     return "Noe gikk galt med oppdatering av ønske", 400
 
+#user_id, title, description, quantity, url, img_url, desired, price
 
 @api_bp.route("/delete", methods=["POST"])
 def delete():
     wish = Wish.query.get(request.values.get("id"))
     if wish.user_id == current_user.id:
+        archived_wish = ArchivedWish(user_id=wish.id, title=wish.wish_title,
+                        description=wish.wish_description, quantity=wish.quantity, url=wish.wish_url,
+                        img_url=wish.wish_img_url, desired=wish.desired, price=wish.price)
         try:
-            db.session.delete(wish)
-            db.session.commit()
+            with db.session.begin():
+                db.session.add(archived_wish)
+                db.session.delete(wish)
             return "Ønske slettet"
-        except:
-            return "Noe gikk galt - kunne ikke slette ønsket", 400
+        except SQLAlchemyError as e:
+            db.session.rollback()  # Rollback changes in case of error
+            return f"Noe gikk galt - kunne ikke slette ønsket: {str(e)}"
     else:
-        return "Noe gikk galt", 400
+        return "Noe gikk galt"
 
 
 @api_bp.route("/claim", methods=["POST"])
