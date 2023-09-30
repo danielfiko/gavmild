@@ -17,6 +17,7 @@ class ClaimedWish(db.Model):
     user: Mapped["User"] = relationship(back_populates="claimed_wishes")
     wish: Mapped["Wish"] = relationship(back_populates="claims")
 
+
 class Wish(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
