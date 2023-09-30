@@ -1,17 +1,20 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.blueprints.auth.models import User
+#from app.blueprints.auth.models import User
 from sqlalchemy import func
 from app.forms import WishForm, AjaxForm
 from app.database.database import db
-from app.blueprints.wishlist.models import Wish, CoWishUser, ClaimedWish, ArchivedWish
+from app.wishlist.models import Wish, CoWishUser, ClaimedWish, ArchivedWish
 from sqlalchemy import or_, and_, exc, asc, desc
 from sqlalchemy.exc import SQLAlchemyError
 from urllib.parse import urlsplit
+import os
 
+APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMPLATE_PATH = os.path.join(APP_PATH, 'templates/wishlist')
 
-api_bp = Blueprint('api', __name__, template_folder="templates/wishlist", url_prefix='/api') # static_folder='static/views'
+api_bp = Blueprint('api', __name__, template_folder=TEMPLATE_PATH, url_prefix='/api') # static_folder='static/views'
 
 
 # TODO: Finn et bedre navn på ruta
@@ -103,16 +106,17 @@ def update():
 def delete():
     wish = Wish.query.get(request.values.get("id"))
     if wish.user_id == current_user.id:
-        archived_wish = ArchivedWish(user_id=wish.id, title=wish.wish_title,
-                        description=wish.wish_description, quantity=wish.quantity, url=wish.wish_url,
-                        img_url=wish.wish_img_url, desired=wish.desired, price=wish.price)
+        archived_wish = ArchivedWish(date_created=wish.date_created, user_id=wish.user_id, title=wish.title,
+                        description=wish.description, quantity=wish.quantity, url=wish.url,
+                        img_url=wish.img_url, desired=wish.desired, price=wish.price)
         try:
-            with db.session.begin():
-                db.session.add(archived_wish)
-                db.session.delete(wish)
+            #with db.session.begin():
+            db.session.add(archived_wish)
+            db.session.delete(wish)
+            db.session.commit()
             return "Ønske slettet"
         except SQLAlchemyError as e:
-            db.session.rollback()  # Rollback changes in case of error
+            #db.session.rollback()  # Rollback changes in case of error
             return f"Noe gikk galt - kunne ikke slette ønsket: {str(e)}"
     else:
         return "Noe gikk galt"

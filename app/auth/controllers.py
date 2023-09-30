@@ -2,10 +2,14 @@ from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_required, login_user, logout_user
 from app.forms import RegisterForm, LoginForm
-from app.blueprints.auth.models import User
+#from app.blueprints.auth.models import User
 import random as rand
 from app.database.database import db
+from app.auth.models import User
+import os
 
+APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMPLATE_PATH = os.path.join(APP_PATH, 'templates/auth')
 
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
@@ -21,7 +25,7 @@ def init_auth(app):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-auth_bp = Blueprint('auth', __name__, template_folder="templates/auth")
+auth_bp = Blueprint('auth', __name__, template_folder=TEMPLATE_PATH)
 
 ###########
 

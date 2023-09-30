@@ -1,10 +1,9 @@
+from app.database.database import db
 from datetime import datetime
 from typing import List
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import mapped_column, Mapped, relationship
-from app.database.database import db
 from flask_login import UserMixin
-from app.blueprints.wishlist.models import Wish, ClaimedWish
 
 
 class User(db.Model, UserMixin):

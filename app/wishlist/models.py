@@ -1,9 +1,9 @@
+from app.database.database import db
 from datetime import datetime
 from typing import List, Optional
 from sqlalchemy import ForeignKey
 #from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import mapped_column, Mapped, relationship
-from app.database.database import db
 from flask_login import current_user
 
 

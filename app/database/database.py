@@ -6,10 +6,8 @@ class Base(DeclarativeBase):
 
 db = SQLAlchemy(model_class=Base)
 
-def init_app(app):
-    db.init_app(app)
-    with app.app_context():
-        db.create_all()
+#def init_app(app):
+
 
     #db.session.add(User(username="example"))
     #db.session.commit()

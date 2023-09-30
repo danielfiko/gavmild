@@ -4,7 +4,7 @@ from wtforms import StringField, PasswordField, EmailField, DateField, SubmitFie
     HiddenField, SelectField, IntegerField, URLField
 from wtforms.validators import InputRequired, Length, ValidationError, Email, NumberRange, Optional
 
-from app.blueprints.auth.models import User
+from app.auth.models import User
 
 
 def validate_username(username):

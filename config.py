@@ -10,7 +10,7 @@ def read_secret(secret_name):
 
 class Config:
     SECRET_KEY = read_secret("flask-secret-key")
-    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://dba:{read_secret('dba-password')}@db:3306/gavmild"
+    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://dba:{read_secret('dba-password')}@gavmild_db:3306/gavmild"
     TELEGRAM_TOKEN = read_secret("telegram-token")
 
 
