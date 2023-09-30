@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from sqlalchemy import ForeignKey
 #from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import mapped_column, Mapped, relationship
@@ -22,12 +22,12 @@ class Wish(db.Model):
     date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
     user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"))
     title: Mapped[str] = mapped_column(db.String(90), nullable=False)
-    description: Mapped[str] = mapped_column(db.String(255))
+    description: Mapped[Optional[str]] = mapped_column(db.String(255))
     quantity: Mapped[int] = mapped_column(db.Integer, nullable=False, default=1)
-    url: Mapped[str] = mapped_column(db.String(255))
-    img_url: Mapped[str] = mapped_column(db.String(255))
+    url: Mapped[Optional[str]] = mapped_column(db.String(255))
+    img_url: Mapped[Optional[str]] = mapped_column(db.String(255))
     desired: Mapped[bool] = mapped_column(db.Boolean, default=0)
-    price: Mapped[int] = mapped_column(db.Integer)
+    price: Mapped[Optional[int]] = mapped_column(db.Integer)
     
     # Relationships
     claims: Mapped[List["ClaimedWish"]] = relationship(back_populates="wish", cascade="delete")
@@ -114,6 +114,7 @@ class CoWishUser(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, ForeignKey("wish.id"), primary_key=True)
     date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
     co_wish_user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"), primary_key=True)
+    
     user: Mapped["User"] = relationship("User")
 
     def get_id(self):
@@ -131,4 +132,4 @@ class Group(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
     title: Mapped[str] = mapped_column(db.String(30), nullable=False)
-    description: Mapped[str] = mapped_column(db.String(255))
+    description: Mapped[Optional[str]] = mapped_column(db.String(255))

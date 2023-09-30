@@ -63,7 +63,6 @@ def add():
                 db.session.commit()
 
             return jsonify({'success': True}), 200, {'ContentType': 'application/json'}
-    print(form.errors)
     return "Form did not validate", 400
 
 
@@ -184,7 +183,6 @@ def return_modal():
         wish = Wish.query.filter(Wish.id == form.wish_id.data).first()
 
         for claim in wish.claims:
-            print(claim.user.first_name)
 
         # Returnere redigerbart ønske
         if wish.user_id == current_user.id:
