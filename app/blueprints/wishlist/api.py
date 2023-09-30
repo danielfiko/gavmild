@@ -182,8 +182,6 @@ def return_modal():
     if form.validate():
         wish = Wish.query.filter(Wish.id == form.wish_id.data).first()
 
-        for claim in wish.claims:
-
         # Returnere redigerbart ønske
         if wish.user_id == current_user.id:
             wish_form = WishForm()
