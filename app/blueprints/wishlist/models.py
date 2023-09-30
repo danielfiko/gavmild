@@ -29,7 +29,6 @@ class Wish(db.Model):
     img_url: Mapped[Optional[str]] = mapped_column(db.String(255))
     desired: Mapped[bool] = mapped_column(db.Boolean, default=0)
     price: Mapped[Optional[int]] = mapped_column(db.Integer)
-    deleted_at: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
     
     # Relationships
     claims: Mapped[List["ClaimedWish"]] = relationship(back_populates="wish", cascade="delete")

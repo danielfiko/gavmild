@@ -98,7 +98,6 @@ def update():
             return redirect(request.referrer)
     return "Noe gikk galt med oppdatering av ønske", 400
 
-#user_id, title, description, quantity, url, img_url, desired, price
 
 @api_bp.route("/delete", methods=["POST"])
 def delete():
