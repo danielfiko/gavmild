@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy import ForeignKey
 #from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import mapped_column, Mapped, relationship
@@ -13,8 +13,8 @@ class TelegramUser(db.Model):
     user_id: Mapped[Optional[str]] = mapped_column(db.Integer, ForeignKey("user.id"), nullable=True)
 
     # Relationships
-    suggestions: Mapped["Suggestion"] = relationship(back_populates="user")
-
+    suggestions: Mapped[List["Suggestion"]] = relationship(back_populates="tg_user")
+    user: Mapped["User"] = relationship(back_populates="tg_user")
 
 class Suggestion(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
@@ -24,4 +24,4 @@ class Suggestion(db.Model):
     solved_at: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
     
     # Relationships
-    user: Mapped["TelegramUser"] = relationship(back_populates="suggestions")
+    tg_user: Mapped["TelegramUser"] = relationship(back_populates="suggestions")
