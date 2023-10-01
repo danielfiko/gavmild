@@ -1,6 +1,7 @@
 import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+from flask import Blueprint, request, current_app
 
 
 telegram_bp = Blueprint("telegram_bot", __name__, url_prefix='/telegram')
