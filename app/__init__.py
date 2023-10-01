@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+from threading import Thread
 
 
 def create_app(test_config=None):
@@ -26,6 +27,8 @@ def create_app(test_config=None):
         db.create_all()
     
     from app.auth import controllers as auth
+    #from app.telegram.controllers import run_bot
     auth.init_auth(app)
-    
+    #Thread(target=run_bot).start()
+
     return app
