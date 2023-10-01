@@ -6,6 +6,7 @@ from app.forms import RegisterForm, LoginForm
 import random as rand
 from app.database.database import db
 from app.auth.models import User
+from app.telegram.models import TelegramUser
 import os
 
 APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
