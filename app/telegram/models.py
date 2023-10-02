@@ -8,12 +8,12 @@ from app.database.database import db
 
 class TelegramUser(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    tg_username: Mapped[Optional[str]] = mapped_column(db.String(90))
+    chat_username: Mapped[Optional[str]] = mapped_column(db.String(90))
     user_id: Mapped[Optional[str]] = mapped_column(db.Integer, ForeignKey("user.id"), nullable=True)
 
     # Relationships
-    suggestions: Mapped[List["Suggestion"]] = relationship(back_populates="tg_user")
-    user: Mapped["User"] = relationship(back_populates="tg_user")
+    suggestions: Mapped[List["Suggestion"]] = relationship(back_populates="chat_user")
+    user: Mapped["User"] = relationship(back_populates="chat_user")
 
 
 class Suggestion(db.Model):
@@ -22,6 +22,7 @@ class Suggestion(db.Model):
     user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("telegram_user.id"))
     suggestion: Mapped[str] = mapped_column(db.String(255))
     solved_at: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
     
     # Relationships
-    tg_user: Mapped["TelegramUser"] = relationship(back_populates="suggestions")
+    chat_user: Mapped["TelegramUser"] = relationship(back_populates="suggestions")

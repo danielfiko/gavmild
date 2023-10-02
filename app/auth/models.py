@@ -20,7 +20,7 @@ class User(db.Model, UserMixin):
     # Relationships
     wishes: Mapped[List["Wish"]] = relationship(backref="user")
     claimed_wishes: Mapped[List["ClaimedWish"]] = relationship(back_populates="user")
-    tg_user: Mapped["TelegramUser"] = relationship(back_populates="user")
+    chat_user: Mapped["TelegramUser"] = relationship(back_populates="user")
 
 
     def tojson(self):

@@ -12,7 +12,7 @@ class Config:
     SECRET_KEY = read_secret("flask-secret-key")
     SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://dba:{read_secret('dba-password')}@gavmild_db:3306/gavmild"
     TELEGRAM_TOKEN = read_secret("telegram-token")
-
+    BOT_API_TOKEN = read_secret("bot-api-token")
 
 
 class ProductionConfig(Config):
