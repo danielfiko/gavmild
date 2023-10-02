@@ -1,10 +1,11 @@
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 from flask import Blueprint, jsonify, request, abort, current_app
 from functools import wraps
+from app.database.database import db
+from app.telegram.models import TelegramUser, Suggestion
 
 
 telegram_bp = Blueprint("telegram_bot", __name__, url_prefix='/telegram')
-API_KEY = 'Your-API-Key'  # Replace with your actual API key
 
 
 def require_api_key(view_function):
@@ -22,35 +23,36 @@ def get_data():
     return jsonify(data)
 
 
-# @telegram_bp.post("/suggestion")
-# def suggestion():
-#     msg = ""
-#     msg_cont = update.message.text.partition(' ')[2]
-#     if not msg_cont:
-#         context.bot.send_message(chat_id=update.effective_chat.id, text='Du må skrive "/forslag Dette er mitt forslag"')
-#         return "ok"
+@telegram_bp.post("/suggestion")
+@require_api_key
+def suggestion():
+    json_data = request.get_json()
+    req_username = json_data.get('username')
+    req_id = json_data.get('id')
+    req_suggestion = json_data.get("suggestion")
 
-#     user = TelegramUser.query.get(update.message.from_user.id)
-#     if not user:
-#         user = TelegramUser(id=update.message.from_user.id, username=update.message.from_user.username)
-#         try:
-#             db.session.add(user)
-#             db.session.commit()
-#         except:
-#             msg = "Det oppstod en feil (1)."
+    user = TelegramUser.query.get(req_id)
 
-#     if user:
-#         if user.username != update.message.from_user.username:
-#             user.username = update.message.from_user.username
-#         suggestion = Suggestion(user_id=update.message.from_user.id, suggestion=msg_cont)
-#         try:
-#             db.session.add(suggestion)
-#             db.session.commit()
-#             msg = "Takk, forslaget har blitt lagt til"
-#         except:
-#             msg = "Det oppstod en feil (2)."
-
-#     context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+    if user:
+        if user.username != req_username:
+            user.username = req_username
+        suggestion = Suggestion(user_id=req_id, suggestion=req_suggestion)
+        try:
+            db.session.add(suggestion)
+            db.session.commit()
+            return jsonify(success=True)
+        except:
+            pass
+    else:
+        user = TelegramUser(id=req_id, username=req_username)
+        try:
+            db.session.add(user)
+            db.session.commit()
+            return jsonify(success=True)
+        except:
+            pass
+    
+    return jsonify(success=False)
 
 
 # def slett(update: Update, context: CallbackContext):
