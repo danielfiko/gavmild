@@ -37,24 +37,23 @@ def add_suggestion():
 
     user = TelegramUser.query.get(req_id)
 
-    if user:
-        if user.chat_username != req_username:
-            user.chat_username = req_username
-        suggestion = Suggestion(user_id=req_id, suggestion=req_suggestion)
-        try:
-            db.session.add(suggestion)
-            db.session.commit()
-            return jsonify(success=True)
-        except:
-            pass
-    else:
-        user = TelegramUser(id=req_id, username=req_username)
+    if not user:
+        user = TelegramUser(id=req_id, chat_username=req_username)
         try:
             db.session.add(user)
             db.session.commit()
-            return jsonify(success=True)
         except:
             pass
+
+    if user.chat_username != req_username:
+        user.chat_username = req_username
+    suggestion = Suggestion(user_id=req_id, suggestion=req_suggestion)
+    try:
+        db.session.add(suggestion)
+        db.session.commit()
+        return jsonify(success=True)
+    except:
+        pass
     
     return jsonify(success=False)
 
