@@ -150,6 +150,7 @@ function addNewWish() {
             csrf_token: $("#csrf_token").val(),
         }).then(function(res) {
             showModal(res)
+            $("#url").on('input', function() { get_prisjakt_details() })
     })
 }
 
@@ -235,5 +236,47 @@ function deleteWish(id) {
             requestWishes();
             $("#modal").hide();
         });
+    }
+}
+
+
+function get_prisjakt_details() {
+    var productUrl = $("#url").val();
+
+    // Regular expression pattern to match the product code in the URL
+    var pattern = /https:\/\/www\.prisjakt\.no\/product\.php\?p=(\d+)/;
+
+    // Check if the URL matches the pattern
+    var matches = productUrl.match(pattern);
+
+    if (matches) {
+        var productCode = matches[1];
+
+        // Send product code to your API using AJAX
+        $.ajax({
+            url: "/api/prisjakt",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ product_code: productCode }),
+            success: function(response) {
+                $("#title").val(response["product_name"])
+                $("#price").val(response["product_price"])
+                $("#img_url").val(response["product_image"])
+                $(".modal-left img").attr("src", response["product_image"])
+                $('#prisjakt-error').remove()
+            },
+            statusCode: {
+                404: function() {
+                    if (!$('#prisjakt-error').length) {
+                        $("#url").after("<p id='prisjakt-error' style='font-size:0.8em;margin-top:-8px'>Fant ikke produktet hos Prisjakt, sjekk URL.</p>");
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log("Error: Unable to fetch data from API: " + xhr.responseText);
+            }
+        });
+    } else {
+        $("#result").text("Invalid URL format");
     }
 }

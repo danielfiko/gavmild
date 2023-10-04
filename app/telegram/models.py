@@ -26,3 +26,11 @@ class Suggestion(db.Model):
     
     # Relationships
     chat_user: Mapped["TelegramUser"] = relationship(back_populates="suggestions")
+
+
+class TelegramUserConnection(db.Model):
+    identifier: Mapped[Optional[str]] = mapped_column(db.String(10), primary_key=True)
+    user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"))
+    
+    #Relationship
+    user: Mapped["User"] = relationship()

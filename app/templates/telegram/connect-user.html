@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+<h1>Koble sammen Gavmild- og Telegram-konto</h1>
+<form id="pw-form">
+    {{ form.hidden_tag() }}
+</form>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+        <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+{% endwith %}
+{% if bot_url %}
+<p><a href="{{ bot_url }}">Trykk her for å åpne en samtale med Gavmild bot i Telegram</a>, trykk deretter på "Start" i appen.</p>
+{% endif %}
+</body>
+</html>
+
+

@@ -68,3 +68,7 @@ class AjaxForm(FlaskForm):
     # API for henting av ønsker
     wish_id = IntegerField()
     columns = IntegerField()
+
+
+class TelegramConnectForm(FlaskForm):
+    pass

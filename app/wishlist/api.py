@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, abort, Response
 from flask_login import login_required, current_user
 #from app.blueprints.auth.models import User
 from sqlalchemy import func
@@ -235,3 +235,30 @@ def wishes_to_json(wishes):
         return jsonify(wishes_json_string)
     else:
         return jsonify({}), 200, {'ContentType': 'application/json'}
+
+from .prisjakt import make_request
+
+@api_bp.post("/prisjakt")
+def prisjakt():
+    json_data = request.get_json()
+    product_code = json_data.get('product_code')
+    
+    response = make_request(product_code)
+    response_data = response.json()
+
+    if response.status_code == 200:
+        product_name = response_data["items"][0]["name"]
+        product_price = response_data["items"][0]["price"]["regular"]
+        product_image = response_data["items"][0]["media"]["product_images"]["first"]["800"]
+        return jsonify({
+            "product_name": product_name,
+            "product_price": product_price,
+            "product_image": product_image
+        })
+    
+    elif response.status_code == 404:
+        abort(404)
+    
+    else:
+        error_message = response.text
+        return Response(error_message, status=500)

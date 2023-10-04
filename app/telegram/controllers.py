@@ -1,13 +1,22 @@
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
-from flask import Blueprint, jsonify, request, abort, current_app
+from flask import Blueprint, jsonify, request, abort, current_app, render_template, flash
+from flask_login import login_required, current_user
 from functools import wraps
 from app.database.database import db
-from app.telegram.models import TelegramUser, Suggestion
+from app.telegram.models import TelegramUser, Suggestion, TelegramUserConnection
 from sqlalchemy import desc
+from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
+import random
+import string
+from app.forms import TelegramConnectForm
+import os
 
 
-telegram_bp = Blueprint("telegram_bot", __name__, url_prefix='/telegram')
+APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMPLATE_PATH = os.path.join(APP_PATH, 'templates/telegram')
+
+telegram_bp = Blueprint("telegram_bot", __name__, url_prefix='/telegram', template_folder=TEMPLATE_PATH)
 
 filter_active_suggestions = (Suggestion.solved_at == None) & (Suggestion.deleted_at == None)
 
@@ -94,3 +103,70 @@ def solve_suggestion():
         return jsonify({"message": suggestion.suggestion})
     except:
         abort(500, 'Noe gikk galt, kunne ikke slette ønsket.')
+
+
+
+@telegram_bp.get("/connect")
+@login_required
+def connect_code():
+    connect_id = db.session.scalars(
+        db.select(TelegramUserConnection)
+        .where(TelegramUserConnection.user_id == current_user.id)
+        ).first()
+    
+    def generate_unique_code(length=10):
+        characters = string.ascii_letters + string.digits
+        unique_code = ''.join(random.choice(characters) for _ in range(length))
+        return unique_code
+
+    def is_unique_primary_key(primary_key):
+        # Check if the primary key already exists in the database
+        existing_record = db.session.get(TelegramUserConnection, primary_key)
+        return existing_record is None
+
+    def generate_connection_code():
+        while True:
+            unique_code = generate_unique_code()
+            if is_unique_primary_key(unique_code):
+                return unique_code
+    
+
+    if not connect_id:
+        identifier = generate_connection_code()
+        connect_id = TelegramUserConnection(identifier=identifier, user_id=current_user.id)
+        db.session.add(connect_id)
+    
+    form = TelegramConnectForm()
+
+    try:
+        db.session.commit()
+        bot_url=f"https://t.me/onske_bot?start={connect_id.identifier}"
+        return render_template("connect-user.html", form=form, bot_url=bot_url)
+    
+    except SQLAlchemyError as e:
+        flash(str(e.orig))
+        return render_template("connect-user.html")
+
+
+@telegram_bp.post("/connect-user")
+@require_api_key
+def connect_user():
+    json_data = request.get_json()
+    chat_user_id = json_data.get('chat_user_id')
+    chat_username = json_data.get('chat_username')
+    identifier = json_data.get('identifier')
+
+    connect_id = db.get_or_404(TelegramUserConnection, identifier)
+    telegram_user = db.session.get(TelegramUser, chat_user_id)
+
+    if telegram_user:
+        telegram_user.user_id = connect_id.user_id
+    else:
+        telegram_user = TelegramUser(id=chat_user_id, chat_username=chat_username, user_id=connect_id.user_id)
+        db.session.add(telegram_user)
+    try:
+        db.session.delete(connect_id)
+        db.session.commit()
+        return jsonify(username=telegram_user.user.username)
+    except SQLAlchemyError as e:
+        abort(500, str(e.orig))
