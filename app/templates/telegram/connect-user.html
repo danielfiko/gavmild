@@ -8,15 +8,9 @@
 <form id="pw-form">
     {{ form.hidden_tag() }}
 </form>
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-    <ul class=flashes>
-    {% for message in messages %}
-        <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
+{% if e %}
+<p>Det oppstod en feil: {{ e }}</p>
 {% endif %}
-{% endwith %}
 {% if bot_url %}
 <p><a href="{{ bot_url }}">Trykk her for å åpne en samtale med Gavmild bot i Telegram</a>, trykk deretter på "Start" i appen.</p>
 {% endif %}

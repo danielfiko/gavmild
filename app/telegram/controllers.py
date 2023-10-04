@@ -144,8 +144,7 @@ def connect_code():
         return render_template("connect-user.html", form=form, bot_url=bot_url)
     
     except SQLAlchemyError as e:
-        flash(str(e.orig))
-        return render_template("connect-user.html")
+        return render_template("connect-user.html", e=e)
 
 
 @telegram_bp.post("/connect-user")
