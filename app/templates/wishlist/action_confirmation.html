@@ -1,0 +1,20 @@
+{#{% block content %}{% endblock %}#}
+<div class="confirm-action content">
+  {% if title %}
+    <h2>{{ title }}</h2>
+  {% endif %}
+  {% if img %}
+    <img src="{{ img }}" alt="{{ img_alt }}">
+  {% elif message %}
+    <p>{{ message }}</p>
+  {% endif %}
+  <div class="actions">
+    {% if buttons == "confirm" %}
+      <button class="button send">Send</button>
+      <button class="button abort">Avbryt</button>
+    {% endif %}
+    {% if buttons == "close" %}
+    <button class="button abort">Lukk</button>
+  {% endif %}
+  </div>
+</div>

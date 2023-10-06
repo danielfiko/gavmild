@@ -15,6 +15,9 @@
     <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/jquery.typeahead.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script type="text/javascript">
+        var csrf_token = "{{ csrf_token() }}";
+    </script>
     <title>Gavmild{% block title %}{% endblock %}</title>
     {% block head %}{% endblock %}
 </head>

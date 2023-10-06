@@ -124,7 +124,7 @@ async def hello_api(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if response.status_code == 200:
         data = response.json()
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=data["message"])
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=data["message"] + " " + str(update.effective_chat.id))
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Noe gikk dessverre galt.")  # Invalid API Key or the server encountered an error
 

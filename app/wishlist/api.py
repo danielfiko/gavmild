@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, request, jsonify, redirect, url_fo
 from flask_login import login_required, current_user
 #from app.blueprints.auth.models import User
 from sqlalchemy import func
+from app import api_login_required
 from app.forms import WishForm, AjaxForm
 from app.database.database import db
 from app.wishlist.models import Wish, CoWishUser, ClaimedWish, ArchivedWish
@@ -10,6 +11,7 @@ from sqlalchemy import or_, and_, exc, asc, desc
 from sqlalchemy.exc import SQLAlchemyError
 from urllib.parse import urlsplit
 import os
+
 
 APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATE_PATH = os.path.join(APP_PATH, 'templates/wishlist')
@@ -21,6 +23,7 @@ api_bp = Blueprint('api', __name__, template_folder=TEMPLATE_PATH, url_prefix='/
 # TODO: Ikke returner valgte navn
 # TODO: Verifiser at det ikke er duplikater
 @api_bp.route("/typeahead", methods=["GET", "POST"])
+@api_login_required
 def typeahead():
     searchform = AjaxForm()
     if request.method == "POST":
@@ -38,7 +41,8 @@ def typeahead():
         return "MeRkElIgE gReIeR", 500
 
 
-@api_bp.route("/add", methods=["POST"])
+@api_bp.post("/add")
+@api_login_required
 def add():
     form = WishForm()
     if form.validate():
@@ -71,30 +75,42 @@ def add():
 
 
 # TODO: Ikke ta i mot GET, håndter alt i ajax så bruker ikke ser denne ruta
-@api_bp.route("/update", methods=["POST"])
+@api_bp.post("/update")
+@api_login_required
 def update():
     wishform = WishForm()
+    
     if wishform.validate() and wishform.edit_id.data:
         wish = Wish.query.get(wishform.edit_id.data)
+        
         if wish.user_id == current_user.id:
+            if wishform.wish_url.data != wish.url and wish.reported_link:
+                db.session.delete(wish.reported_link)
+            
             wish.title = wishform.wish_title.data
             wish.description = wishform.wish_description.data
             wish.quantity = wishform.quantity.data
             wish.url = wishform.wish_url.data
             wish.price = wishform.price.data
+            
             if len(wish.img_url) < 5:
                 wish.img_url = url_for('static', filename='gift-default.png')
+            
             else:
                 wish.img_url = wishform.wish_img_url.data
             wish.desired = 1 if wishform.desired.data else 0
             form_co_wishers = wishform.co_wisher.data.split(",")
+            
             if form_co_wishers[0]:
                 for user_id in form_co_wishers:
                     new_co_wisher = CoWishUser(id=wishform.edit_id.data, co_wish_user_id=user_id)
+                    
                     if new_co_wisher:
                         db.session.add(new_co_wisher)
+            
             try:
                 db.session.commit()
+            
             except Exception as error:
                 print(str(error.orig) + " for parameters" + str(error.params))
 
@@ -102,27 +118,59 @@ def update():
     return "Noe gikk galt med oppdatering av ønske", 400
 
 
-@api_bp.route("/delete", methods=["POST"])
+@api_bp.get("/delete")
+@api_login_required
+def delete_prompt():
+
+    return render_template(
+        "/wishlist/action_confirmation.html",
+        title = "Slette ønske?",
+        message = "Dette vil slette ønsket ditt for godt",
+        buttons = "confirm")
+
+
+
+@api_bp.delete("/delete")
+@api_login_required
 def delete():
-    wish = Wish.query.get(request.values.get("id"))
-    if wish.user_id == current_user.id:
-        archived_wish = ArchivedWish(date_created=wish.date_created, user_id=wish.user_id, title=wish.title,
-                        description=wish.description, quantity=wish.quantity, url=wish.url,
-                        img_url=wish.img_url, desired=wish.desired, price=wish.price)
-        try:
-            #with db.session.begin():
-            db.session.add(archived_wish)
-            db.session.delete(wish)
-            db.session.commit()
-            return "Ønske slettet"
-        except SQLAlchemyError as e:
-            #db.session.rollback()  # Rollback changes in case of error
-            return f"Noe gikk galt - kunne ikke slette ønsket: {str(e)}"
-    else:
-        return "Noe gikk galt"
+    wish_id = int(request.values.get("id"))
+    if wish_id:
+        wish = db.session.get(Wish, wish_id)
+
+        if wish.user_id == current_user.id:
+            archived_wish = ArchivedWish(date_created=wish.date_created, user_id=wish.user_id, title=wish.title,
+            description=wish.description, quantity=wish.quantity, url=wish.url,
+            img_url=wish.img_url, desired=wish.desired, price=wish.price)
+            
+            try:
+                db.session.add(archived_wish)
+                db.session.delete(wish)
+                db.session.commit()
+                return render_template(
+                    "/wishlist/action_confirmation.html",
+                    img = url_for('static', filename='img/great-success/very-nice-great-success.jpg'),
+                    img_alt = "Borat saying 'VERY NICE - GREAT SUCCESS'",
+                    buttons = "close")
+            
+            except SQLAlchemyError as e:
+                pass#return f"Noe gikk galt - kunne ikke slette ønsket: {str(e)}"
+        
+        else:
+            return render_template(
+                "/wishlist/action_confirmation.html",
+                title = "Oisann",
+                message = "Du har ikke rettigheter til å slette dette ønsket.",
+                buttons = "close")
+    
+    return render_template(
+        "/wishlist/action_confirmation.html",
+        title = "Oisann",
+        message = "Det oppstod en feil, prøv igjen kanskje?",
+        buttons = "close")
 
 
-@api_bp.route("/claim", methods=["POST"])
+@api_bp.post("/claim")
+@api_login_required
 def claim():
     form = AjaxForm()
     if form.validate():
@@ -146,7 +194,8 @@ def claim():
         return redirect(request.referrer)
 
 
-@api_bp.route("/wish/all", methods=["POST"])
+@api_bp.post("/wish/all")
+@api_login_required
 def wish_mobile():
     wishes = Wish.query.filter(Wish.user_id != current_user.id) \
         .order_by(desc(Wish.date_created), desc(Wish.desired)).limit(30).all()
@@ -154,7 +203,8 @@ def wish_mobile():
     return wishes_to_json(wishes)
 
 
-@api_bp.route("/wish/claimed", methods=["POST"])
+@api_bp.post("/wish/claimed")
+@api_login_required
 def claimed():
     form = AjaxForm()
     if form.validate():
@@ -165,7 +215,7 @@ def claimed():
 # TODO: Legg til mulighet for å fjerne seg selv som co wisher
 # TODO: Ha separat "ønsker meg mest" for co wishere
 # TODO: Bestem redigeringsrettigheter/sletterettigheter for co wisher
-@api_bp.route("/wish/user/<int:user_id>", methods=["POST"])
+@api_bp.post("/wish/user/<int:user_id>")
 def return_user_wishes(user_id):
     form = AjaxForm()
     if form.validate():
@@ -175,7 +225,8 @@ def return_user_wishes(user_id):
         return wishes_to_json(wishes)
 
 
-@api_bp.route("/wish/new", methods=["POST"])
+@api_bp.post("/wish/new")
+@api_login_required
 def new_wish():
     wish_form = WishForm()
     claim_form = AjaxForm()
@@ -185,7 +236,8 @@ def new_wish():
                            form_action="add")
 
 
-@api_bp.route("/wish", methods=["POST"])
+@api_bp.post("/wish")
+@api_login_required
 def return_modal():
     form = AjaxForm()
     claim_form = AjaxForm()
@@ -206,7 +258,8 @@ def return_modal():
 
 
 # FIXME: Tullete å kalle denne for hver bruker som blir lagt i lista
-@api_bp.route("/cowisher", methods=["POST"])
+@api_bp.post("/cowisher")
+@api_login_required
 def cowisher():
     user_id = User.query.get(request.values.get("user_id"))
     if user_id:
@@ -239,6 +292,7 @@ def wishes_to_json(wishes):
 from .prisjakt import make_request
 
 @api_bp.post("/prisjakt")
+@api_login_required
 def prisjakt():
     json_data = request.get_json()
     product_code = json_data.get('product_code')

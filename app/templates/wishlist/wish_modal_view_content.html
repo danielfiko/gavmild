@@ -9,11 +9,13 @@
             {% if wish.price %}
                 <span class="price">{{ "{0:,}".format(wish.price).replace(",", " ") }} kr</span>
             {% endif %}
-            {% if wish.price and wish.url%}
+            {# {% if wish.price and wish.url%}
                 <span>•</span>
-            {% endif %}
+            {% endif %} #}
             {% if wish.url|length > 0 %}
                 <a href="{{ wish.url }}" id="product-url" target="_blank">{{ netloc }}</a>
+                {{ '<i class="fa-solid fa-link-slash icon-dead-link" id="%s" title="Rapporter død lenke"></i>'|safe % wish.id if wish.user_id != current_user.id }}
+                
             {% endif %}
     </div>
 
@@ -49,4 +51,15 @@
             </button>-->
         {% endif %}
     </form>
+    <script type="text/javascript">
+        var csrf_token = "{{ csrf_token() }}";
+    
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                }
+            }
+        });
+    </script>
 {% endblock %}

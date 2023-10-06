@@ -202,11 +202,11 @@ button.claim-button i, button.claim-button span {
   text-decoration: none;
 }
 
-.modal-right .wish-details span {
+.modal-right .wish-details span, .icon-dead-link {
   color: #737373;
 }
 
-.modal-right .wish-details a:link, .wish-details a:visited, .wish-details a:active{
+.modal-right .wish-details a:link, .wish-details a:visited, .wish-details a:active {
   color: #0066CC
 }
 
@@ -217,6 +217,14 @@ button.claim-button i, button.claim-button span {
 .modal-right fieldset {
   border: none;
 }
+
+.icon-dead-link {
+  margin-left: 3px;
+  font-size: 0.8em;
+  cursor: pointer;
+}
+
+
 
 /*
 /*
@@ -389,4 +397,48 @@ label[for="co_wisher"] {
   border-top: 2px solid #9d4045;
   border-bottom: 2px solid #9d4045;
   border-radius: 0;
+}
+
+
+/*
+/*
+/*    Confirm action
+/*
+*/
+
+.modal-content h2 {
+  font-size: 1.2em;
+  color: #212121;
+  margin-bottom: 10px;
+  /*font-weight: 400;*/
+}
+
+.confirm-action.content{
+  display: flex;
+  flex-direction: column;
+  margin: 15px;
+  max-width: 230px;
+}
+
+.confirm-action p {
+  color: #212121;
+}
+
+.confirm-action > div > .actions {
+  display: flex;
+  margin-top: 13px;
+  justify-content: flex-end;
+  gap: 24px;
+}
+
+.confirm-action button {
+  text-transform: uppercase;
+  color: #9d4045;
+  font-weight: 400;
+  background: none;
+	border: none;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;
 }

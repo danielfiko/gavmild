@@ -1,16 +1,19 @@
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
-from flask import Blueprint, jsonify, request, abort, current_app, render_template, flash
+from flask import Blueprint, jsonify, request, abort, current_app, render_template, flash, Response
 from flask_login import login_required, current_user
 from functools import wraps
 from app.database.database import db
-from app.telegram.models import TelegramUser, Suggestion, TelegramUserConnection
+from app.telegram.models import TelegramUser, Suggestion, TelegramUserConnection, ReportedLink
+from app.wishlist.models import Wish
+from app.forms import TelegramConnectForm, APIform
+from app import read_secret, api_login_required
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 import random
 import string
-from app.forms import TelegramConnectForm
 import os
+import requests
 
 
 APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -169,3 +172,100 @@ def connect_user():
         return jsonify(username=telegram_user.user.username)
     except SQLAlchemyError as e:
         abort(500, str(e.orig))
+
+
+def telegram_bot_sendtext(chat_id, message):
+    print(f"Chat user id: {chat_id}")
+    bot_token = read_secret("telegram-token")
+    bot_chat_id = str(chat_id)
+    send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + bot_chat_id + '&parse_mode=Markdown&disable_web_page_preview=true&text=' + message
+    
+    response = requests.get(send_text)
+    if response.status_code == 200:
+        return response
+    else:
+        raise Exception("Kunne ikke sende melding")
+
+
+@telegram_bp.post("/report-link")
+@api_login_required
+def report_link():
+    form = APIform()
+    if form.validate_on_submit():
+        reported_wish_id = int(request.values.get("id"))
+        report_confirmed = True if request.values.get("confirmed") == "true" else False
+        link_report = db.session.get(ReportedLink, reported_wish_id)
+        
+        modal_title = "Rapporter død lenke?"
+
+        if link_report:
+            modal_message = "Det er allerede sendt en beskjed om denne lenken."
+            modal_buttons = "close"
+            return render_template(
+                "/wishlist/action_confirmation.html",
+                title=modal_title, message=modal_message, buttons=modal_buttons, form=form)
+
+        elif report_confirmed:
+            link_report = ReportedLink(wish_id=reported_wish_id, reported_by_user_id=current_user.id)
+            wish = db.session.get(Wish, reported_wish_id)
+            print(wish)
+            try:
+                db.session.add(link_report)
+                message = (
+                    f"Hei {wish.user.first_name}!\n\n"
+                    f"Noen har meldt at lenken du har lagt til for ønsket *{wish.title}* ikke fungerer.\n\n"
+                    f"Vennligst sjekk lenken og oppdater den hvis det er nødvendig.\n\nLenken som er rapportert: {wish.url}"
+                )
+
+                print(message)
+
+                chat_user = wish.user.chat_user
+                chat_user_id = ""
+                if not chat_user:
+                    print("joe mama 4")
+                    chat_user_id = read_secret("chat-group-id")
+                    message += "\n\nDenne meldingen ble sendt her siden du ikke har koblet Telegram-kontoen din til Gavmild. Vennligst gå inn på https://gavmild.dfiko.no/telegram/connect for å gjøre det så snart som mulig."
+                else:
+                    chat_user_id = wish.user.chat_user.id
+                telegram_bot_sendtext(chat_user_id, message)
+                db.session.commit()
+
+                modal_message = "Meldingen ble sendt, takk for at du ga beskjed."
+                modal_buttons = "close"
+            
+            except SQLAlchemyError as e:
+                #db.session.rollback()  # Rollback changes in case of error
+                modal_message = "Noe gikk galt - fikk ikke sendt beskjed (database error)."
+                modal_buttons = "close"
+
+            except:
+                modal_message = "Noe gikk galt - fikk ikke sendt beskjed (message error)."
+                modal_buttons = "close"
+            
+            finally:
+                return render_template(
+                    "/wishlist/action_confirmation.html",
+                    title = modal_title,
+                    message = modal_message,
+                    buttons = modal_buttons,
+                    form=form)
+
+        else:
+            wish = db.session.get(Wish, reported_wish_id)
+            
+            if wish:
+                return render_template(
+                    "/wishlist/action_confirmation.html",
+                    title = modal_title,
+                    message = f"Det blir sendt en melding til {wish.user.first_name} om at lenken ikke fungerer.",
+                    buttons = "confirm",
+                    form=form)
+    
+    return render_template(
+        "/wishlist/action_confirmation.html",
+        title = "Det oppstod en feil",
+        message = '''Handlingen kunne ikke fullføres på grunn av en sikkerhetsfeil (CSRF). 
+                    Vennligst last inn siden på nytt og prøv igjen. 
+                    Hvis problemet vedvarer, kontakt support for assistanse.'''.split('\n'),
+        buttons = "close",
+        form=form)

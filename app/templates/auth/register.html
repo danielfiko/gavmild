@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 
 {% block head %}
 <title>Register</title>
@@ -8,7 +8,7 @@
     <div class="login">
         <main>
             <h1>Opprett konto</h1>
-            <form method="POST" action="/register" class="register-form">
+            <form method="POST" action="/api/register" class="register-form">
                 {{ form.first_name.label }}
                 {{ form.first_name }}
                 {{ form.last_name.label }}

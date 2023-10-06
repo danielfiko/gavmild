@@ -14,6 +14,24 @@ function ajaxCall(route, data, callback) {
     })
 }
 
+function ajaxCallCsrf(route, data, type="POST", callback) {
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrf_token);
+            }
+        }
+    });
+
+    return $.ajax({
+        url: route,
+        type: type, // or "GET" or any other HTTP method you want to use
+        data: data,
+        success: callback
+    });
+
+}
+
 function toggleHamburger(){
     if ($(".nav-checkbox").is(":checked")) {
         $("main").hide(0,function(){
@@ -30,7 +48,7 @@ function toggleHamburger(){
 }
 
 function requestWishes() {
-    ajaxCall("/api/wish/" + $("#filter").val(), {
+    ajaxCallCsrf("/api/wish/" + $("#filter").val(), {
         csrf_token: $("#csrf_token").val()
     }).then(function(wishes) {
         if (!Object.keys(wishes).length) {
@@ -114,7 +132,7 @@ function submitWishForm(event){
     else {
         desired_val = false;
     }
-   ajaxCall($("#wishform").attr("action"), {
+   ajaxCallCsrf($("#wishform").attr("action"), {
        csrf_token: $("#csrf_token").val(),
        wish_img_url: $("#img_url").val(),
        co_wisher: $("#co_wisher").val(),
@@ -146,7 +164,7 @@ function animateWishAdded(title, img) {
 }
 
 function addNewWish() {
-    ajaxCall("/api/wish/new", {
+    ajaxCallCsrf("/api/wish/new", {
             csrf_token: $("#csrf_token").val(),
         }).then(function(res) {
             showModal(res)
@@ -156,7 +174,7 @@ function addNewWish() {
 
 
 function viewWish(id) {
-    ajaxCall("/api/wish", {
+    ajaxCallCsrf("/api/wish", {
         csrf_token: $("#csrf_token").val(),
         wish_id: id
     }).then(function(res) {
@@ -170,7 +188,8 @@ function viewWish(id) {
             })
             $('label[for="co_wisher"]').css("visibility", "visible");
         }
-        $(".delete-wish").click(function(){deleteWish(this.id)})
+        $(".delete-wish").click( function(){deleteWish(this.id, false, "GET")} )
+        $(".icon-dead-link").click( function(){ reportDeadLink(this.id) });//reportDeadLink(this.id)} );
     }, function(reason) {
         console.log("kunne ikke hente data, ", reason);
     });
@@ -178,7 +197,7 @@ function viewWish(id) {
 
 function addWishUser() {
     let co_wisher_list = [];
-    ajaxCall("/api/typeahead", { hello: "hello" }).then(function(users) {
+    ajaxCallCsrf("/api/typeahead", { hello: "hello" }).then(function(users) {
         $(".add-co-wisher-button-wrapper").hide();
         $(".typeahead__container").show();
         $(".js-typeahead").select()
@@ -207,7 +226,7 @@ function addWishUser() {
     function addCowisherToTypeahead(item) {
         let co_wisher = item.username;
         if (co_wisher) {
-            ajaxCall("/api/cowisher", { user_id:item.id }).then(function(res){
+            ajaxCallCsrf("/api/cowisher", { user_id:item.id }).then(function(res){
                 if(!co_wisher_list.includes(item.id)) {
                     $(".modal .co-wisher-list").append('<li id="'+item.id+'">'+
                         '<i id="'+item.id+'" class="fas fa-times delete-co-wisher"></i>' +
@@ -228,17 +247,46 @@ function addWishUser() {
     }
 }
 
-/* TODO: Fjern alert og gjør tilbakemeldingen mer sexy */
-function deleteWish(id) {
-    if (confirm("Er du sikker på at du vil slette dette ønsket?") == true) {
-        ajaxCall("/api/delete", { id:id }).then(function(res){
-            alert(res);
-            requestWishes();
-            $("#modal").hide();
-        });
-    }
+function showActionConfirmation(res, id, callback) {
+    $(".confirm-action.modal-content").html(res);
+    $("#modal-confirm").css("display", "flex");
+    $(".button.send").click(callback);
+    $(".button.abort").click(
+        function() {$("#modal-confirm").hide()}
+        );
+    var confirmModal = document.getElementById("modal-confirm");
+    window.addEventListener("click", function(event) {
+        if (event.target == confirmModal) {
+            confirmModal.style.display = "none";
+        }
+    })
 }
 
+function reportDeadLink(id, confirmed=false) {
+    ajaxCallCsrf("/telegram/report-link", { id:id, confirmed:confirmed }).then(
+        function(res){
+            showActionConfirmation(res, id, function() {reportDeadLink(id, confirmed=true)});
+        }
+    )
+}
+
+/* TODO: Fjern alert og gjør tilbakemeldingen mer sexy */
+// function deleteWish(id) {
+//     if (confirm("Er du sikker på at du vil slette dette ønsket?") == true) {
+//         ajaxCallCsrf("/api/delete", { id:id }).then(function(res){
+//             alert(res);
+//             requestWishes();
+//             $("#modal").hide();
+//         });
+//     }
+// }
+function deleteWish(id, confirmed=false, method) {
+    ajaxCallCsrf("/api/delete", { id:id, confirmed:confirmed }, method).then(
+        function(res){
+            showActionConfirmation(res, id, function() {deleteWish(id, confirmed=true, "DELETE")});
+        }
+    )
+}
 
 function get_prisjakt_details() {
     var productUrl = $("#url").val();
