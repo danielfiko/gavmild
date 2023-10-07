@@ -35,7 +35,10 @@ function checkPathForWish() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> development
 
 function checkPathAndLoadWishContent() {
     var wish_id = checkPathForWish()
@@ -69,7 +72,10 @@ function ajaxCallCsrf(route, data, type="POST", callback) {
 }
 
 
+<<<<<<< HEAD
 >>>>>>> 8dcca34... stuff
+=======
+>>>>>>> development
 function toggleHamburger(){
     if ($(".nav-checkbox").is(":checked")) {
         $("main").hide(0,function(){
@@ -87,7 +93,7 @@ function toggleHamburger(){
 
 
 function requestWishes() {
-    ajaxCall("/api/wish/" + $("#filter").val(), {
+    ajaxCallCsrf("/api/wish/" + $("#filter").val(), {
         csrf_token: $("#csrf_token").val()
     }).then(function(wishes) {
         if (!Object.keys(wishes).length) {
@@ -193,7 +199,7 @@ function submitWishForm(event){
     else {
         desired_val = false;
     }
-   ajaxCall($("#wishform").attr("action"), {
+   ajaxCallCsrf($("#wishform").attr("action"), {
        csrf_token: $("#csrf_token").val(),
        wish_img_url: $("#img_url").val(),
        co_wisher: $("#co_wisher").val(),
@@ -227,7 +233,7 @@ function animateWishAdded(title, img) {
 
 
 function addNewWish() {
-    ajaxCall("/api/wish/new", {
+    ajaxCallCsrf("/api/wish/new", {
             csrf_token: $("#csrf_token").val(),
         }).then(function(res) {
             showModal(res)
@@ -237,6 +243,7 @@ function addNewWish() {
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 function viewWish(id) {
     ajaxCall("/api/wish", {
         csrf_token: $("#csrf_token").val(),
@@ -244,6 +251,8 @@ function viewWish(id) {
     }).then(function(res) {
         showModal(res);
 =======
+=======
+>>>>>>> development
 function updateUrlAndLoadWishContent(id) {
     // Update the URL using History API
     currentPath = window.location.pathname;
@@ -260,7 +269,10 @@ function loadWishContent(id) {
         // Set modal content
         showModal(data);
         
+<<<<<<< HEAD
 >>>>>>> 8dcca34... stuff
+=======
+>>>>>>> development
         if ($(".modal .co-wisher-list li:first").length) {
                 $(".typeahead__container").show();
                 $(".modal .co-wisher-list").show();
@@ -271,11 +283,14 @@ function loadWishContent(id) {
                 $('label[for="co_wisher"]').css("visibility", "visible");
         }
 <<<<<<< HEAD
+<<<<<<< HEAD
         $(".delete-wish").click(function(){deleteWish(this.id)})
     }, function(reason) {
         console.log("kunne ikke hente data, ", reason);
     });
 =======
+=======
+>>>>>>> development
        
         $(".delete-wish").click( function(){deleteWish(this.id, false, "GET")} )
         $(".icon-dead-link").click( function(){ reportDeadLink(this.id) });
@@ -284,13 +299,16 @@ function loadWishContent(id) {
     // .fail(function(reason) {
     //     console.log("kunne ikke hente data, ", reason);
     // });
+<<<<<<< HEAD
 >>>>>>> 8dcca34... stuff
+=======
+>>>>>>> development
 }
 
 
 function addWishUser() {
     let co_wisher_list = [];
-    ajaxCall("/api/typeahead", { hello: "hello" }).then(function(users) {
+    ajaxCallCsrf("/api/typeahead", { hello: "hello" }).then(function(users) {
         $(".add-co-wisher-button-wrapper").hide();
         $(".typeahead__container").show();
         $(".js-typeahead").select()
@@ -319,7 +337,7 @@ function addWishUser() {
     function addCowisherToTypeahead(item) {
         let co_wisher = item.username;
         if (co_wisher) {
-            ajaxCall("/api/cowisher", { user_id:item.id }).then(function(res){
+            ajaxCallCsrf("/api/cowisher", { user_id:item.id }).then(function(res){
                 if(!co_wisher_list.includes(item.id)) {
                     $(".modal .co-wisher-list").append('<li id="'+item.id+'">'+
                         '<i id="'+item.id+'" class="fas fa-times delete-co-wisher"></i>' +
@@ -341,6 +359,7 @@ function addWishUser() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* TODO: Fjern alert og gjør tilbakemeldingen mer sexy */
 function deleteWish(id) {
     if (confirm("Er du sikker på at du vil slette dette ønsket?") == true) {
@@ -351,6 +370,8 @@ function deleteWish(id) {
         });
     }
 =======
+=======
+>>>>>>> development
 
 function showActionConfirmation(res, id, callback) {
     $(".confirm-action.modal-content").html(res);
@@ -383,7 +404,10 @@ function deleteWish(id, confirmed=false, method) {
             showActionConfirmation(res, id, function() {deleteWish(id, confirmed=true, "DELETE")});
         }
     )
+<<<<<<< HEAD
 >>>>>>> 8dcca34... stuff
+=======
+>>>>>>> development
 }
 
 

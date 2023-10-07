@@ -202,11 +202,11 @@ button.claim-button i, button.claim-button span {
   text-decoration: none;
 }
 
-.modal-right .wish-details span {
+.modal-right .wish-details span, .icon-dead-link {
   color: #737373;
 }
 
-.modal-right .wish-details a:link, .wish-details a:visited, .wish-details a:active{
+.modal-right .wish-details a:link, .wish-details a:visited, .wish-details a:active {
   color: #0066CC
 }
 
@@ -217,6 +217,14 @@ button.claim-button i, button.claim-button span {
 .modal-right fieldset {
   border: none;
 }
+
+.icon-dead-link {
+  margin-left: 3px;
+  font-size: 0.8em;
+  cursor: pointer;
+}
+
+
 
 /*
 /*
@@ -390,7 +398,10 @@ label[for="co_wisher"] {
   border-bottom: 2px solid #9d4045;
   border-radius: 0;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> development
 }
 
 
@@ -435,5 +446,8 @@ label[for="co_wisher"] {
 	font: inherit;
 	cursor: pointer;
 	outline: inherit;
+<<<<<<< HEAD
 >>>>>>> 8dcca34... stuff
+=======
+>>>>>>> development
 }

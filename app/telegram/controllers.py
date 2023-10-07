@@ -1,16 +1,19 @@
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
-from flask import Blueprint, jsonify, request, abort, current_app, render_template, flash
+from flask import Blueprint, jsonify, request, abort, current_app, render_template, flash, Response
 from flask_login import login_required, current_user
 from functools import wraps
 from app.database.database import db
-from app.telegram.models import TelegramUser, Suggestion, TelegramUserConnection
+from app.telegram.models import TelegramUser, Suggestion, TelegramUserConnection, ReportedLink
+from app.wishlist.models import Wish
+from app.forms import TelegramConnectForm, APIform
+from app import read_secret, api_login_required
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 import random
 import string
-from app.forms import TelegramConnectForm
 import os
+import requests
 
 
 APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -170,8 +173,11 @@ def connect_user():
         return jsonify(username=telegram_user.user.username)
     except SQLAlchemyError as e:
 <<<<<<< HEAD
+<<<<<<< HEAD
         abort(500, str(e.orig))
 =======
+=======
+>>>>>>> development
         abort(500, str(e.orig))
 
 def telegram_escape_text(input_string):
@@ -302,4 +308,7 @@ def report_link():
                     Hvis problemet vedvarer, kontakt support for assistanse.'''.split('\n'),
         buttons = "close",
         form=form)
+<<<<<<< HEAD
 >>>>>>> 8dcca34... stuff
+=======
+>>>>>>> development

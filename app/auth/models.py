@@ -18,9 +18,10 @@ class User(db.Model, UserMixin):
     force_pw_change: Mapped[int] = mapped_column(db.Integer, default=0)
 
     # Relationships
-    wishes: Mapped[List["Wish"]] = relationship(backref="user")
+    wishes: Mapped[List["Wish"]] = relationship(back_populates="user")
     claimed_wishes: Mapped[List["ClaimedWish"]] = relationship(back_populates="user")
     chat_user: Mapped["TelegramUser"] = relationship(back_populates="user")
+    reported_links: Mapped[List["ReportedLink"]] = relationship(back_populates="user")
 
 
     def tojson(self):

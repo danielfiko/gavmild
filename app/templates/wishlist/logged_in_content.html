@@ -1,10 +1,15 @@
 {% extends "layouts/base.html" %}
 
 {% block body %}
-{{ ajaxform.hidden_tag() }}
+{# {{ ajaxform.hidden_tag() }} #}
 {{ ajaxform.filter(value=filter) }}
+
 <div id="modal" class="modal">
     <div class="modal-content" id="modal-content">
+    </div>
+</div>
+<div id="modal-confirm" class="modal">
+    <div class="confirm-action modal-content" id="modal-content">
     </div>
 </div>
 <div class="container">

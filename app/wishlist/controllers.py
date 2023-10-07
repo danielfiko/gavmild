@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, render_template, redirect, url_for
 from flask_login import login_required, current_user
 from sqlalchemy import func
-from app.forms import WishForm, AjaxForm
+from app.forms import APIform, WishForm, AjaxForm
 from app.database.database import db
 from app.auth.models import User
 import os
@@ -49,9 +49,11 @@ def logged_in_content(page_filter):
                   "birthday": f"{u.date_of_birth.day}. {months[u.date_of_birth.month]}"} for u in users]
     ajaxform = AjaxForm()
     wishform = WishForm()
+    api_form = APIform()
+    
     return render_template("logged_in_content.html",
                            ajaxform=ajaxform, wishform=wishform, filter=page_filter, other_users=other_users,
-                           birthdays=birthdays, page_title=page_title)
+                           birthdays=birthdays, page_title=page_title, api_form=api_form)
 
 
 @wishlist_bp.route("/claimed")

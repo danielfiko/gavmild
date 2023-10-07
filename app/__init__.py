@@ -1,12 +1,18 @@
 import os
-from flask import Flask
+from flask import Flask, abort
+from flask_login import current_user
+from flask_wtf.csrf import CSRFProtect
 from threading import Thread
+from functools import wraps
 
 
-def create_app(test_config=None):
+csrf = CSRFProtect()
+
+def create_app():
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object('config.Config')
+    csrf.init_app(app)
 
     from app.database.database import db
     db.init_app(app)
@@ -32,3 +38,18 @@ def create_app(test_config=None):
     #Thread(target=run_bot).start()
 
     return app
+
+def read_secret(secret_name):
+    try:
+        with open(f"/run/secrets/{secret_name}", "r") as secret_file:
+            return secret_file.read().strip()
+    except IOError:
+        return None
+
+def api_login_required(view_function):
+    @wraps(view_function)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            abort(401)
+        return view_function(*args, **kwargs)
+    return decorated_function

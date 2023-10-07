@@ -31,8 +31,10 @@ class Wish(db.Model):
     price: Mapped[Optional[int]] = mapped_column(db.Integer)
     
     # Relationships
+    user: Mapped[List["User"]] = relationship(back_populates="wishes")
     claims: Mapped[List["ClaimedWish"]] = relationship(back_populates="wish", cascade="delete")
     co_wishers: Mapped[List["CoWishUser"]] = relationship("CoWishUser", cascade="delete")
+    reported_link: Mapped["ReportedLink"] = relationship(back_populates="wish")
 
     def is_claimed_by_user(self, user_id):
         """Check if the wish is claimed by the specified user."""

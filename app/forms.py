@@ -72,3 +72,6 @@ class AjaxForm(FlaskForm):
 
 class TelegramConnectForm(FlaskForm):
     pass
+
+class APIform(FlaskForm):
+    pass
