@@ -13,9 +13,9 @@ wishlist_bp = Blueprint('wishlist', __name__, template_folder=TEMPLATE_PATH, url
 
 ################
 
-
 @wishlist_bp.route("/")
-def index():
+@wishlist_bp.route("/wish/<int:wish_id>")
+def index(wish_id=0):
     if current_user.is_authenticated:
         return logged_in_content("all")
     else:
@@ -23,8 +23,9 @@ def index():
 
 
 @wishlist_bp.route("/user/<int:user_id>")
+@wishlist_bp.route("/user/<int:user_id>/wish/<int:wish_id>")
 @login_required
-def user(user_id):
+def user(user_id,wish_id=0):
     return logged_in_content("user/" + str(user_id))
 
 

@@ -17,9 +17,10 @@ APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATE_PATH = os.path.join(APP_PATH, 'templates/telegram')
 
 telegram_bp = Blueprint("telegram_bot", __name__, url_prefix='/telegram', template_folder=TEMPLATE_PATH)
-
 filter_active_suggestions = (Suggestion.solved_at == None) & (Suggestion.deleted_at == None)
 
+class APIerror(Exception):
+    pass
 
 def require_api_key(view_function):
     @wraps(view_function)
@@ -168,4 +169,137 @@ def connect_user():
         db.session.commit()
         return jsonify(username=telegram_user.user.username)
     except SQLAlchemyError as e:
+<<<<<<< HEAD
         abort(500, str(e.orig))
+=======
+        abort(500, str(e.orig))
+
+def telegram_escape_text(input_string):
+    escaped_string = input_string.replace("_", "\\_").replace("*", "\\*").replace("`", "\\`").replace("[", "\\[")
+    return escaped_string
+
+def telegram_bot_sendtext(chat_id, message):
+    try:
+        bot_token = read_secret("telegram-token")
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": True,
+            "text": message
+        }
+        response = requests.post(url, data=payload)
+        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx status codes)
+
+    except requests.HTTPError as e:
+        # Handle HTTP errors (4xx and 5xx status codes)
+        print("HTTP Error:", e.response.status_code)
+        raise APIerror() # Re-raise the exception after handling it, or handle it as appropriate for your application
+
+    except requests.RequestException as e:
+        # Handle request exceptions (e.g., network issues, timeouts)
+        print("Request Exception:", e)
+        raise APIerror()  # Re-raise the exception after handling it, or handle it as appropriate for your application
+
+    except Exception as e:
+        # Handle other exceptions
+        print("An error occurred:", e)
+        raise APIerror() # Re-raise the exception after handling it, or handle it as appropriate for your application
+
+    else:
+        # Code to run if there are no exceptions
+        print("Message sent successfully")
+
+    finally:
+        # Cleanup code (if any)
+        pass
+
+@telegram_bp.post("/report-link")
+@api_login_required
+def report_link():
+    form = APIform()
+    if form.validate_on_submit():
+        reported_wish_id = int(request.values.get("id"))
+        report_confirmed = True if request.values.get("confirmed") == "true" else False
+        link_report = db.session.get(ReportedLink, reported_wish_id)
+        
+        modal_title = "Rapporter død lenke?"
+        modal_message = ""
+        modal_buttons = ""
+
+        if link_report:
+            modal_message = "Det er allerede sendt en beskjed om denne lenken."
+            modal_buttons = "close"
+            return render_template(
+                "/wishlist/action_confirmation.html",
+                title=modal_title, message=modal_message, buttons=modal_buttons, form=form)
+
+        elif report_confirmed:
+            link_report = ReportedLink(wish_id=reported_wish_id, reported_by_user_id=current_user.id)
+            wish = db.session.get(Wish, reported_wish_id)
+
+            try:
+                db.session.add(link_report)
+                user_first_name = telegram_escape_text(wish.user.first_name)
+                wish_title = telegram_escape_text(wish.title)
+                wish_url = telegram_escape_text(f"gavmild.dfiko.no/user/{wish.user.id}/wish/{wish.id}")
+                message = (
+                    f"Hei {user_first_name}!\n\n"
+                    f"Noen har meldt at lenken du har lagt til for ønsket *{wish_title}* ikke fungerer.\n\n"
+                    f"Vennligst sjekk lenken og oppdater den hvis det er nødvendig.\n\n{wish_url}"
+                )
+
+                chat_user = wish.user.chat_user
+                chat_user_id = ""
+                
+                if not chat_user:
+                    chat_user_id = read_secret("chat-group-id")
+                    message += "\n\nDenne meldingen ble sendt her siden du ikke har koblet Telegram-kontoen din til Gavmild. Vennligst gå inn på https://gavmild.dfiko.no/telegram/connect for å gjøre det så snart som mulig."
+                
+                else:
+                    chat_user_id = wish.user.chat_user.id
+                
+                telegram_bot_sendtext(chat_user_id, message)
+                db.session.commit()
+                modal_message = "Meldingen ble sendt, takk for at du ga beskjed."
+                modal_buttons = "close"
+ 
+            except SQLAlchemyError as e:
+                #db.session.rollback()  # Rollback changes in case of error
+                modal_title = "Noe gikk galt"
+                modal_message = "Det oppstod en feil under lagring av feilmeldingen. Prøv igjen."
+                modal_buttons = "close"
+            
+            except APIerror:
+                modal_title = "Noe gikk galt"
+                modal_message = "Det oppstod en feil og beskjeden kunne ikke sendes. Prøv igjen."
+                modal_buttons = "close"
+
+            finally:
+                return render_template(
+                    "/wishlist/action_confirmation.html",
+                    title = modal_title,
+                    message = modal_message,
+                    buttons = modal_buttons,
+                    form=form)
+
+        else:
+            wish = db.session.get(Wish, reported_wish_id)
+            
+            if wish:
+                return render_template(
+                    "/wishlist/action_confirmation.html",
+                    title = modal_title,
+                    message = f"Det blir sendt en melding til {wish.user.first_name} om at lenken ikke fungerer.",
+                    buttons = "confirm",
+                    form=form)
+
+    return render_template(
+        "/wishlist/action_confirmation.html",
+        title = "Det oppstod en feil",
+        message = '''Handlingen kunne ikke fullføres på grunn av en sikkerhetsfeil (CSRF). 
+                    Vennligst last inn siden på nytt og prøv igjen. 
+                    Hvis problemet vedvarer, kontakt support for assistanse.'''.split('\n'),
+        buttons = "close",
+        form=form)
+>>>>>>> 8dcca34... stuff

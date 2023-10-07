@@ -185,24 +185,30 @@ def new_wish():
                            form_action="add")
 
 
+<<<<<<< HEAD
 @api_bp.route("/wish", methods=["POST"])
 def return_modal():
+=======
+@api_bp.get("/wish/<int:wish_id>")
+@api_login_required
+def return_modal(wish_id):
+>>>>>>> 8dcca34... stuff
     form = AjaxForm()
     claim_form = AjaxForm()
-    if form.validate():
-        wish = Wish.query.filter(Wish.id == form.wish_id.data).first()
+#if form.validate():
+    wish = Wish.query.filter(Wish.id == wish_id).first()
 
-        # Returnere redigerbart ønske
-        if wish.user_id == current_user.id:
-            wish_form = WishForm()
-            return render_template("wish_modal_edit_content.html", wish=wish,
-                                   claimform=claim_form, wish_form=wish_form, form_action="update")
-        # Returnere andres ønske
-        else:
-            netloc = "{0.netloc}".format(urlsplit(wish.url))
-            return render_template("wish_modal_view_content.html", wish=wish, claimform=claim_form, netloc=netloc)
+    # Returnere redigerbart ønske
+    if wish.user_id == current_user.id:
+        wish_form = WishForm()
+        return render_template("wish_modal_edit_content.html", wish=wish,
+                                claimform=claim_form, wish_form=wish_form, form_action="update")
+    # Returnere andres ønske
     else:
-        return "getwishesform didn't validate"
+        netloc = "{0.netloc}".format(urlsplit(wish.url))
+        return render_template("wish_modal_view_content.html", wish=wish, claimform=claim_form, netloc=netloc)
+#else:
+#    return "getwishesform didn't validate"
 
 
 # FIXME: Tullete å kalle denne for hver bruker som blir lagt i lista
@@ -229,7 +235,8 @@ def wishes_to_json(wishes):
             "title": whs.title,
             "price": f"{whs.price:,}".replace(",", " ") if whs.price else "",
             "desired": whs.desired,
-            "base_url": "{0.netloc}".format(urlsplit(whs.url))
+            "base_url": "{0.netloc}".format(urlsplit(whs.url)),
+            "url": whs.url
         })
     if wishes_json_string:
         return jsonify(wishes_json_string)

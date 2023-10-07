@@ -389,4 +389,51 @@ label[for="co_wisher"] {
   border-top: 2px solid #9d4045;
   border-bottom: 2px solid #9d4045;
   border-radius: 0;
+<<<<<<< HEAD
+=======
+}
+
+
+/*
+/*
+/*    Confirm action
+/*
+*/
+
+.modal-content h2 {
+  font-size: 1.2em;
+  color: #212121;
+  margin-bottom: 12px;
+  /*font-weight: 400;*/
+}
+
+.confirm-action.content{
+  display: flex;
+  flex-direction: column;
+  margin: 15px;
+  max-width: 290px;
+}
+
+.confirm-action p {
+  color: #212121;
+}
+
+.confirm-action > div > .actions {
+  display: flex;
+  margin-top: 20px;
+  justify-content: flex-end;
+  gap: 28px;
+}
+
+.confirm-action button {
+  text-transform: uppercase;
+  color: #9d4045;
+  font-weight: 400;
+  background: none;
+	border: none;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;
+>>>>>>> 8dcca34... stuff
 }
