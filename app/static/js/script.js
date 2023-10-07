@@ -1,28 +1,62 @@
+var currentPath;
+
 $(document).ready(function() {
+    currentPath = window.location.pathname;
+    var wishRegex = /((?<=\d+)\/)?wish\/\d+/;
+
+    if (wishRegex.test(currentPath)) {
+        currentPath = currentPath.replace(wishRegex, '');
+    }
+
     requestWishes();
     $(".new-wish-button, .new-wish-button-label").click(function() { addNewWish()});
     $(".nav-checkbox").click(toggleHamburger);
     $(".logout-button").click(function(){window.location.href='/api/logout'}); // FIXME: statisk link
+    
+    checkPathAndLoadWishContent();
+    // Event listener to handle back button and restore modal state
+    $(window).on('popstate', function () {
+        checkPathAndLoadWishContent();
+    });
 });
 
-function ajaxCall(route, data, callback) {
-    return $.ajax({
-        method: "post",
-        url: route,
-        data: data,
-        success: callback
-    })
+
+function checkPathForWish() {
+    var path = location.pathname;
+    var regex = /\/wish\/(\d+)$/; // Regular expression to match "/wish/" followed by an integer
+    var match = path.match(regex);
+
+    if (match && match[1]) {
+        return parseInt(match[1], 10);
+    }
+    else {
+        return false
+    }
 }
 
-function ajaxCallCsrf(route, data, type="POST", callback) {
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
-                xhr.setRequestHeader("X-CSRFToken", csrf_token);
-            }
-        }
-    });
 
+function checkPathAndLoadWishContent() {
+    var wish_id = checkPathForWish()
+    if (wish_id) {
+        loadWishContent(wish_id)
+    }
+    else {
+        // Close the modal if the URL is not '/modal'
+        modal.style.display = "none";
+    }
+}
+
+
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrf_token);
+        }
+    }
+});
+
+
+function ajaxCallCsrf(route, data, type="POST", callback) {
     return $.ajax({
         url: route,
         type: type, // or "GET" or any other HTTP method you want to use
@@ -31,6 +65,7 @@ function ajaxCallCsrf(route, data, type="POST", callback) {
     });
 
 }
+
 
 function toggleHamburger(){
     if ($(".nav-checkbox").is(":checked")) {
@@ -47,6 +82,7 @@ function toggleHamburger(){
     }
 }
 
+
 function requestWishes() {
     ajaxCallCsrf("/api/wish/" + $("#filter").val(), {
         csrf_token: $("#csrf_token").val()
@@ -62,6 +98,7 @@ function requestWishes() {
         })
     });
 }
+
 
 function appendWishesToMain(wishes, columns) {
     let current_column = 1;
@@ -85,7 +122,7 @@ function appendWishesToMain(wishes, columns) {
             $ul.append("<li>"+co_wisher+"</li>");
         });
         $div.append('<p class="wish-item-age">' + ((wish.price) ? 'kr. ' + wish.price + ',- / ' : "") + wish.age + '</p>')
-        $div.append('<p class="wish-item-url">' + wish.base_url + '</p>')
+        $div.append('<a class="wish-item-url", href="' + wish.url + '" target="_blank">' + wish.base_url + '</a>')
         let $h3 = $("<h3>").addClass("wish-item-title").appendTo($div);
         /*if (wish.desired) {
             $h3.append('<span>&#9733; </span>')
@@ -98,37 +135,58 @@ function appendWishesToMain(wishes, columns) {
             current_column = 1;
         }
     });
-    $(".wish-item").click(function() { viewWish(this.id) });
+    // $(".wish-item").click(function() {  });
+    $(".wish-item").on("click", function(event) {
+        // Check if the clicked element is not an anchor (a) tag
+        if (!$(event.target).is("a")) {
+            updateUrlAndLoadWishContent(this.id)
+        }
+    });
 
     $('img').on("error", function() {
         $(this).attr('src', '/static/img/gift-default.png');
     });
 }
+
+
+function hideModalAndUpdateUrl() {
+    modal.style.display = "none";
+    // Restore the original URL
+    history.pushState({}, '', currentPath);
+}
+
 
 function showModal(res) {
     $("#modal-content").html(res);
     $(".typeahead__container").hide();
     $("#add-user-field").show();
     $("#modal").css("display", "flex");
-    $(".close").click(              function() {$("#modal").hide()});
     $(".add-co-wisher-button").click(        function() {addWishUser() });
     $(".add-wish-image-from-url-button").click(  function() {$(this).hide();$("#img_url").show().select()});
     $("#wishform").submit(submitWishForm);
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
+    $(document).on("click", function(event) {
+        if (event.target == modal || $(event.target).closest(".close").length > 0) {
+            hideModalAndUpdateUrl()
         }
-    }
+    });
     $('img').on("error", function() {
         $(this).attr('src', '/static/img/gift-default.png');
     });
+    $("#img_url").on("change", function() {
+        var newValue = $(this).val();
+        $(".modal-left img").attr('src', newValue);
+        console.log(newValue)
+        // Perform other actions based on the new value
+    });
 }
+
 
 function submitWishForm(event){
     let desired_val;
     if ($("#desired").is(":checked")) {
         desired_val = true;
     }
+
     else {
         desired_val = false;
     }
@@ -150,8 +208,9 @@ function submitWishForm(event){
    event.preventDefault();
 }
 
+
 function animateWishAdded(title, img) {
-    $(".close, .modal-right, .modal-left fieldset").hide(800);
+    $(".close, .modal-right, .modal-left fieldset").hide(400);
     let $modal = $(".modal-left");
     $modal.animate({maxWidth:"100%", width:"300px", paddingBottom: "20px", paddingTop: "50px"});
     let $h3 = $("<h3>").addClass("wish-item-title").css("padding-top", "10px").appendTo($modal);
@@ -160,8 +219,9 @@ function animateWishAdded(title, img) {
     $(".modal-left img").attr("src", img)
     $(".modal-left p").css("padding-bottom", "30px");
     $modal.append('<button class="modal-btn-close-msg">Lukk</button>');
-    $(".modal-btn-close-msg").click(function() {$("#modal").hide()});
+    $(".modal-btn-close-msg").click(function() {hideModalAndUpdateUrl()});
 }
+
 
 function addNewWish() {
     ajaxCallCsrf("/api/wish/new", {
@@ -173,27 +233,41 @@ function addNewWish() {
 }
 
 
-function viewWish(id) {
-    ajaxCallCsrf("/api/wish", {
-        csrf_token: $("#csrf_token").val(),
-        wish_id: id
-    }).then(function(res) {
-        showModal(res);
-        if ($(".modal .co-wisher-list li:first").length) {
-            $(".typeahead__container").show();
-            $(".modal .co-wisher-list").show();
-            $("#add-user-field").hide();
-            $(".modal .co-wisher-list a").click(function(){
-                $(".co-wishers-list li[id='"+this.id+"']").remove();
-            })
-            $('label[for="co_wisher"]').css("visibility", "visible");
-        }
-        $(".delete-wish").click( function(){deleteWish(this.id, false, "GET")} )
-        $(".icon-dead-link").click( function(){ reportDeadLink(this.id) });//reportDeadLink(this.id)} );
-    }, function(reason) {
-        console.log("kunne ikke hente data, ", reason);
-    });
+function updateUrlAndLoadWishContent(id) {
+    // Update the URL using History API
+    currentPath = window.location.pathname;
+    var newPath = currentPath + (currentPath.endsWith('/') ? '' : '/') + 'wish/' + id;
+    history.pushState({ path: currentPath }, '', newPath);
+    loadWishContent(id)
 }
+
+
+// Function to load modal content via AJAX
+function loadWishContent(id) {
+    // Make an AJAX request to fetch modal content
+    $.get('/api/wish/' + id, function (data) {
+        // Set modal content
+        showModal(data);
+        
+        if ($(".modal .co-wisher-list li:first").length) {
+                $(".typeahead__container").show();
+                $(".modal .co-wisher-list").show();
+                $("#add-user-field").hide();
+                $(".modal .co-wisher-list a").click(function(){
+                    $(".co-wishers-list li[id='"+this.id+"']").remove();
+                })
+                $('label[for="co_wisher"]').css("visibility", "visible");
+        }
+       
+        $(".delete-wish").click( function(){deleteWish(this.id, false, "GET")} )
+        $(".icon-dead-link").click( function(){ reportDeadLink(this.id) });
+
+    })
+    // .fail(function(reason) {
+    //     console.log("kunne ikke hente data, ", reason);
+    // });
+}
+
 
 function addWishUser() {
     let co_wisher_list = [];
@@ -247,6 +321,7 @@ function addWishUser() {
     }
 }
 
+
 function showActionConfirmation(res, id, callback) {
     $(".confirm-action.modal-content").html(res);
     $("#modal-confirm").css("display", "flex");
@@ -262,6 +337,7 @@ function showActionConfirmation(res, id, callback) {
     })
 }
 
+
 function reportDeadLink(id, confirmed=false) {
     ajaxCallCsrf("/telegram/report-link", { id:id, confirmed:confirmed }).then(
         function(res){
@@ -270,16 +346,7 @@ function reportDeadLink(id, confirmed=false) {
     )
 }
 
-/* TODO: Fjern alert og gjør tilbakemeldingen mer sexy */
-// function deleteWish(id) {
-//     if (confirm("Er du sikker på at du vil slette dette ønsket?") == true) {
-//         ajaxCallCsrf("/api/delete", { id:id }).then(function(res){
-//             alert(res);
-//             requestWishes();
-//             $("#modal").hide();
-//         });
-//     }
-// }
+
 function deleteWish(id, confirmed=false, method) {
     ajaxCallCsrf("/api/delete", { id:id, confirmed:confirmed }, method).then(
         function(res){
@@ -287,6 +354,7 @@ function deleteWish(id, confirmed=false, method) {
         }
     )
 }
+
 
 function get_prisjakt_details() {
     var productUrl = $("#url").val();
