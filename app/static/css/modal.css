@@ -202,11 +202,11 @@ button.claim-button i, button.claim-button span {
   text-decoration: none;
 }
 
-.modal-right .wish-details span {
+.modal-right .wish-details span, .icon-dead-link {
   color: #737373;
 }
 
-.modal-right .wish-details a:link, .wish-details a:visited, .wish-details a:active{
+.modal-right .wish-details a:link, .wish-details a:visited, .wish-details a:active {
   color: #0066CC
 }
 
@@ -217,6 +217,14 @@ button.claim-button i, button.claim-button span {
 .modal-right fieldset {
   border: none;
 }
+
+.icon-dead-link {
+  margin-left: 3px;
+  font-size: 0.8em;
+  cursor: pointer;
+}
+
+
 
 /*
 /*
