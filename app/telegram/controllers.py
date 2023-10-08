@@ -103,7 +103,7 @@ def delete_suggestion():
 
 @telegram_bp.post("/solve")
 @require_api_key
-#@csrf.exempt
+@csrf.exempt
 def solve_suggestion():
     suggestion = get_suggestion(request.get_json())
     suggestion.solved_at = datetime.utcnow()
