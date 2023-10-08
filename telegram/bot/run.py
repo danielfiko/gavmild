@@ -1,9 +1,11 @@
 import logging
-from telegram import Update
+from telegram import Update, constants
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler
 from chat_api import read_secret, openai_api
 import httpx
 import json
+from functools import wraps
+
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -20,8 +22,25 @@ async def make_request(method, endpoint, data=None):
 
     async with httpx.AsyncClient() as client:
         response = await client.request(method, url, headers=headers, data=data)
+        print(response.text)
 
     return response
+
+
+async def make_response_message(method, endpoint, data, message):
+        response = await make_request(method, endpoint, json.dumps(data))
+
+        if response.status_code == 200:
+            data = response.json()
+            return message.format(data["message"])
+        elif response.status_code == 404:
+            content = f"Skriv en kort feilmelding om at ønsket med det id-nummeret brukeren sendte inn ikke eksisterer."
+            message = openai_api(content, "You are a friendly chat bot")
+            return message
+        else:
+            content = f"Skriv en kort feilmelding om at du ikke fikk kontakt med tjenesten, Gavmild, og handlingen derfor ikke kunne utføres."
+            message = openai_api(content, "You are a friendly chat bot")
+            return message
 
 
 async def request_prisjakt(url):
@@ -48,6 +67,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def suggestion(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
     req_message = update.message.text.partition(' ')[2]
     if not req_message:
         content = f"Brukeren {update.message.from_user.first_name} har brukt kommandoen /forslag feil. Forklar brukeren i korthet at riktig bruk er /forslag Dette er mitt forslag."
@@ -70,6 +90,7 @@ async def suggestion(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
     if update.message.from_user.id == 79156661:
         if not context.args:
             await context.bot.send_message(chat_id=update.effective_chat.id, text='/slett <id>')
@@ -78,13 +99,8 @@ async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "suggestion_id": context.args[0]
         }
 
-        response = await make_request("DELETE", "suggestion", json.dumps(data))
-        data = response.json()
-
-        if response.status_code == 200:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text='Forslaget "' + data["message"] + '" ble slettet fordi det var idiotisk.')
-        else:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=data["message"])
+        message = await make_response_message("DELETE", "suggestion", data, 'Forslaget "{}" har blitt utført og fjernet fra listen.')
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
         
     else:
         content = f"Forklar brukeren {update.message.from_user.first_name} at vedkommende ikke har tilstrekkelige rettigheter til å utføre handlingen."
@@ -93,6 +109,7 @@ async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def solve(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
     if update.message.from_user.id == 79156661:
         if not context.args:
             await context.bot.send_message(chat_id=update.effective_chat.id, text='/solve <id>')
@@ -100,14 +117,9 @@ async def solve(update: Update, context: ContextTypes.DEFAULT_TYPE):
         data = {
             "suggestion_id": context.args[0]
         }
-
-        response = await make_request("POST", "solve", json.dumps(data))
-        data = response.json()
-
-        if response.status_code == 200:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Forslaget "{data["message"]}" har blitt utført og fjernet fra listen.')
-        else:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=data["message"])
+        
+        message = await make_response_message("POST", "solve", data, 'Forslaget "{}" har blitt utført og fjernet fra listen.')
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
         
     else:
         content = f"Forklar brukeren {update.message.from_user.first_name} at vedkommende ikke har tilstrekkelige rettigheter til å utføre handlingen."
@@ -130,7 +142,8 @@ async def hello_api(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def chatgpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    response = openai_api(update.message.text, "You are a friendly chat bot that love to small talk")
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
+    response = openai_api(update.message.text, f"You are a friendly chat bot that love to small talk.")
     await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 
 
@@ -142,7 +155,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("forslag", suggestion))
     application.add_handler(CommandHandler("slett", delete))
     application.add_handler(CommandHandler("solve", solve))
-    #application.add_handler(MessageHandler(None, chatgpt))
+    application.add_handler(CommandHandler("gpt", chatgpt))
 
     application.run_polling()
 

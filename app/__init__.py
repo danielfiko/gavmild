@@ -44,7 +44,7 @@ def read_secret(secret_name):
         with open(f"/run/secrets/{secret_name}", "r") as secret_file:
             return secret_file.read().strip()
     except IOError:
-        return None
+        print(f"Secret '{secret_name}' not found.")
 
 def api_login_required(view_function):
     @wraps(view_function)

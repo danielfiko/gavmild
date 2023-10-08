@@ -10,7 +10,7 @@ def read_secret(secret_name):
         with open(f"/run/secrets/{secret_name}", "r") as secret_file:
             return secret_file.read().strip()
     except IOError:
-        return None
+        print(f"Secret '{secret_name}' not found.")
 
 sys_msg = "You are a chatbot that reluctantly answers with a sarcastic responses, helping users with the correct use of chat commands. You do not ask if they need any further assistance."
 

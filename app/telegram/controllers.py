@@ -6,7 +6,7 @@ from app.database.database import db
 from app.telegram.models import TelegramUser, Suggestion, TelegramUserConnection, ReportedLink
 from app.wishlist.models import Wish
 from app.forms import TelegramConnectForm, APIform
-from app import read_secret, api_login_required
+from app import read_secret, api_login_required, csrf
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
@@ -33,8 +33,10 @@ def require_api_key(view_function):
         return view_function(*args, **kwargs)
     return decorated_function
 
+
 @telegram_bp.route('/api/data', methods=['GET'])
 @require_api_key
+@csrf.exempt
 def get_data():
     data = {"message": "Hello, Bot!"}
     return jsonify(data)
@@ -42,6 +44,7 @@ def get_data():
 
 @telegram_bp.post("/suggestion")
 @require_api_key
+@csrf.exempt
 def add_suggestion():
     json_data = request.get_json()
     req_username = json_data.get('username')
@@ -87,6 +90,7 @@ def get_suggestion(json_data):
 
 @telegram_bp.delete("/suggestion")
 @require_api_key
+@csrf.exempt
 def delete_suggestion():
     suggestion = get_suggestion(request.get_json())
     suggestion.deleted_at = datetime.utcnow()
@@ -99,6 +103,7 @@ def delete_suggestion():
 
 @telegram_bp.post("/solve")
 @require_api_key
+#@csrf.exempt
 def solve_suggestion():
     suggestion = get_suggestion(request.get_json())
     suggestion.solved_at = datetime.utcnow()
@@ -153,6 +158,7 @@ def connect_code():
 
 @telegram_bp.post("/connect-user")
 @require_api_key
+@csrf.exempt
 def connect_user():
     json_data = request.get_json()
     chat_user_id = json_data.get('chat_user_id')
