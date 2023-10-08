@@ -236,20 +236,9 @@ def new_wish():
                            form_action="add")
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-@api_bp.route("/wish", methods=["POST"])
-def return_modal():
-=======
 @api_bp.get("/wish/<int:wish_id>")
 @api_login_required
 def return_modal(wish_id):
->>>>>>> 8dcca34... stuff
-=======
-@api_bp.get("/wish/<int:wish_id>")
-@api_login_required
-def return_modal(wish_id):
->>>>>>> development
     form = AjaxForm()
     claim_form = AjaxForm()
 #if form.validate():

@@ -34,11 +34,6 @@ function checkPathForWish() {
     }
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> development
 
 function checkPathAndLoadWishContent() {
     var wish_id = checkPathForWish()
@@ -72,10 +67,6 @@ function ajaxCallCsrf(route, data, type="POST", callback) {
 }
 
 
-<<<<<<< HEAD
->>>>>>> 8dcca34... stuff
-=======
->>>>>>> development
 function toggleHamburger(){
     if ($(".nav-checkbox").is(":checked")) {
         $("main").hide(0,function(){
@@ -242,17 +233,6 @@ function addNewWish() {
 }
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-function viewWish(id) {
-    ajaxCall("/api/wish", {
-        csrf_token: $("#csrf_token").val(),
-        wish_id: id
-    }).then(function(res) {
-        showModal(res);
-=======
-=======
->>>>>>> development
 function updateUrlAndLoadWishContent(id) {
     // Update the URL using History API
     currentPath = window.location.pathname;
@@ -269,10 +249,6 @@ function loadWishContent(id) {
         // Set modal content
         showModal(data);
         
-<<<<<<< HEAD
->>>>>>> 8dcca34... stuff
-=======
->>>>>>> development
         if ($(".modal .co-wisher-list li:first").length) {
                 $(".typeahead__container").show();
                 $(".modal .co-wisher-list").show();
@@ -282,15 +258,6 @@ function loadWishContent(id) {
                 })
                 $('label[for="co_wisher"]').css("visibility", "visible");
         }
-<<<<<<< HEAD
-<<<<<<< HEAD
-        $(".delete-wish").click(function(){deleteWish(this.id)})
-    }, function(reason) {
-        console.log("kunne ikke hente data, ", reason);
-    });
-=======
-=======
->>>>>>> development
        
         $(".delete-wish").click( function(){deleteWish(this.id, false, "GET")} )
         $(".icon-dead-link").click( function(){ reportDeadLink(this.id) });
@@ -299,10 +266,6 @@ function loadWishContent(id) {
     // .fail(function(reason) {
     //     console.log("kunne ikke hente data, ", reason);
     // });
-<<<<<<< HEAD
->>>>>>> 8dcca34... stuff
-=======
->>>>>>> development
 }
 
 
@@ -358,20 +321,6 @@ function addWishUser() {
     }
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-/* TODO: Fjern alert og gjør tilbakemeldingen mer sexy */
-function deleteWish(id) {
-    if (confirm("Er du sikker på at du vil slette dette ønsket?") == true) {
-        ajaxCall("/api/delete", { id:id }).then(function(res){
-            alert(res);
-            requestWishes();
-            $("#modal").hide();
-        });
-    }
-=======
-=======
->>>>>>> development
 
 function showActionConfirmation(res, id, callback) {
     $(".confirm-action.modal-content").html(res);
@@ -404,10 +353,6 @@ function deleteWish(id, confirmed=false, method) {
             showActionConfirmation(res, id, function() {deleteWish(id, confirmed=true, "DELETE")});
         }
     )
-<<<<<<< HEAD
->>>>>>> 8dcca34... stuff
-=======
->>>>>>> development
 }
 
 

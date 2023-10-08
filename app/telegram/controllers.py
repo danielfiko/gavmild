@@ -172,12 +172,6 @@ def connect_user():
         db.session.commit()
         return jsonify(username=telegram_user.user.username)
     except SQLAlchemyError as e:
-<<<<<<< HEAD
-<<<<<<< HEAD
-        abort(500, str(e.orig))
-=======
-=======
->>>>>>> development
         abort(500, str(e.orig))
 
 def telegram_escape_text(input_string):
@@ -308,7 +302,3 @@ def report_link():
                     Hvis problemet vedvarer, kontakt support for assistanse.'''.split('\n'),
         buttons = "close",
         form=form)
-<<<<<<< HEAD
->>>>>>> 8dcca34... stuff
-=======
->>>>>>> development
