@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, abort, jsonify, request
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager, login_required, login_user, logout_user
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from app.forms import RegisterForm, LoginForm
 #from app.blueprints.auth.models import User
 import random as rand
@@ -8,6 +8,8 @@ from app.database.database import db
 from app.auth.models import User
 from app.telegram.models import TelegramUser
 import os
+from sqlalchemy.exc import SQLAlchemyError
+
 
 APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATE_PATH = os.path.join(APP_PATH, 'templates/auth')
@@ -138,3 +140,20 @@ def register_api():
         db.session.commit()
         return redirect(url_for("auth.login"))
     return "Noe gikk galt, registreringen ble ikke fullført"
+
+
+@auth_bp.post("/api/settings/order_by")
+@login_required
+def set_order_by():
+    from app.wishlist.controllers import get_users_ordered_by_settings
+    user = db.session.get(User, current_user.id)
+    order_by_value = request.form["order_by"]
+    if not order_by_value in ["birthday", "first_name"]:
+        abort(400)
+    user.preferences.order_users_by = order_by_value
+    users = [{"first_name": u.first_name, "path": url_for('wishlist.user', user_id=user.id)} for u in get_users_ordered_by_settings()]
+    try:
+        db.session.commit()
+        return jsonify(users)
+    except SQLAlchemyError as e:
+        return abort(400)

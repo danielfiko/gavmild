@@ -149,6 +149,30 @@ header {
     padding-bottom: 3px;
 }
 
+.order-by {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    
+}
+
+.order-by i {
+    color: #737373;
+    font-size: 0.9em;
+}
+
+.order-by .fa-layers-text {
+    font-weight:900;
+    color: #737373;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    font-size:0.5em;
+}
+
+.hidden {
+    display: none !important;
+}
+
 /*
 /*
 /*      Main

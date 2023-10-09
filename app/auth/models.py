@@ -1,7 +1,7 @@
 from app.database.database import db
 from datetime import datetime
-from typing import List
-from flask_sqlalchemy import SQLAlchemy
+from typing import List, Optional
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from flask_login import UserMixin
 
@@ -22,6 +22,7 @@ class User(db.Model, UserMixin):
     claimed_wishes: Mapped[List["ClaimedWish"]] = relationship(back_populates="user")
     chat_user: Mapped["TelegramUser"] = relationship(back_populates="user")
     reported_links: Mapped[List["ReportedLink"]] = relationship(back_populates="user")
+    preferences: Mapped["UserPreferences"] = relationship(back_populates="user")
 
 
     def tojson(self):
@@ -30,3 +31,11 @@ class User(db.Model, UserMixin):
 
     def get_first_name(self):
         return self.first_name
+
+
+class UserPreferences(db.Model):
+    user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"), primary_key=True)
+    order_users_by: Mapped[Optional[str]] = mapped_column(db.String(20))
+
+    # Relationships
+    user: Mapped["User"] = relationship(back_populates="preferences")

@@ -1,13 +1,14 @@
 from datetime import datetime, timedelta
+from app.auth.models import User
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, abort, Response
 from flask_login import login_required, current_user
 #from app.blueprints.auth.models import User
-from sqlalchemy import func
+from sqlalchemy import func, Integer, case
 from app import api_login_required
 from app.forms import WishForm, AjaxForm
 from app.database.database import db
 from app.wishlist.models import Wish, CoWishUser, ClaimedWish, ArchivedWish
-from sqlalchemy import or_, and_, exc, asc, desc
+from sqlalchemy import or_, and_, exc, asc, desc, text
 from sqlalchemy.exc import SQLAlchemyError
 from urllib.parse import urlsplit
 import os

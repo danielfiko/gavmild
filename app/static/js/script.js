@@ -12,6 +12,7 @@ $(document).ready(function() {
     $(".new-wish-button, .new-wish-button-label").click(function() { addNewWish()});
     $(".nav-checkbox").click(toggleHamburger);
     $(".logout-button").click(function(){window.location.href='/api/logout'}); // FIXME: statisk link
+    $(".sidebar-nav .order-by").click(function() { order_users_by() });
     
     checkPathAndLoadWishContent();
     // Event listener to handle back button and restore modal state
@@ -395,4 +396,18 @@ function get_prisjakt_details() {
     } else {
         $("#result").text("Invalid URL format");
     }
+}
+
+function order_users_by() {
+    $.post("/api/settings/order_by", {"order_by": $(".order-by.hidden").data("order-by")}, function(data) {
+        var ul = $('.sidebar-nav ul.users');
+        ul.empty()
+        $.each(data, function(index, user) {
+            var li = $('<li>');
+            var a = $('<a>').attr('href', user.path).text(user.first_name);
+            li.append(a);
+            ul.append(li);
+        });
+        $(".sidebar-nav .order-by.toggle").toggleClass('hidden');
+    })
 }
