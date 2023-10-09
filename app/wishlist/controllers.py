@@ -42,14 +42,21 @@ def logged_in_content(page_filter):
     months = {1: "jan.", 2: "feb.", 3: "mar.", 4: "apr.", 5: "mai", 6: "jun.", 7: "jul.", 8: "aug.", 9: "sep.",
               10: "okt.", 11: "nov.", 12: "des."}
     other_users = User.query.filter(id != current_user).all()
+
     start = datetime.now()
     end = start + timedelta(days=60)
-    users = db.session.execute(db.select(User).where(User.date_of_birth <= end).where(User.date_of_birth >= start)).scalars()
+    users = db.session.execute(
+        db.select(User)
+        .where(func.dayofyear(User.date_of_birth) >= func.dayofyear(start))
+        .where(func.dayofyear(User.date_of_birth) <= func.dayofyear(end))
+        .order_by(func.dayofyear(User.date_of_birth))
+        ).scalars()
     birthdays = [{"id": u.id, "first_name": u.first_name,
                   "birthday": f"{u.date_of_birth.day}. {months[u.date_of_birth.month]}"} for u in users]
     ajaxform = AjaxForm()
     wishform = WishForm()
     api_form = APIform()
+    print(birthdays)
     
     return render_template("logged_in_content.html",
                            ajaxform=ajaxform, wishform=wishform, filter=page_filter, other_users=other_users,
