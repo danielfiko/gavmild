@@ -151,7 +151,7 @@ def set_order_by():
     if not order_by_value in ["birthday", "first_name"]:
         abort(400)
     user.preferences.order_users_by = order_by_value
-    users = [{"first_name": u.first_name, "path": url_for('wishlist.user', user_id=user.id)} for u in get_users_ordered_by_settings()]
+    users = [{"first_name": u.first_name, "path": url_for('wishlist.user', user_id=u.id)} for u in get_users_ordered_by_settings()]
     try:
         db.session.commit()
         return jsonify(users)
