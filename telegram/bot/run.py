@@ -1,16 +1,20 @@
 import logging
 from telegram import Update, constants
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, StringCommandHandler
 from chat_api import read_secret, openai_api
 import httpx
 import json
 from functools import wraps
+import re
 
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+
+def message_from_command(update):
+    return re.split(r"\/\S+ ", update.message.text)[1]
 
 
 async def make_request(method, endpoint, data=None):
@@ -68,7 +72,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def suggestion(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
-    req_message = update.message.text.partition(' ')[2]
+    req_message = message_from_command(update)
     if not req_message:
         content = f"Brukeren {update.message.from_user.first_name} har brukt kommandoen /forslag feil. Forklar brukeren i korthet at riktig bruk er /forslag Dette er mitt forslag."
         response = openai_api(content)
@@ -141,13 +145,14 @@ async def hello_api(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Noe gikk dessverre galt.")  # Invalid API Key or the server encountered an error
 
 
-async def chatgpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
-    response = openai_api(update.message.text, f"You are a friendly chat bot that love to small talk.")
+    response = openai_api(message_from_command(update), f"Du er en vennlig chatbot")
     await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 
-async def chatgpt_to_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    response = openai_api(update.message.text, f"Du er en vennlig chatbot")
+
+async def gpt_to_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    response = openai_api(message_from_command(update), f"Du er en vennlig chatbot")
     await context.bot.send_message(chat_id=read_secret("chat-group-id"), text=response)
 
 
@@ -159,8 +164,9 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("forslag", suggestion))
     application.add_handler(CommandHandler("slett", delete))
     application.add_handler(CommandHandler("solve", solve))
-    application.add_handler(CommandHandler("gpt", chatgpt))
-    application.add_handler(CommandHandler("group", chatgpt_to_group))
+    application.add_handler(CommandHandler("gpt", gpt))
+    application.add_handler(CommandHandler("gpt_group", gpt_to_group))
+    application.add_handler(CommandHandler("msg_group", message_to_group))
 
     application.run_polling()
 
