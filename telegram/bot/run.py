@@ -28,6 +28,7 @@ def admin_only(view_function):
         return await view_function(*args, **kwargs)
     return decorated_function
 
+
 def message_from_command(update):
     return re.split(r"\/\S+ ", update.message.text)[1]
 
@@ -108,46 +109,32 @@ async def suggestion(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Noe gikk dessverre galt.")  # Invalid API Key or the server encountered an error
 
 
+@admin_only
 async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
-    if update.message.from_user.id == 79156661:
-        if not context.args:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text='/slett <id>')
-            return
-        data = {
-            "suggestion_id": context.args[0]
-        }
+    if not context.args:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text='/slett <id>')
+        return
+    data = {
+        "suggestion_id": context.args[0]
+    }
 
-        message = await make_response_message("DELETE", "suggestion", data, 'Forslaget "{}" har blitt utført og fjernet fra listen.')
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-        
-    else:
-        content = f"Forklar brukeren {update.message.from_user.first_name} at vedkommende ikke har tilstrekkelige rettigheter til å utføre handlingen."
-        response = openai_api(content)
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+    message = await make_response_message("DELETE", "suggestion", data, 'Forslaget "{}" har blitt utført og fjernet fra listen.')
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
+@admin_only
 async def solve(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
-    if update.message.from_user.id == 79156661:
-        if not context.args:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text='/solve <id>')
-            return
-        data = {
-            "suggestion_id": context.args[0]
-        }
-        
-        message = await make_response_message("POST", "solve", data, 'Forslaget "{}" har blitt utført og fjernet fra listen.')
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-        
-    else:
-        content = f"Forklar brukeren {update.message.from_user.first_name} at vedkommende ikke har tilstrekkelige rettigheter til å utføre handlingen."
-        response = openai_api(content)
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
-
-
-#async def prisjakt(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
+    if not context.args:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text='/solve <id>')
+        return
+    data = {
+        "suggestion_id": context.args[0]
+    }
+    
+    message = await make_response_message("POST", "solve", data, 'Forslaget "{}" har blitt utført og fjernet fra listen.')
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
 async def hello_api(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -166,13 +153,8 @@ async def gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 
 
+@admin_only
 async def gpt_to_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.message.from_user.id != 79156661:
-        content = f"Forklar brukeren {update.message.from_user.first_name} at vedkommende ikke har tilstrekkelige rettigheter til å utføre handlingen."
-        response = openai_api(content)
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
-        return
-
     response = openai_api(message_from_command(update), f"Du er en vennlig chatbot")
     await context.bot.send_message(chat_id=read_secret("chat-group-id"), text=response)
 
