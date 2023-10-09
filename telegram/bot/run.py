@@ -146,6 +146,10 @@ async def chatgpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     response = openai_api(update.message.text, f"You are a friendly chat bot that love to small talk.")
     await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 
+async def chatgpt_to_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    response = openai_api(update.message.text, f"Du er en vennlig chatbot")
+    await context.bot.send_message(chat_id=read_secret("chat-group-id"), text=response)
+
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token(read_secret("telegram-token")).build()
@@ -156,6 +160,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("slett", delete))
     application.add_handler(CommandHandler("solve", solve))
     application.add_handler(CommandHandler("gpt", chatgpt))
+    application.add_handler(CommandHandler("group", chatgpt_to_group))
 
     application.run_polling()
 
