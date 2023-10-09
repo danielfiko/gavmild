@@ -13,6 +13,7 @@ $(document).ready(function() {
     $(".nav-checkbox").click(toggleHamburger);
     $(".logout-button").click(function(){window.location.href='/api/logout'}); // FIXME: statisk link
     $(".sidebar-nav .order-by").click(function() { order_users_by() });
+    $("#order_by").on("change", function() { requestWishes() });
     
     checkPathAndLoadWishContent();
     // Event listener to handle back button and restore modal state
@@ -86,7 +87,8 @@ function toggleHamburger(){
 
 function requestWishes() {
     ajaxCallCsrf("/api/wish/" + $("#filter").val(), {
-        csrf_token: $("#csrf_token").val()
+        csrf_token: $("#csrf_token").val(),
+        order_by: $("#content-header select").val()
     }).then(function(wishes) {
         if (!Object.keys(wishes).length) {
             $("main").append("<h2>Ingen ønsker</h2>");
@@ -411,3 +413,4 @@ function order_users_by() {
         $(".sidebar-nav .order-by.toggle").toggleClass('hidden');
     })
 }
+

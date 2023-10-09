@@ -191,6 +191,21 @@ main {
     padding: 0 10px;
 }
 
+#content-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+#content-header h1 {
+    margin-right: auto;
+}
+
+#content-header select {
+    width: fit-content;
+    max-width: 15%;
+}
+
 /*
 /*
 /*      Wish display

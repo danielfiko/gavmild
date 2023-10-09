@@ -220,9 +220,25 @@ def claimed():
 def return_user_wishes(user_id):
     form = AjaxForm()
     if form.validate():
-        wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
-                                        .any(CoWishUser.co_wish_user_id == user_id))) \
-                                        .order_by(Wish.desired.desc(), Wish.date_created.desc()).all()
+        wishes = ""
+        if request.values.get("order_by") == "price_high_low":
+            print("Jeff 1")
+            wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
+                                            .any(CoWishUser.co_wish_user_id == user_id))
+                                            ).order_by(Wish.price.desc()).all()
+        
+        elif request.values.get("order_by") == "price_low_high":
+            print("Jeff 2")
+            wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
+                                            .any(CoWishUser.co_wish_user_id == user_id))
+                                            ).order_by(Wish.price.asc()).all()
+        
+        else:
+            print("Jeff 3")
+            print(request.values.get("order_by"))
+            wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
+                                            .any(CoWishUser.co_wish_user_id == user_id))
+                                            ).order_by(Wish.desired.desc(), Wish.date_created.desc()).all()
         return wishes_to_json(wishes)
 
 
