@@ -13,6 +13,21 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+
+def admin_only(view_function):
+    @wraps(view_function)
+    async def decorated_function( *args, **kwargs):
+        update = args[0]
+        context = args[1]
+        if update.message.from_user.id != 79156661:
+            await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
+            content = f"Forklar brukeren {update.message.from_user.first_name} at vedkommende ikke har tilstrekkelige rettigheter til å utføre handlingen."
+            response = openai_api(content)
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+            return
+        return await view_function(*args, **kwargs)
+    return decorated_function
+
 def message_from_command(update):
     return re.split(r"\/\S+ ", update.message.text)[1]
 
@@ -152,8 +167,20 @@ async def gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def gpt_to_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.from_user.id != 79156661:
+        content = f"Forklar brukeren {update.message.from_user.first_name} at vedkommende ikke har tilstrekkelige rettigheter til å utføre handlingen."
+        response = openai_api(content)
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+        return
+
     response = openai_api(message_from_command(update), f"Du er en vennlig chatbot")
     await context.bot.send_message(chat_id=read_secret("chat-group-id"), text=response)
+
+
+@admin_only
+async def message_to_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    input_message = message_from_command(update)
+    await context.bot.send_message(chat_id=read_secret("chat-group-id"), text=input_message)
 
 
 if __name__ == '__main__':
