@@ -19,11 +19,11 @@
 </ul>
 {% endif %}
 <h4>Personer
-        <span class="order-by toggle {{'hidden' if order_by == 'first_name'}}"  title="Sorter alfabetisk" data-order-by="birthday">
+        <span class="order-by toggle {{'hidden' if order_by != 'first_name'}}"  title="Sorter alfabetisk" data-order-by="first_name">
             <i class="fa-solid fa-arrow-down-long"></i>
             <span class="fa-layers-text fa-inverse">AZ</span>
         </span>
-        <span class="order-by toggle {{'hidden' if order_by == 'birthday'}}"  title="Sorter etter kommende bursdager" data-order-by="first_name">
+        <span class="order-by toggle {{'hidden' if order_by != 'birthday'}}"  title="Sorter etter kommende bursdager" data-order-by="birthday">
             <i class="fa-solid fa-arrow-down-long"></i><i class="fa-solid fa-cake-candles"></i>
         </span>
 </h4>
