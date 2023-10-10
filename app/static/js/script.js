@@ -1,4 +1,5 @@
 var currentPath;
+var user_wishes;
 
 $(document).ready(function() {
     currentPath = window.location.pathname;
@@ -85,19 +86,25 @@ function toggleHamburger(){
 }
 
 
+function calculateColumnsAndAppendWishes(wishes) {
+    appendWishesToMain(user_wishes, Math.min(Math.max(Math.round($(window).width()/200),1),4))
+}
+
+
 function requestWishes() {
     ajaxCallCsrf("/api/wish/" + $("#filter").val(), {
         csrf_token: $("#csrf_token").val(),
         order_by: $("#content-header select").val()
     }).then(function(wishes) {
-        if (!Object.keys(wishes).length) {
+        user_wishes = wishes;
+        if (!Object.keys(user_wishes).length) {
             $("main").append("<h2>Ingen ønsker</h2>");
         }
         else {
-            appendWishesToMain(wishes, Math.min(Math.max(Math.round($(window).width()/200),1),4));
+            calculateColumnsAndAppendWishes(user_wishes)
         }
         $(window).resize(function(){
-            appendWishesToMain(wishes, Math.min(Math.max(Math.round($(window).width()/200),1),4))
+            calculateColumnsAndAppendWishes(user_wishes)
         })
     });
 }
@@ -178,7 +185,6 @@ function showModal(res) {
     $("#img_url").on("change", function() {
         var newValue = $(this).val();
         $(".modal-left img").attr('src', newValue);
-        console.log(newValue)
         // Perform other actions based on the new value
     });
 }
@@ -325,19 +331,43 @@ function addWishUser() {
 }
 
 
+function deleteWishAndAppendWishes(wishes, idNumber) {
+    idNumber = parseInt(idNumber)
+    for (var key in wishes) {
+        console.log(wishes.hasOwnProperty(key))
+        console.log(wishes[key].id === idNumber)
+        if (wishes.hasOwnProperty(key) && wishes[key].id === idNumber) {
+            user_wishes.splice(key, 1);
+            calculateColumnsAndAppendWishes(user_wishes);
+            console.log("found and deleted wish " + idNumber + " with key " + key)
+        }
+    }
+    console.log("did not find key");
+    return null; // Return null if the wish with the specified idNumber is not found
+}
+
+
+function handleAbortButtonClick(id) {
+    $("#modal-confirm").hide();
+    if ($(".button.abort").data("close-all")) {
+        deleteWishAndAppendWishes(user_wishes, id);
+        hideModalAndUpdateUrl();
+        console.log("Beep-boop: " + id)
+    }
+}
+
 function showActionConfirmation(res, id, callback) {
     $(".confirm-action.modal-content").html(res);
     $("#modal-confirm").css("display", "flex");
     $(".button.send").click(callback);
     $(".button.abort").click(
-        function() {$("#modal-confirm").hide()}
+        function() {handleAbortButtonClick(id)}
         );
     var confirmModal = document.getElementById("modal-confirm");
     window.addEventListener("click", function(event) {
         if (event.target == confirmModal) {
-            confirmModal.style.display = "none";
-        }
-    })
+            handleAbortButtonClick(id)
+        }})
 }
 
 

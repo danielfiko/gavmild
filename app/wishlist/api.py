@@ -151,7 +151,8 @@ def delete():
                     "/wishlist/action_confirmation.html",
                     img = url_for('static', filename='img/great-success/very-nice-great-success.jpg'),
                     img_alt = "Borat saying 'VERY NICE - GREAT SUCCESS'",
-                    buttons = "close")
+                    buttons = "close",
+                    close_all = True)
             
             except SQLAlchemyError as e:
                 pass#return f"Noe gikk galt - kunne ikke slette ønsket: {str(e)}"
@@ -222,19 +223,16 @@ def return_user_wishes(user_id):
     if form.validate():
         wishes = ""
         if request.values.get("order_by") == "price_high_low":
-            print("Jeff 1")
             wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
                                             .any(CoWishUser.co_wish_user_id == user_id))
                                             ).order_by(Wish.price.desc()).all()
         
         elif request.values.get("order_by") == "price_low_high":
-            print("Jeff 2")
             wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
                                             .any(CoWishUser.co_wish_user_id == user_id))
                                             ).order_by(Wish.price.asc()).all()
         
         else:
-            print("Jeff 3")
             print(request.values.get("order_by"))
             wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
                                             .any(CoWishUser.co_wish_user_id == user_id))

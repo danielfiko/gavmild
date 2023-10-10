@@ -14,7 +14,7 @@
       <button class="button abort">Avbryt</button>
     {% endif %}
     {% if buttons == "close" %}
-    <button class="button abort">Lukk</button>
+    <button class="button abort" {{ 'data-close-all=true' if close_all }}>Lukk</button>
   {% endif %}
   </div>
 </div>
