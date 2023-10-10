@@ -9,6 +9,8 @@ from app.auth.models import User
 from app.telegram.models import TelegramUser
 import os
 from sqlalchemy.exc import SQLAlchemyError
+import random
+import string
 
 
 APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -17,6 +19,12 @@ TEMPLATE_PATH = os.path.join(APP_PATH, 'templates/auth')
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 bcrypt = Bcrypt()
+
+
+def generate_unique_code(length=10):
+    characters = string.ascii_letters + string.digits
+    unique_code = ''.join(random.choice(characters) for _ in range(length))
+    return unique_code
 
 
 def init_auth(app):
@@ -157,3 +165,19 @@ def set_order_by():
         return jsonify(users)
     except SQLAlchemyError as e:
         return abort(400)
+
+
+@auth_bp.get("/api/forgot-password/<int:user_id>")
+@login_required
+def forgot_password(user_id):
+    if current_user.id != 1:
+        abort(401)
+    
+    user = db.session.get(User, user_id)
+    temp_password = generate_unique_code()
+    hashed_password = bcrypt.generate_password_hash(temp_password)
+    user.password = hashed_password
+    user.force_pw_change = 1
+    db.session.commit()
+
+    return temp_password

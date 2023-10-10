@@ -1,50 +1,58 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $("#pw-form").submit(function (event) {
-                ajaxCall("/change-pw", {
-                    csrf_token: $("#csrf_token").val(),
-                    email: "{{ email }}",
-                    password: $("#password").val(),
-                    new_password: $("#new_password").val()
-                }).then(function (res) {
-                    $("#pw-form").hide();
-                    $("h1").hide();
-                    $("h3").html(res);
-                    $("h3").show();
-                    setTimeout(function () {
-                        window.location = "https://gavmild.sekta.no/"
-                    }, 3000);
-                }), function () {
-                    $("h3").html("Feilet, RIP.");
-                }
-                event.preventDefault();
-            })
-        });
+{% extends "layouts/base.html" %}
 
-        function ajaxCall(route, data, callback) {
-            return $.ajax({
-                method: "post",
-                url: route,
-                data: data,
-                success: callback
-            })
-        }
-    </script>
-</head>
-<body>
-<h1>Du må bytte passord!</h1>
-<h3 style="display:none"></h3>
-<form method="POST" action="/api/change-pw" id="pw-form">
-    {{ form.hidden_tag() }}
-    <label for="password">Gammel passord</label>
-    {{ form.password }}
-    {{ form.new_password.label }}
-    {{ form.new_password }}
-    {{ form.submit }}
-</form>
-</body>
-</html>
+{% block head %}
+<script>
+    $(document).ready(function () {
+        $("#pw-form").submit(function (event) {
+            ajaxCall("/api/change-pw", {
+                csrf_token: $("#csrf_token").val(),
+                email: "{{ email }}",
+                password: $("#password").val(),
+                new_password: $("#new_password").val()
+            }).then(function (res) {
+                $("#pw-form").hide();
+                $("h1").hide();
+                $("h3").html(res);
+                $("h3").show();
+                setTimeout(function () {
+                    window.location = "https://gavmild.dfiko.no/"
+                }, 3000);
+            }), function () {
+                $("h3").html("Feilet, RIP.");
+            }
+            event.preventDefault();
+        })
+    });
+
+    function ajaxCall(route, data, callback) {
+        return $.ajax({
+            method: "post",
+            url: route,
+            data: data,
+            success: callback
+        })
+    }
+</script>
+<title>Bytt passord</title>
+{% endblock %}
+
+{% block body %}
+    <div class="login">
+        <main>
+            <h1>Du må bytte passord!</h1>
+            <h3 style="display:none"></h3>
+            <form method="POST" action="/api/change-pw" id="pw-form">
+                {{ form.hidden_tag() }}
+                <label for="password">Midlertidig passord (det du har fått tilsendt)</label>
+                {{ form.password }}
+                {{ form.new_password.label }}
+                {{ form.new_password }}
+                <input id="submit" name="submit" type="submit" value="Bytt passord">
+            </form>
+        </main>
+        <header>
+            <a href="/"><img src="{{ url_for('static', filename='img/logo.png') }}" class="site-logo" alt="Gavmild logo"></a>
+        </header>
+        <img src="{{ url_for('static', filename='img/undraw_typewriter.svg') }}" alt="Person skriver inn tekst">
+    </div>
+{% endblock %}
