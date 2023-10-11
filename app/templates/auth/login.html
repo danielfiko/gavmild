@@ -26,7 +26,10 @@
                 {{ form.email.label }}
                 {{ form.email }}
                 {{ form.password.label }}
-                {{ form.password }}
+                <div class="password-container">
+                    {{ form.password }}
+                    <span class="fa-solid fa-eye toggle-password" id="eye" data-toggle-target="#password"></span>
+                </div>
                 <div class="remember-me">
                     {{ form.remember_me }}
                     {{ form.remember_me.label }}

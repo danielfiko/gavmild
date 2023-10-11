@@ -471,6 +471,24 @@ footer input[type="checkbox"]:checked ~ .hamburger-lines .line3 {
     padding: 0;
 }
 
+/* password eye */
+.password-container{
+    position: relative;
+}
+.password-container input[type="password"],
+  .password-container input[type="text"]{
+    width: 100%;
+    padding: 8px 36px 8px 10px;
+    box-sizing: border-box;
+ }
+.toggle-password{
+    position: absolute;
+    top: 22%;
+    right: 3%;
+    cursor: pointer;
+    color: lightgray;
+}
+
 /* Media queries */
 
 @media only screen and (min-width: 980px) {

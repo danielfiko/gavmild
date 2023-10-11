@@ -10,11 +10,13 @@ $(document).ready(function() {
     }
 
     requestWishes();
-    $(".new-wish-button, .new-wish-button-label").click(function() { addNewWish()});
+    $(".new-wish-button, .new-wish-button-label").click(addNewWish);
     $(".nav-checkbox").click(toggleHamburger);
     $(".logout-button").click(function(){window.location.href='/api/logout'}); // FIXME: statisk link
-    $(".sidebar-nav .order-by").click(function() { order_users_by() });
-    $("#order_by").on("change", function() { requestWishes() });
+    $(".sidebar-nav .order-by").click(order_users_by);
+    $("#order_by").on("change", requestWishes);
+    $(".toggle-password").click(togglePasswordVisibility);
+
     
     checkPathAndLoadWishContent();
     // Event listener to handle back button and restore modal state
@@ -34,6 +36,16 @@ function checkPathForWish() {
     }
     else {
         return false
+    }
+}
+
+function togglePasswordVisibility() {
+    $(this).toggleClass("fa-eye fa-eye-slash");
+    var input = $($(this).data("toggle-target"));
+    if (input.attr("type") == "password") {
+      input.attr("type", "text");
+    } else {
+      input.attr("type", "password");
     }
 }
 
@@ -443,4 +455,5 @@ function order_users_by() {
         $(".sidebar-nav .order-by.toggle").toggleClass('hidden');
     })
 }
+
 

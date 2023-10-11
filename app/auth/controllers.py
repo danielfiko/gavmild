@@ -167,17 +167,27 @@ def set_order_by():
         return abort(400)
 
 
-@auth_bp.get("/api/forgot-password/<int:user_id>")
+@auth_bp.get("/auth/reset-password")
 @login_required
-def forgot_password(user_id):
+def forgot_password():
+    if current_user.id != 1:
+        abort(401)
+    users = db.session.execute(db.select(User.first_name, User.id)).mappings()
+    
+    return render_template("reset-password.html", users=users)
+
+
+@auth_bp.post("/api/reset-password/")
+@login_required
+def restet_password():
     if current_user.id != 1:
         abort(401)
     
-    user = db.session.get(User, user_id)
+    user = db.session.get(User, request.form["user_id"])
     temp_password = generate_unique_code()
     hashed_password = bcrypt.generate_password_hash(temp_password)
     user.password = hashed_password
     user.force_pw_change = 1
     db.session.commit()
 
-    return temp_password
+    return {"first_name": user.first_name, "password": temp_password}

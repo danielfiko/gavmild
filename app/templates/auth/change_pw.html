@@ -44,9 +44,15 @@
             <form method="POST" action="/api/change-pw" id="pw-form">
                 {{ form.hidden_tag() }}
                 <label for="password">Midlertidig passord (det du har fått tilsendt)</label>
-                {{ form.password }}
+                <div class="password-container">
+                    {{ form.password }}
+                    <span class="fa-solid fa-eye toggle-password" id="eye" data-toggle-target="#password"></span>
+                </div>
                 {{ form.new_password.label }}
-                {{ form.new_password }}
+                <div class="password-container">
+                    {{ form.new_password }}
+                    <span class="fa-solid fa-eye toggle-password" id="eye" data-toggle-target="#new_password"></span>
+                </div>
                 <input id="submit" name="submit" type="submit" value="Bytt passord">
             </form>
         </main>
