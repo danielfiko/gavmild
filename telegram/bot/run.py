@@ -152,8 +152,8 @@ async def list_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if response.status_code == 200:
         message = "Users:\n"
-        for key, value in response.json().items():
-            message += f"{key}: {value}\n"
+        for user in response.json().items():
+            message += f"{user['id']}: {user['first_name']}\n"
         await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Noe gikk dessverre galt.")  # Invalid API Key or the server encountered an error

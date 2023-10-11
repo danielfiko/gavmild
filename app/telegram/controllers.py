@@ -332,6 +332,7 @@ def report_link():
 @csrf.exempt
 def return_list_of_users():
     users = db.session.execute(db.select(User.first_name)).scalars()
+    users = db.session.execute(db.select(User.id, User.first_name)).mappings()
     users_json = {}
     for idx, user in enumerate(users):
         users_json[idx] = user
