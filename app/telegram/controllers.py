@@ -5,6 +5,7 @@ from functools import wraps
 from app.database.database import db
 from app.telegram.models import TelegramUser, Suggestion, TelegramUserConnection, ReportedLink
 from app.wishlist.models import Wish
+from app.auth.models import User
 from app.forms import TelegramConnectForm, APIform
 from app import read_secret, api_login_required, csrf
 from sqlalchemy import desc
@@ -14,6 +15,8 @@ import random
 import string
 import os
 import requests
+import ipaddress
+import socket
 
 
 APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,11 +28,18 @@ filter_active_suggestions = (Suggestion.solved_at == None) & (Suggestion.deleted
 class APIerror(Exception):
     pass
 
+
 def require_api_key(view_function):
     @wraps(view_function)
     def decorated_function(*args, **kwargs):
+
+        if request.remote_addr != socket.gethostbyname('gavmild_telegram'):
+            # If the request is not coming from a local network, return 403 Forbidden
+            abort(403)
+        
         if request.headers.get('X-Api-Key') != current_app.config["BOT_API_TOKEN"]:
             abort(401, 'Invalid API Key')
+        
         return view_function(*args, **kwargs)
     return decorated_function
 
@@ -72,6 +82,13 @@ def add_suggestion():
         pass
     
     return jsonify(success=False)
+
+
+# @telegram_bp.post("/solve")
+# @require_api_key
+# @csrf.exempt
+# def suggestions_list():
+    
 
 
 def get_suggestion(json_data):
@@ -308,3 +325,14 @@ def report_link():
                     Hvis problemet vedvarer, kontakt support for assistanse.'''.split('\n'),
         buttons = "close",
         form=form)
+
+
+@telegram_bp.get("/users")
+@require_api_key
+@csrf.exempt
+def return_list_of_users():
+    users = db.session.execute(db.select(User.first_name)).scalars()
+    users_json = {}
+    for idx, user in enumerate(users):
+        users_json[idx] = user
+    return users_json
