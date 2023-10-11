@@ -41,14 +41,14 @@ async def make_request(method, endpoint, data=None):
         }
 
     async with httpx.AsyncClient() as client:
-        response = await client.request(method, url, headers=headers, data=data)
+        response = await client.request(method, url, headers=headers, data=json.dumps(data))
         print(response.text)
 
     return response
 
 
 async def make_response_message(method, endpoint, data, message):
-        response = await make_request(method, endpoint, json.dumps(data))
+        response = await make_request(method, endpoint, data)
 
         if response.status_code == 200:
             data = response.json()
@@ -75,7 +75,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "identifier": context.args[0]
         }
 
-        response = await make_request("POST", "connect-user", json.dumps(data))
+        response = await make_request("POST", "connect-user", data)
         response_data = response.json()
 
         if response.status_code == 200:
@@ -101,12 +101,19 @@ async def suggestion(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "suggestion": req_message
     }
 
-    response = await make_request("POST", "suggestion", json.dumps(data))
+    response = await make_request("POST", "suggestion", data)
 
     if response.status_code == 200:
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Takk {update.message.from_user.first_name}, forslaget har blitt lagt til!")
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Noe gikk dessverre galt.")  # Invalid API Key or the server encountered an error
+
+
+# async def show_suggestions(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
+#     response = await make_request("GET", "suggestions")
+#     for item in response.json()["items"]:
+
 
 
 @admin_only
@@ -135,6 +142,22 @@ async def solve(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     message = await make_response_message("POST", "solve", data, 'Forslaget "{}" har blitt utført og fjernet fra listen.')
     await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+
+
+@admin_only
+async def list_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
+    
+    response = await make_request("GET", "users")
+
+    if response.status_code == 200:
+        message = "Users:\n"
+        for key, value in response.json().items():
+            message += f"{key}: {value}\n"
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Noe gikk dessverre galt.")  # Invalid API Key or the server encountered an error
+
 
 
 async def hello_api(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -176,6 +199,8 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("gpt", gpt))
     application.add_handler(CommandHandler("gpt_group", gpt_to_group))
     application.add_handler(CommandHandler("msg_group", message_to_group))
+    application.add_handler(CommandHandler("users", list_users))
+    #application.add_handler(CommandHandler("vis_forslag", show_suggestions))
 
     application.run_polling()
 
