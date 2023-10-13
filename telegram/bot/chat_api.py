@@ -24,7 +24,7 @@ def openai_api(prompt, sys_msg=sys_msg, temp=1.0):
                 {"role": "user", "content": prompt}
             ],
             temperature=temp,
-            max_tokens=256
+            max_tokens=512
         )
         return response['choices'][0]['message']['content']
     except openai.error.Timeout as e:
