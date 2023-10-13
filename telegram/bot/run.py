@@ -203,7 +203,6 @@ async def gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @admin_only
 async def gpt_to_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print(" ".join(context.args))
     response = openai_api(message_from_command(context), f"Du er en vennlig chatbot")
     await context.bot.send_message(chat_id=read_secret("chat-group-id"), text=response)
 
