@@ -5,12 +5,13 @@ from functools import wraps
 from app.database.database import db
 from app.telegram.models import TelegramUser, Suggestion, TelegramUserConnection, ReportedLink
 from app.wishlist.models import Wish
-from app.auth.models import User
+from app.auth.models import User, PasswordResetToken
+from app.auth.controllers import bcrypt
 from app.forms import TelegramConnectForm, APIform
 from app import read_secret, api_login_required, csrf
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 import string
 import os
@@ -131,6 +132,22 @@ def solve_suggestion():
         abort(500, 'Noe gikk galt, kunne ikke slette ønsket.')
 
 
+def generate_code(length=10):
+    characters = string.ascii_letters + string.digits
+    unique_code = ''.join(random.choice(characters) for _ in range(length))
+    return unique_code
+
+def is_unique_primary_key(model, primary_key):
+    # Check if the primary key already exists in the database
+    existing_record = db.session.get(model, primary_key)
+    return existing_record is None
+
+def generate_unique_code(model, length=None):
+    while True:
+        unique_code = generate_code(length)
+        if is_unique_primary_key(model, unique_code):
+            return unique_code
+
 
 @telegram_bp.get("/connect")
 @login_required
@@ -139,26 +156,9 @@ def connect_code():
         db.select(TelegramUserConnection)
         .where(TelegramUserConnection.user_id == current_user.id)
         ).first()
-    
-    def generate_unique_code(length=10):
-        characters = string.ascii_letters + string.digits
-        unique_code = ''.join(random.choice(characters) for _ in range(length))
-        return unique_code
-
-    def is_unique_primary_key(primary_key):
-        # Check if the primary key already exists in the database
-        existing_record = db.session.get(TelegramUserConnection, primary_key)
-        return existing_record is None
-
-    def generate_connection_code():
-        while True:
-            unique_code = generate_unique_code()
-            if is_unique_primary_key(unique_code):
-                return unique_code
-    
 
     if not connect_id:
-        identifier = generate_connection_code()
+        identifier = generate_unique_code(TelegramUserConnection)
         connect_id = TelegramUserConnection(identifier=identifier, user_id=current_user.id)
         db.session.add(connect_id)
     
@@ -337,3 +337,38 @@ def return_list_of_users():
     for idx, user in enumerate(users):
         users_json[idx] = user
     return users_json
+
+
+@telegram_bp.get("/reset-token/<int:chat_user_id>")
+@require_api_key
+@csrf.exempt
+def get_reset_password_token(chat_user_id):
+    chat_user = db.session.get(TelegramUser, chat_user_id)
+    if not chat_user:
+        abort(404)
+
+    time_now = datetime.utcnow()
+    user = chat_user.user
+
+    if db.session.execute(
+        db.select(PasswordResetToken)
+        .where(PasswordResetToken.user_id == user.id,
+               PasswordResetToken.expires_at > time_now,
+               PasswordResetToken.used_at.is_(None))
+               ).first():
+        abort(429)
+    
+    time_to_add = timedelta(minutes=15)
+    expires_at = time_now + time_to_add
+    token_id = generate_unique_code(PasswordResetToken, 5)
+    token_string = generate_code(10)
+    hashed_token = bcrypt.generate_password_hash(token_string)
+    reset_token = PasswordResetToken(token_id=token_id, token=hashed_token, user_id=user.id, expires_at=expires_at)
+    db.session.add(reset_token)
+    
+    try:
+        db.session.commit()
+        return {"token": f"{token_id}-{token_string}", "name": user.first_name}
+    
+    except SQLAlchemyError:
+        abort(500)

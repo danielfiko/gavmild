@@ -1,0 +1,18 @@
+{% extends "layouts/base.html" %}
+
+{% block head %}
+{% block head_content %}{% endblock %}
+<title>Bytt passord</title>
+{% endblock %}
+
+{% block body %}
+    <div class="login">
+        <main>
+            {% block main %}{% endblock %}
+        </main>
+        <header>
+            <a href="/"><img src="{{ url_for('static', filename='img/logo.png') }}" class="site-logo" alt="Gavmild logo"></a>
+        </header>
+        <img src="{{ url_for('static', filename='img/undraw_secure_login_pdn4.svg') }}" alt="Dame lener seg på en bærbar PC med et hengelåssymbol">
+    </div>
+{% endblock %}

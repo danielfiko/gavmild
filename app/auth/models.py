@@ -23,6 +23,7 @@ class User(db.Model, UserMixin):
     chat_user: Mapped["TelegramUser"] = relationship(back_populates="user")
     reported_links: Mapped[List["ReportedLink"]] = relationship(back_populates="user")
     preferences: Mapped["UserPreferences"] = relationship(back_populates="user")
+    password_reset_tokens: Mapped[List["PasswordResetToken"]] = relationship(back_populates="user")
 
 
     def tojson(self):
@@ -39,3 +40,15 @@ class UserPreferences(db.Model):
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="preferences")
+
+
+class PasswordResetToken(db.Model):
+    token_id: Mapped[str] = mapped_column(db.String(10), primary_key=True)
+    token: Mapped[str] = mapped_column(db.String(90))
+    user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"))
+    created_at: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
+    expires_at: Mapped[datetime] = mapped_column(db.DateTime)
+    used_at: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
+
+    #Relationships
+    user: Mapped["User"] = relationship(back_populates="password_reset_tokens")

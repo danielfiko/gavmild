@@ -159,10 +159,35 @@ async def list_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Noe gikk dessverre galt.")  # Invalid API Key or the server encountered an error
 
 
+async def get_reset_password_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
+    
+    if update.message.chat.type != "private":
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Denne kommandoen kan bare utføres i en privat chat med meg. Du kan enkelt starte en privat chat ved å klikke på navnet mitt.")
+        return
 
-async def hello_api(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    response = await make_request("GET", f"reset-token/{update.effective_chat.id}")
+
+    if response.status_code == 200:
+        data = response.json()
+        message = f"Følg denne lenken for å bytte passord: https://gavmild.dfiko.no/bytt-passord/{data['token']}?name={data['name']}\n\nLenken utløper om 15 minutter."
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    
+    elif response.status_code ==  404:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Fant ingen bruker koblet til denne kontoen.")
+
+    elif response.status_code == 429:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Hei! Jeg har allerede har sendt deg en lenke for å nullstille passordet ditt. Klikk på den og følg instruksjonene der for å fullføre prosessen.")
+    
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Noe gikk dessverre galt. Prøv på nytt senere.")  # Invalid API Key or the server encountered an error
+    
+    return
+
+
+async def hello_api(update: Update, context: ContextTypes.DEFAULT_TYPE):  
     response = await make_request("GET", "api/data")
-
+    
     if response.status_code == 200:
         data = response.json()
         await context.bot.send_message(chat_id=update.effective_chat.id, text=data["message"] + " " + str(update.effective_chat.id))
@@ -200,6 +225,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("gpt_group", gpt_to_group))
     application.add_handler(CommandHandler("msg_group", message_to_group))
     application.add_handler(CommandHandler("users", list_users))
+    application.add_handler(CommandHandler("glemtpassord", get_reset_password_token))
     #application.add_handler(CommandHandler("vis_forslag", show_suggestions))
 
     application.run_polling()

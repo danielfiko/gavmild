@@ -489,6 +489,11 @@ footer input[type="checkbox"]:checked ~ .hamburger-lines .line3 {
     color: lightgray;
 }
 
+a.blue-text {
+    color: #2d4b87;
+    font-weight:  bold;
+}
+
 /* Media queries */
 
 @media only screen and (min-width: 980px) {

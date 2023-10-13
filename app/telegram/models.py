@@ -24,7 +24,7 @@ class Suggestion(db.Model):
     solved_at: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
     deleted_at: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
     
-    # Relationships
+    # Relationships 
     chat_user: Mapped["TelegramUser"] = relationship(back_populates="suggestions")
 
 
