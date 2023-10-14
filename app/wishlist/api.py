@@ -278,7 +278,7 @@ def return_modal(wish_id):
 
     # Returnere redigerbart ønske
     if wish.user_id == current_user.id:
-        wish_form = WishForm()
+        wish_form = WishForm(quantity=wish.quantity)
         return render_template("wish_modal_edit_content.html", wish=wish,
                                 claimform=claim_form, wish_form=wish_form, form_action="update")
     # Returnere andres ønske

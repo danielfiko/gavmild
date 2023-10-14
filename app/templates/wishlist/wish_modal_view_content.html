@@ -7,15 +7,18 @@
     <h2>{{ wish.title }}</h2>
     <div class="wish-details">
             {% if wish.price %}
-                <span class="price">{{ "{0:,}".format(wish.price).replace(",", " ") }} kr</span>
+                <span class="price">{{ "{0:,}".format(wish.price).replace(",", " ") }} kr.</span>
             {% endif %}
             {# {% if wish.price and wish.url%}
                 <span>•</span>
             {% endif %} #}
+            {% if wish.quantity > 1 %}
+                <span class="quantity">| {{ wish.quantity }} stk. |</span>
+            {% endif %}
             {% if wish.url|length > 0 %}
                 <a href="{{ wish.url }}" id="product-url" target="_blank">{{ netloc }}</a>
                 {{ '<i class="fa-solid fa-link-slash icon-dead-link" id="%s" title="Rapporter død lenke"></i>'|safe % wish.id if wish.user_id != current_user.id }}
-                
+
             {% endif %}
     </div>
 
