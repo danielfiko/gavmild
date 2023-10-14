@@ -37,6 +37,7 @@ class User(db.Model, UserMixin):
 class UserPreferences(db.Model):
     user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"), primary_key=True)
     order_users_by: Mapped[Optional[str]] = mapped_column(db.String(20))
+    show_claims: Mapped[int] = mapped_column(db.Integer, default=1)
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="preferences")

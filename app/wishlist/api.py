@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta
 from app.auth.models import User
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, abort, Response
@@ -130,7 +131,6 @@ def delete_prompt():
         buttons = "confirm")
 
 
-
 @api_bp.delete("/delete")
 @api_login_required
 def delete():
@@ -201,8 +201,25 @@ def claim():
 def wish_mobile():
     wishes = Wish.query.filter(Wish.user_id != current_user.id) \
         .order_by(desc(Wish.date_created), desc(Wish.desired)).limit(30).all()
-
     return wishes_to_json(wishes)
+
+
+@api_bp.get("/wish/all2")
+def wish_mobile2():
+    wishes = db.session.execute(
+        db.select(Wish)
+        .where(Wish.user_id != current_user.id)
+        .order_by(
+        desc(Wish.date_created),
+        desc(Wish.desired))
+        ).scalars()
+    wishes_json = {}
+    for wish in wishes:
+        wishes_json[wish.id] = {"title": wish.title}
+        break
+
+    print(wishes_json)
+    return "ok"#wishes_json
 
 
 @api_bp.post("/wish/claimed")
@@ -289,7 +306,7 @@ def wishes_to_json(wishes):
     for whs in wishes:
         wishes_json_string.append({
             "id": whs.id,
-            "claimed": True if whs.claims and whs.user_id != current_user.id else False,
+            "claimed": True if whs.claims and whs.user_id != current_user.id and current_user.preferences.show_claims else False,
             "img_url": whs.img_url,
             "first_name": whs.user.first_name,
             "co_wisher": whs.get_co_wishers(),

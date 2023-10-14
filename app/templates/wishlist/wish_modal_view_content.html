@@ -34,7 +34,7 @@
             </button>-->
         {% endif %}
 
-        {% if wish.claims %}
+        {% if wish.claims and current_user.preferences.show_claims %}
             <p>Tatt av
                 {% for claim in wish.claims %}
                     {{ claim.user.first_name }}
@@ -42,7 +42,7 @@
             </p>
         {% endif %}
 
-        {% if not wish.claims %}
+        {% if not wish.claims and current_user.preferences.show_claims %}
             <button class="claim-button" id="claim_btn" name="claim_btn" type="submit">
                 <i class="fa-regular fa-circle-check icon-blue"></i><span>Ta ønsket</span>
             </button><!--
