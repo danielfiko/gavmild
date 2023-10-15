@@ -16,3 +16,5 @@ build/
 *.bak
 
 secrets/
+notater.txt
+.idea/

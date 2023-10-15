@@ -8,10 +8,10 @@ from functools import wraps
 import re
 
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+# logging.basicConfig(
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+#     level=logging.INFO
+# )
 
 
 def admin_only(view_function):
