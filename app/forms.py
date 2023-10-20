@@ -1,7 +1,9 @@
+gitimport datetime
+import random
 from flask_wtf import FlaskForm
 from markupsafe import Markup
 from wtforms import StringField, PasswordField, EmailField, DateField, SubmitField, TextAreaField, BooleanField, \
-    HiddenField, SelectField, IntegerField, URLField
+    HiddenField, SelectField, IntegerField, URLField, FieldList, RadioField
 from wtforms.validators import InputRequired, Length, ValidationError, Email, NumberRange, Optional
 
 from app.auth.models import User
@@ -58,9 +60,37 @@ class WishForm(FlaskForm):
     quantity = SelectField("Antall", render_kw={"form": "wishform"}, choices=[(i, i) for i in range(1, 11)])
     price = IntegerField("Pris", render_kw={"form": "wishform", "placeholder": "Pr. stk.", "min": 0},
                          validators=[NumberRange(max=1000000), Optional()])
+    list_id = IntegerField("List ID")
+    lists = FieldList(list_id)
     edit_id = HiddenField(render_kw={"form": "wishform"})
     submit = SubmitField("Lagre", render_kw={"form": "wishform"})
 
+
+class WishListForm(FlaskForm):
+    title = StringField("Listenavn", validators=[InputRequired(), Length(min=2, max=90)], id="title",
+                        render_kw={"form": "list_form"})
+    private = RadioField("Privat liste?", choices=["Ja", "Nei"], default="Nei", render_kw={"form": "list_form"})
+    expires_at = DateField("Utløpsdato", validators=[InputRequired()])
+    submit = SubmitField("Lagre", render_kw={"form": "list_form"})
+
+    @staticmethod
+    def get_title_placeholder():
+        return random.choice([
+            "Min drømmeønskeliste: Alt jeg ønsker meg!",
+            f"Fremtidige skatter: Min ønskeliste {datetime.date.today().year}",
+            "Gavetips: Det jeg ønsker meg akkurat nå",
+            "Ønsker og drømmer: Min ultimate ønskeliste",
+            "Juleønsker: Ønsker meg til høytiden",
+            "Bursdagsønsker: Gaver som vil glede meg",
+            "Min elleville ønskeliste: Alt jeg drømmer om",
+            "Gavetrangen: Ønsker meg disse skattene",
+            "Skjem meg bort: Tingene jeg ønsker meg mest",
+            "Favorittønsker: Det jeg virkelig drømmer om",
+            "Luksusønskeliste: Gaver fra mine drømmer",
+            "En verden av ønsker: Mitt ønskeliste-eventyr",
+            "Hjemmeønsker: Skatter for mitt eget rike",
+            "Gavetips til meg: Min personlige ønskeliste",
+            "Skatter av mitt hjerte: Ønsker meg disse gavene"])
 
 class AjaxForm(FlaskForm):
     # Claiming
