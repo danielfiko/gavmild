@@ -102,7 +102,7 @@ def handler_generate_registration_options():
         # Require the user to verify their identity to the authenticator
         authenticator_selection=AuthenticatorSelectionCriteria(
             user_verification=UserVerificationRequirement.REQUIRED,
-            resident_key=ResidentKeyRequirement.PREFERRED
+            resident_key=ResidentKeyRequirement.REQUIRED
         ),
     )
     # Remember the challenge for later, you'll need it in the next step
