@@ -1,10 +1,58 @@
 {% extends "layouts/base.html" %}
-
-{% block head %}
-<title>Dashboard</title>
-{% endblock %}
-
 {% block body %}
-<h1>Hei {{ current_user.username }}, du er logget inn</h1>
-<a href="{{ url_for('auth.logout_api') }}">Logg ut</a>
+{{ ajaxform.filter(value=filter) }}
+
+<div id="modal" class="modal">
+    <div class="modal-content" id="modal-content">
+    </div>
+</div>
+<div id="modal-confirm" class="modal">
+    <div class="confirm-action modal-content" id="modal-content">
+    </div>
+</div>
+<div class="container">
+    <header>
+        <a href="/"><img src="{{ url_for('static', filename='img/logo.png') }}" class="site-logo" alt="Gavmild logo"></a>
+    </header>
+    <div class="header-nav-container nav-toggle-item background-white display-none">
+        <ul class="header-nav list-no-style">
+            <li><i class="fas fa-user"></i> <a href="/dashboard">{{ current_user.username }}</a></li>
+            <li><button type="button" class="logout-button button-red"><i class="fas fa-sign-out-alt"></i> Logg ut</button></li>
+        </ul>
+    </div>
+    <nav class="sidebar-nav nav-toggle-item background-white display-none">
+        {% include "nav_logged_in.html" %}
+    </nav>
+    <main>
+        <div id="content-header">
+            {% if page_title %}
+                <h1>{{ page_title }}</h1>
+            {% endif %}
+        </div>
+        <div class="wishes-list flex-column">
+            <div class="webauthn-login flex-column">
+                <p>Aktiver passordløs innlogging:</p>
+                <button id="webauth-register" class="webauth-button">Koble til med WebAuthn <i class="fa-solid fa-shield-halved"></i></button>
+            </div>
+        </div>
+        <p id="success"></p>
+        <p id="error"></p>
+    </main>
+    <footer>
+        <div class="footer">
+            <div class="hamburger">
+                <input class="nav-checkbox" type="checkbox" name="nav-checkbox" autocomplete="off">
+                <label class="hamburger-lines" for="nav-checkbox">
+                    <span class="line line1"></span>
+                    <span class="line line2"></span>
+                    <span class="line line3"></span>
+                </label>
+            </div>
+            <span class="fa-stack small add-wish-icon new-wish-button">
+                <i class="fa-solid fa-gift fa-stack-2x"></i>
+                <i class="fa-solid fa-plus fa-inverse fa-stack-1x cornered-lr"></i>
+            </span>
+        </div>
+    </footer>
+</div>
 {% endblock %}

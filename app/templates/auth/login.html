@@ -45,6 +45,12 @@
                     </ul>
                 {% endif %}
             {% endwith %}
+        <div class="webauthn-login">
+            <p>eller logg inn med </p>
+            <button id="webauth-authenticate">WebAuthn <i class="fa-solid fa-shield-halved"></i></button>
+        </div>
+        <p id="success"></p>
+        <p id="error"></p>
 
             <!--<a href="{{url_for('auth.register')}}">Har du ikke en konto? Opprett en konto her.</a>-->
         </main>

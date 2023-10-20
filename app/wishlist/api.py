@@ -6,9 +6,9 @@ from flask_login import login_required, current_user
 #from app.blueprints.auth.models import User
 from sqlalchemy import func, Integer, case
 from app import api_login_required
-from app.forms import WishForm, AjaxForm
+from app.forms import WishForm, AjaxForm, WishListForm
 from app.database.database import db
-from app.wishlist.models import Wish, CoWishUser, ClaimedWish, ArchivedWish
+from app.wishlist.models import Wish, CoWishUser, ClaimedWish, ArchivedWish, WishList, wishes_in_list
 from sqlalchemy import or_, and_, exc, asc, desc, text
 from sqlalchemy.exc import SQLAlchemyError
 from urllib.parse import urlsplit
@@ -54,14 +54,22 @@ def add():
             new_wish = Wish(user_id=current_user.id, title=form.wish_title.data,
                         description=form.wish_description.data, quantity=form.quantity.data, url=form.wish_url.data,
                         img_url=form.wish_img_url.data, desired=form.desired.data, price=form.price.data)
-        except:
+
+            request_list_ids = request.form.getlist("lists[]", type=int)
+            active_lists = WishList.get_active_lists_from_ids(request_list_ids)
+
+            for wish_list in active_lists:
+                wish_list.wishes.append(new_wish)
+
+        except SQLAlchemyError:
             return "Wish model creation failed", 400
+
         if new_wish:
             try:
                 flash("Ønsket ble lagt til")
                 db.session.add(new_wish)
                 db.session.commit()
-            except:
+            except SQLAlchemyError:
                 flash("Det oppstod en feil, gi Daniel beskjed")
                 return "Det oppstod en feil ved oppretting av ønsket", 500
 
@@ -125,7 +133,7 @@ def update():
 def delete_prompt():
 
     return render_template(
-        "/wishlist/action_confirmation.html",
+        "/wishlist/modal/action_confirmation.html",
         title = "Slette ønske?",
         message = "Dette vil slette ønsket ditt for godt",
         buttons = "confirm")
@@ -218,7 +226,6 @@ def wish_mobile2():
         wishes_json[wish.id] = {"title": wish.title}
         break
 
-    print(wishes_json)
     return "ok"#wishes_json
 
 
@@ -250,7 +257,6 @@ def return_user_wishes(user_id):
                                             ).order_by(Wish.price.asc()).all()
         
         else:
-            print(request.values.get("order_by"))
             wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
                                             .any(CoWishUser.co_wish_user_id == user_id))
                                             ).order_by(Wish.desired.desc(), Wish.date_created.desc()).all()
@@ -264,8 +270,11 @@ def new_wish():
     claim_form = AjaxForm()
     empty_wish = Wish(user_id="", title="", description="", url="",
                       img_url=url_for('static', filename='gift-default.png'), desired="")
-    return render_template("wish_modal_edit_content.html", wish=empty_wish, wish_form=wish_form, claimform=claim_form,
-                           form_action="add")
+
+    lists = WishList.get_active_lists(current_user.id)
+
+    return render_template("wishlist/modal/wish_modal_edit_content.html",
+                           wish=empty_wish, wish_form=wish_form, claimform=claim_form, form_action="add", lists=lists)
 
 
 @api_bp.get("/wish/<int:wish_id>")
@@ -273,20 +282,21 @@ def new_wish():
 def return_modal(wish_id):
     form = AjaxForm()
     claim_form = AjaxForm()
-#if form.validate():
+    #if form.validate():
     wish = Wish.query.filter(Wish.id == wish_id).first()
 
     # Returnere redigerbart ønske
     if wish.user_id == current_user.id:
         wish_form = WishForm(quantity=wish.quantity)
-        return render_template("wish_modal_edit_content.html", wish=wish,
-                                claimform=claim_form, wish_form=wish_form, form_action="update")
+        lists = WishList.get_active_lists(current_user.id)
+        return render_template("wishlist/modal/wish_modal_edit_content.html", wish=wish,
+                               claimform=claim_form, wish_form=wish_form, form_action="update", lists=lists)
     # Returnere andres ønske
     else:
         netloc = "{0.netloc}".format(urlsplit(wish.url))
-        return render_template("wish_modal_view_content.html", wish=wish, claimform=claim_form, netloc=netloc)
-#else:
-#    return "getwishesform didn't validate"
+        return render_template("wishlist/modal/wish_modal_view_content.html", wish=wish, claimform=claim_form, netloc=netloc)
+    #else:
+    #    return "getwishesform didn't validate"
 
 
 # FIXME: Tullete å kalle denne for hver bruker som blir lagt i lista
@@ -349,3 +359,35 @@ def prisjakt():
     else:
         error_message = response.text
         return Response(error_message, status=500)
+
+
+@api_bp.get("/wish/lists")
+@api_login_required
+def get_lists_modal_content():
+    form = WishListForm()
+    title_placeholder = WishListForm.get_title_placeholder()
+    lists = WishList.get_active_lists(current_user.id)
+    return render_template("wishlist/modal/user_lists_modal.html",
+                           lists=lists, form=form, title_placeholder=title_placeholder)
+
+@api_bp.get("/wish-list/<int:list_id>")
+@api_login_required
+def get_list_details(list_id):
+    list_obj = db.session.get(WishList, list_id)
+
+    if list_obj.user_id != current_user.id:
+        abort(403)
+
+    if not list_obj.is_active():
+        abort(410)
+
+    return {
+        "title": list_obj.title,
+        "expires_at": list_obj.expires_at.strftime("%Y-%m-%d"),
+        "private": bool(list_obj.private)
+        }
+
+@api_bp.post("/wish-list/update")
+@api_login_required
+def update_wish_list():
+    return "ok", 200
