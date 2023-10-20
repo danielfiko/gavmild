@@ -68,7 +68,13 @@ async function handleLogin() {
 
     // GET authentication options from the endpoint that calls
     // @simplewebauthn/server -> generateAuthenticationOptions()
-    const resp = await fetch('/webauthn/authentication-options');
+    const resp = await fetch('/webauthn/authentication-options', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({email: $("#email").val()}),
+    });
 
     let asseResp;
     try {
