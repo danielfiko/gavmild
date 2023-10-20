@@ -8,7 +8,7 @@ from sqlalchemy import func, Integer, case
 from app import api_login_required
 from app.forms import WishForm, AjaxForm, WishListForm
 from app.database.database import db
-from app.wishlist.models import Wish, CoWishUser, ClaimedWish, ArchivedWish, WishList, wishes_in_list
+from app.wishlist.models import Wish, CoWishUser, ClaimedWish, ArchivedWish#, WishList, wishes_in_list
 from sqlalchemy import or_, and_, exc, asc, desc, text
 from sqlalchemy.exc import SQLAlchemyError
 from urllib.parse import urlsplit
