@@ -17,6 +17,8 @@ from webauthn.helpers.structs import (
 
 from flask import Blueprint, request, current_app, render_template, flash, Response, session, redirect, url_for
 from flask_login import login_required, current_user, login_user
+
+from app.auth.models import User
 from app.database.database import db
 from app.webauthn.models import WebauthnCredential
 from app import csrf
@@ -88,7 +90,7 @@ def handler_generate_registration_options():
     user_id = db.session.execute(
         db.select(WebauthnCredential.user_handle)
         .where(WebauthnCredential.rp_user_id == current_user.id)
-    ).scalar()
+    )
     print(f"User id: {user_id}")
     if user_id is None:
         user_id = generate_unique_user_handle(64)
@@ -163,16 +165,22 @@ def handler_verify_registration_response():
 ################
 
 
-@webauthn_bp.route("/authentication-options")
+@webauthn_bp.post("/authentication-options")
 @csrf.exempt
 def handler_generate_authentication_options():
+    data = request.get_json()
     allow_credentials = None
-    if current_user.is_authenticated and current_user.webauthn_credentials is not None:
+    user = db.session.execute(
+        db.select(User)
+        .where(User.email == data["email"])
+    ).scalar()
+
+    if user is not None and user.webauthn_credentials is not None:
         allow_credentials = [
             {"type": "public-key",
              "id": cred.id,
              "transports": cred.transports}
-            for cred in current_user.webauthn_credentials
+            for cred in user.webauthn_credentials
         ]
         # wishes_json = {}
         # for wish in wishes:
