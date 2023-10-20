@@ -50,9 +50,9 @@ async function handleRegistration() {
 
     // Show UI appropriate for the `verified` status
     if (verificationJSON && verificationJSON.verified) {
-    elemSuccess.innerHTML = 'Success!';
+    elemSuccess.innerHTML = 'Passordløs innloggin ble lagt til!';
     } else {
-    elemError.innerHTML = `Oh no, something went wrong! Response: <pre>${JSON.stringify(
+    elemError.innerHTML = `Oisann, noe gikk galt! Feilmelding: <pre>${JSON.stringify(
         verificationJSON,
     )}</pre>`;
     }
