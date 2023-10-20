@@ -110,11 +110,11 @@
   flex-grow: 1;
   flex-direction: column;
   justify-content: center;
-  width: 100%;
+  max-width: 100%;
   padding: 10px 20px;
 }
 
-.modal-right h2 {
+.modal-right h2  {
   margin: 0 0 5px 0;
   font-size: 2em;
   font-family: 'Merriweather', serif;
@@ -251,11 +251,11 @@ button.claim-button i, button.claim-button span {
 /*}*/
 
 
-.co-wish-search-field, select, input, textarea {
+.co-wish-search-field, select, input, textarea, button {
   width: 100%;
   padding: 8px 10px;
   margin: 2px 0 12px 0;
-  display: inline-block;
+  display: block;
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
@@ -315,25 +315,36 @@ label[for="co_wisher"] {
   margin-left: 5px;
 }
 
+#modal form ul {
+  display: flex;
+  gap: 1em;
+ }
+
+#modal form li {
+  list-style: none;
+  display: flex;
+  gap: 0.2em;
+}
+
 .form-options{
   display: flex;
   align-content: center;
   justify-content: space-between;
 }
-
 .form-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
 .typeahead__field .typeahead__button {
   align-self: flex-end;
 }
+
+
+
 .typeahead__container fieldset {
   padding: 0;
 }
-
 .edit-style.co-wisher-list {
   margin: 3px 0 12px 3px;
 }
@@ -347,6 +358,8 @@ label[for="co_wisher"] {
   cursor: pointer;
   border-radius: 4px
 }
+
+
 
 .delete-co-wisher {
   cursor: pointer;
@@ -399,6 +412,91 @@ label[for="co_wisher"] {
   border-radius: 0;
 }
 
+#modal .list-filters {
+  margin: 10px 5px 5px 0;
+  min-width: 100%;
+}
+#modal input.chk-btn + label {
+  padding: 5px 12px;
+}
+#modal .chk-btn + label:active,
+#modal input.chk-btn:checked + label {
+    /*box-shadow: 0px 0px 5px inset;*/
+    border: 1px solid #b6b6b6;
+    background: #e8e8e8;;
+}
+/*
+/*
+/*    Wish list modal
+/*
+*/
+
+#list_form {
+  min-width: 14vw;
+  width: 100%;
+}
+button#submit {
+  height: 2.09rem;
+}
+button#submit i {
+  display: none;
+}
+button#submit i.fa-check {
+  color: #3A7734;
+  font-size: 1.5em;
+}
+h2.wish-list {
+  align-self: flex-start;
+  font-family: 'Merriweather', serif;
+  font-size: 1.1em;
+  font-weight: 400;
+  margin: 0 1rem 0.2rem 1.4rem;
+}
+h2.wish-list span {
+  font-size: 1rem;
+  cursor: pointer;
+}
+.wish-list-modal-list {
+  padding:0 1rem;
+  width: 100%;
+}
+.wish-list-items {
+  align-self: flex-start;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  border: solid 1px #bababa;
+  border-radius: 10px;
+  min-width: 10vw;
+  width: 100%;
+}
+.wish-list-items li {
+  border-bottom: solid 1px #bababa;
+}
+.wish-list-items li:hover {
+  background-color: #f6f6f6;
+  color: inherit;
+}
+.wish-list-items li:first-child {
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+.wish-list-items li:last-child {
+  border-bottom: none;
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+.wish-list-items a {
+  display: block;
+  padding: 0.4rem 1.6rem;
+  width: 100%;
+}
+.wish-list-items .selected-item {
+  background-color: #d5e9ff;
+}
+.wish-list-items .selected-item:hover {
+  background-color: #d3e4f7
+}
 
 /*
 /*
@@ -406,7 +504,7 @@ label[for="co_wisher"] {
 /*
 */
 
-.modal-content h2 {
+.confirm-action .modal-content h2 {
   font-size: 1.2em;
   color: #212121;
   margin-bottom: 12px;
