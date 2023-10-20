@@ -12,7 +12,7 @@ from webauthn.helpers.structs import (
     AuthenticatorSelectionCriteria,
     UserVerificationRequirement,
     RegistrationCredential,
-    AuthenticationCredential
+    AuthenticationCredential, ResidentKeyRequirement
 )
 
 from flask import Blueprint, request, current_app, render_template, flash, Response, session, redirect, url_for
@@ -90,11 +90,9 @@ def handler_generate_registration_options():
     user_id = db.session.execute(
         db.select(WebauthnCredential.user_handle)
         .where(WebauthnCredential.rp_user_id == current_user.id)
-    )
-    print(f"User id: {user_id}")
+    ).scalar()
     if user_id is None:
         user_id = generate_unique_user_handle(64)
-    print(f"User id: {user_id}")
     options = generate_registration_options(
         rp_name=WEBAUTHN_RP_NAME, # A name for your "Relying Party" server
         rp_id=WEBAUTHN_RP_ID, # Your domain on which WebAuthn is being used
@@ -104,6 +102,7 @@ def handler_generate_registration_options():
         # Require the user to verify their identity to the authenticator
         authenticator_selection=AuthenticatorSelectionCriteria(
             user_verification=UserVerificationRequirement.REQUIRED,
+            resident_key=ResidentKeyRequirement.PREFERRED
         ),
     )
     # Remember the challenge for later, you'll need it in the next step
