@@ -1,4 +1,4 @@
-{% extends "modal.html" %}
+{% extends "wishlist/modal/wish_modal.html" %}
 {% block modal_left %}
     <fieldset>
         {{ wish_form.wish_img_url.label }}
@@ -67,6 +67,15 @@
     {% if (wish.description) %}
     <script>document.getElementById('description').value="{{ wish.description }}";</script>
     {% endif %}
+{#    <label for='list-filters'>Ønskeliste</label>#}
+{#    <div class="list-filters">#}
+{#        {% for list in lists %}#}
+{#            {% if not loop.first %}#}
+{#            <input type="checkbox" id='c{{ loop.index }}' class='chk-btn' data-list-id="{{ list.id }}" />#}
+{#            <label for='c{{ loop.index }}'>{{ list.title }}</label>#}
+{#            {% endif %}#}
+{#        {% endfor %}#}
+{#    </div>#}
     <div class="form-options">
         {% if wish.desired %}
             {{ wish_form.desired(checked="true") }}

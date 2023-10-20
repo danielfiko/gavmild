@@ -5,8 +5,8 @@ from flask_wtf.csrf import CSRFProtect
 from threading import Thread
 from functools import wraps
 
-
 csrf = CSRFProtect()
+
 
 def create_app():
     # create and configure the app
@@ -22,22 +22,24 @@ def create_app():
     from app.wishlist.controllers import wishlist_bp
     from app.wishlist.api import api_bp
     from app.telegram.controllers import telegram_bp
+    from app.webauthn.controllers import webauthn_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(wishlist_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(telegram_bp)
-
+    app.register_blueprint(webauthn_bp)
 
     with app.app_context():
         db.create_all()
     
     from app.auth import controllers as auth
-    #from app.telegram.controllers import run_bot
+    # from app.telegram.controllers import run_bot
     auth.init_auth(app)
-    #Thread(target=run_bot).start()
+    # Thread(target=run_bot).start()
 
     return app
+
 
 def read_secret(secret_name):
     try:
@@ -45,6 +47,7 @@ def read_secret(secret_name):
             return secret_file.read().strip()
     except IOError:
         print(f"Secret '{secret_name}' not found.")
+
 
 def api_login_required(view_function):
     @wraps(view_function)

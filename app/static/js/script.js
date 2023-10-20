@@ -9,14 +9,14 @@ $(document).ready(function() {
         currentPath = currentPath.replace(wishRegex, '');
     }
 
-    requestWishes();
+    requestWishes(); // TODO: Kun når man er logget inn
     $(".new-wish-button, .new-wish-button-label").click(addNewWish);
+    //$(".user-lists-button").click(displayListsModal);
     $(".nav-checkbox").click(toggleHamburger);
     $(".logout-button").click(function(){window.location.href='/api/logout'}); // FIXME: statisk link
     $(".sidebar-nav .order-by").click(order_users_by);
     $("#order_by").on("change", requestWishes);
     $(".toggle-password").click(togglePasswordVisibility);
-
     
     checkPathAndLoadWishContent();
     // Event listener to handle back button and restore modal state
@@ -177,19 +177,26 @@ function hideModalAndUpdateUrl() {
     history.pushState({}, '', currentPath);
 }
 
-
 function showModal(res) {
     $("#modal-content").html(res);
-    $(".typeahead__container").hide();
-    $("#add-user-field").show();
     $("#modal").css("display", "flex");
-    $(".add-co-wisher-button").click(        function() {addWishUser() });
-    $(".add-wish-image-from-url-button").click(  function() {$(this).hide();$("#img_url").show().select()});
     $("#wishform").submit(submitWishForm);
     $(document).on("click", function(event) {
-        if (event.target == modal || $(event.target).closest(".close").length > 0) {
+        if (event.target === modal || $(event.target).closest(".close").length > 0) {
             hideModalAndUpdateUrl()
         }
+    });
+}
+
+function loadWishModalContent(res) {
+    showModal(res)
+    $(".typeahead__container").hide();
+    $("#add-user-field").show();
+    $(".add-co-wisher-button").click(function(){
+        addWishUser()
+    });
+    $(".add-wish-image-from-url-button").click(function() {
+        $(this).hide();$("#img_url").show().select()
     });
     $('img').on("error", function() {
         $(this).attr('src', '/static/img/gift-default.png');
@@ -221,7 +228,9 @@ function submitWishForm(event){
        wish_description: $("#description").val(),
        wish_url: $("#url").val(),
        price: $("#price").val(),
-       desired: desired_val
+       desired: desired_val,
+       lists: $('#modal .chk-btn:checked').map(function() {
+           return $(this).data('list-id')}).get(),
    }).then(function(res){
        animateWishAdded($("#title").val(), $("#img_url").val())
        requestWishes();
@@ -248,7 +257,7 @@ function addNewWish() {
     ajaxCallCsrf("/api/wish/new", {
             csrf_token: $("#csrf_token").val(),
         }).then(function(res) {
-            showModal(res)
+            loadWishModalContent(res)
             $("#url").on('input', function() { get_prisjakt_details() })
     })
 }
@@ -268,7 +277,7 @@ function loadWishContent(id) {
     // Make an AJAX request to fetch modal content
     $.get('/api/wish/' + id, function (data) {
         // Set modal content
-        showModal(data);
+        loadWishModalContent(data);
         
         if ($(".modal .co-wisher-list li:first").length) {
                 $(".typeahead__container").show();
@@ -456,4 +465,61 @@ function order_users_by() {
     })
 }
 
+function displayListsModal() {
+    $.get('/api/wish/lists', function (data) {
+        // Set modal content
+        showModal(data);
 
+        $(".delete-wish").click(function () {
+            deleteWish(this.id, false, "GET")
+        })
+        $(".icon-dead-link").click(function () {
+            reportDeadLink(this.id)
+        });
+        $("h2.wish-list").click(function() {
+            $(".wish-list-modal-list").toggle()
+        })
+        $(".wish-list-item").click(loadListToForm);
+        $("#list_form").submit(submitListForm)
+    });
+}
+
+function loadListToForm(event) {
+    event.preventDefault()
+    $(".selected-item").removeClass("selected-item");
+    $(this).parent().addClass("selected-item");
+    var list_id = $(this).data("list-id");
+    if (list_id == 0) {
+        $("#list_form #title").val("")
+        $("#list_form #expires_at").val("");
+        $("#list_form :radio[name='private'][value='Nei']").prop('checked', true);
+    }
+    else {
+        $.get("/api/wish-list/" + list_id, function(data) {
+            $("#list_form #title").val(data['title'])
+            $("#list_form #expires_at").val(data['expires_at']);
+            if (data['private']) {
+                $("#list_form :radio[name='private'][value='Ja']").prop('checked', true);
+            }
+            else {
+                $("#list_form :radio[name='private'][value='Nei']").prop('checked', true);
+            }
+        })
+    }
+}
+
+function submitListForm(event){
+    event.preventDefault();  //prevent form from submitting
+    var data = $("#list_form :input").serializeArray();
+    var confirmation_delay = 2000;
+    $("button#submit i.fa-spinner").css( "display", "inline-block" );
+    $.post("/api/wish-list/update", data).done(function() {
+        $("button#submit span").hide(0).delay(confirmation_delay).show(0);
+        $("button#submit i.fa-spinner").hide()
+        $("button#submit i.fa-check").css( "display", "inline-block" ).delay(confirmation_delay).hide(0);
+    }
+    ).fail(function(){
+        $("button#submit i.fa-spinner").hide()
+        $("button#submit span").show()
+    })
+}

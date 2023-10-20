@@ -3,6 +3,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Raleway&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;400;500;700&display=swap');
 
 * {
     box-sizing: border-box;
@@ -13,9 +14,9 @@
 html, body {
     width: 100%;
     height: 100%;
-    font-family: 'Lato', sans-serif;
+    font-family: 'Roboto', sans-serif;
     background-color: #F5F5F5;
-    color: #121212;
+    color: #2b2929;
     margin: 0;
 }
 
@@ -121,7 +122,10 @@ header {
     display: none;
     place-self: stretch;
     grid-area: sidebar-nav;
-    padding-left: 20px;
+    padding: 0 1.25em 0 1.25em;
+}
+.sidebar-nav button {
+    max-width: 80%;
 }
 
 .nav-add-wish-button {
@@ -183,7 +187,7 @@ h1 {
     font-family: 'Libre Baskerville', serif;
     color: #212121;
     font-size: 2.2em;
-    margin-bottom: 20px;
+    /*margin-bottom: 20px;*/
 }
 
 main {
@@ -306,6 +310,47 @@ main {
 .icon-gold {
     color: #e8b201;
 }
+
+/*
+/*
+/*      User page
+/*
+ */
+
+#order_by {
+    margin: 0;
+}
+.list-filters {
+    display:flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    margin-bottom: 25px;
+    max-width: 100%;
+}
+input.chk-btn {
+  display: none;
+}
+input.chk-btn + label {
+    border: 1px solid #dadada;
+    background: #eee;
+    padding: 10px 18px;
+    cursor: pointer;
+    border-radius: 30px;
+    color: #8d8d8d;
+}
+input.chk-btn:not(:checked) + label:hover {
+  box-shadow: 0px 0px 2px #bababa;
+}
+input.chk-btn[type="radio"]:checked + label,
+input.chk-btn + label:active,
+input.chk-btn:checked + label {
+    /*box-shadow: 0px 0px 5px inset;*/
+    border: 1px solid #b6b6b6;
+    background: white;
+    color: #373737;
+}
+
 
 /*
 /*
@@ -492,6 +537,30 @@ footer input[type="checkbox"]:checked ~ .hamburger-lines .line3 {
 a.blue-text {
     color: #2d4b87;
     font-weight:  bold;
+}
+
+.webauthn-login {
+    display: none;
+    gap: 1.5rem;
+    align-items: center;
+    margin: 2em 0 2em 0;
+}
+.webauthn-login.flex-column {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+}
+.webauthn-login p {
+    white-space: nowrap;
+}
+.webauth-button {
+    /*width: fit-content;*/
+    font-size: 1.2em;
+    color: #2d4b87;
+    margin: 0;
+}
+.webauth-button i {
+    font-size: 1.2em;
 }
 
 /* Media queries */

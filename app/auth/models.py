@@ -24,6 +24,8 @@ class User(db.Model, UserMixin):
     reported_links: Mapped[List["ReportedLink"]] = relationship(back_populates="user")
     preferences: Mapped["UserPreferences"] = relationship(back_populates="user")
     password_reset_tokens: Mapped[List["PasswordResetToken"]] = relationship(back_populates="user")
+    #lists: Mapped[List["WishList"]] = relationship(back_populates="user")
+    webauthn_credentials: Mapped[List["WebauthnCredential"]] = relationship(back_populates="user")
 
 
     def tojson(self):

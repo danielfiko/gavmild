@@ -1,0 +1,8 @@
+{% extends "wishlist/modal/modal.html" %}
+{% block left %}
+<img src="{{ wish.img_url }}">
+    {% block modal_left %}{% endblock %}
+{% endblock %}
+{% block right %}
+    {% block modal_right %}{% endblock %}
+{% endblock %}

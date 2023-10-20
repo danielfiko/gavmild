@@ -1,0 +1,68 @@
+{% extends "layouts/base.html" %}
+
+{% block body %}
+{# {{ ajaxform.hidden_tag() }} #}
+{{ ajaxform.filter(value=filter) }}
+
+<div id="modal" class="modal">
+    <div class="modal-content" id="modal-content">
+    </div>
+</div>
+<div id="modal-confirm" class="modal">
+    <div class="confirm-action modal-content" id="modal-content">
+    </div>
+</div>
+<div class="container">
+    <header>
+        <a href="/"><img src="{{ url_for('static', filename='img/logo.png') }}" class="site-logo" alt="Gavmild logo"></a>
+    </header>
+    <div class="header-nav-container nav-toggle-item background-white display-none">
+        <ul class="header-nav list-no-style">
+            <li><i class="fas fa-user"></i> {{ current_user.username }}</li>
+            <li><button type="button" class="logout-button button-red"><i class="fas fa-sign-out-alt"></i> Logg ut</button></li>
+        </ul>
+    </div>
+    <nav class="sidebar-nav nav-toggle-item background-white display-none">
+        {% include "nav_logged_in.html" %}
+    </nav>
+    <main>
+        <div id="content-header">
+            {% if page_title %}
+                <h1>{{ page_title }}</h1>
+            {% endif %}
+            {% if "user" in filter %}
+                <label>Sorter etter:</label>
+                <select name="order_by" id="order_by">
+                    <option value="newest_first">Nyeste først</option>
+                    <option value="price_low_high">Pris (lav-høy)</option>
+                    <option value="price_high_low">Pris (høy-lav)</option>
+                </select>
+            {% endif %}
+        </div>
+        <div class="list-filters">
+            {% for list in lists %}
+                <input type="checkbox" id='c{{ loop.index }}' class='chk-btn' checked />
+                <label for='c{{ loop.index }}'>{{ list.title }}</label>
+            {% endfor %}
+        </div>
+        <div class="wishes-list">
+        </div>
+    </main>
+    <footer>
+        <div class="footer">
+            <div class="hamburger">
+                <input class="nav-checkbox" type="checkbox" name="nav-checkbox" autocomplete="off">
+                <label class="hamburger-lines" for="nav-checkbox">
+                    <span class="line line1"></span>
+                    <span class="line line2"></span>
+                    <span class="line line3"></span>
+                </label>
+            </div>
+            <span class="fa-stack small add-wish-icon new-wish-button">
+                <i class="fa-solid fa-gift fa-stack-2x"></i>
+                <i class="fa-solid fa-plus fa-inverse fa-stack-1x cornered-lr"></i>
+            </span>
+        </div>
+    </footer>
+</div>
+{% endblock %}
