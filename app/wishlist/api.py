@@ -56,7 +56,7 @@ def add():
                         img_url=form.wish_img_url.data, desired=form.desired.data, price=form.price.data)
 
             request_list_ids = request.form.getlist("lists[]", type=int)
-            active_lists = WishList.get_active_lists_from_ids(request_list_ids)
+            active_lists = []  # WishList.get_active_lists_from_ids(request_list_ids)
 
             for wish_list in active_lists:
                 wish_list.wishes.append(new_wish)
@@ -271,7 +271,7 @@ def new_wish():
     empty_wish = Wish(user_id="", title="", description="", url="",
                       img_url=url_for('static', filename='gift-default.png'), desired="")
 
-    lists = WishList.get_active_lists(current_user.id)
+    lists = None  # WishList.get_active_lists(current_user.id)
 
     return render_template("wishlist/modal/wish_modal_edit_content.html",
                            wish=empty_wish, wish_form=wish_form, claimform=claim_form, form_action="add", lists=lists)
@@ -288,7 +288,7 @@ def return_modal(wish_id):
     # Returnere redigerbart ønske
     if wish.user_id == current_user.id:
         wish_form = WishForm(quantity=wish.quantity)
-        lists = WishList.get_active_lists(current_user.id)
+        lists = None  # WishList.get_active_lists(current_user.id)
         return render_template("wishlist/modal/wish_modal_edit_content.html", wish=wish,
                                claimform=claim_form, wish_form=wish_form, form_action="update", lists=lists)
     # Returnere andres ønske
@@ -366,13 +366,14 @@ def prisjakt():
 def get_lists_modal_content():
     form = WishListForm()
     title_placeholder = WishListForm.get_title_placeholder()
-    lists = WishList.get_active_lists(current_user.id)
+    lists = None  # WishList.get_active_lists(current_user.id)
     return render_template("wishlist/modal/user_lists_modal.html",
                            lists=lists, form=form, title_placeholder=title_placeholder)
 
 @api_bp.get("/wish-list/<int:list_id>")
 @api_login_required
 def get_list_details(list_id):
+    abort(500)
     list_obj = db.session.get(WishList, list_id)
 
     if list_obj.user_id != current_user.id:
