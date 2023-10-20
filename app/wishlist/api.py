@@ -131,7 +131,6 @@ def update():
 @api_bp.get("/delete")
 @api_login_required
 def delete_prompt():
-
     return render_template(
         "/wishlist/modal/action_confirmation.html",
         title = "Slette ønske?",
@@ -156,7 +155,7 @@ def delete():
                 db.session.delete(wish)
                 db.session.commit()
                 return render_template(
-                    "/wishlist/action_confirmation.html",
+                    "/wishlist/modal/action_confirmation.html",
                     img = url_for('static', filename='img/great-success/very-nice-great-success.jpg'),
                     img_alt = "Borat saying 'VERY NICE - GREAT SUCCESS'",
                     buttons = "close",
@@ -167,13 +166,13 @@ def delete():
         
         else:
             return render_template(
-                "/wishlist/action_confirmation.html",
+                "/wishlist/modal/action_confirmation.html",
                 title = "Oisann",
                 message = "Du har ikke rettigheter til å slette dette ønsket.",
                 buttons = "close")
     
     return render_template(
-        "/wishlist/action_confirmation.html",
+        "/wishlist/modal/action_confirmation.html",
         title = "Oisann",
         message = "Det oppstod en feil, prøv igjen kanskje?",
         buttons = "close")
