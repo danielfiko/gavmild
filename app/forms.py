@@ -1,4 +1,4 @@
-gitimport datetime
+import datetime
 import random
 from flask_wtf import FlaskForm
 from markupsafe import Markup
