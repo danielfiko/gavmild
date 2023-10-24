@@ -33,11 +33,14 @@ class WebauthnCredential(db.Model):
         return current_user.id == self.rp_user_id
 
     def created_at_string(self):
-        local_timestamp = self.created_at.replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Europe/Oslo'))
-        month_number = local_timestamp.month
-        month_name = FULL_NORWEGIAN_MONTHS[month_number]
-        timestamp_string = local_timestamp.strftime('%H:%M %d. ' + month_name + ', %Y')
-        return timestamp_string
+        try:
+            local_timestamp = self.created_at.replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Europe/Oslo'))
+            month_number = local_timestamp.month
+            month_name = FULL_NORWEGIAN_MONTHS[month_number]
+            timestamp_string = local_timestamp.strftime('%H:%M %d. ' + month_name + ', %Y')
+            return timestamp_string
+        except AttributeError:
+            return None
 
     def last_used_time(self):
         results = db.session.scalar(db.select(UserLogin.login_time)
