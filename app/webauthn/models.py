@@ -28,6 +28,7 @@ class WebauthnCredential(db.Model):
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="webauthn_credentials")
+    logins: Mapped["UserLogin"] = relationship(back_populates="webauthn_credentials")  # , cascade="all, delete")
 
     def current_user_is_owner(self):
         return current_user.id == self.rp_user_id

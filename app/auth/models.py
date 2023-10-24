@@ -94,7 +94,11 @@ class UserLogin(db.Model):
     login_time: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
     ip_address: Mapped[str] = mapped_column(db.String(39))
     user_agent: Mapped[str] = mapped_column(db.String(255))
-    credential: Mapped[Optional[int]] = mapped_column(db.Integer, ForeignKey("webauthn_credential.entry_id"))
+    credential: Mapped[Optional[int]] = mapped_column(
+        db.Integer,
+        ForeignKey("webauthn_credential.entry_id"))  # , ondelete="SET NULL"))
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="logins")
+    webauthn_credentials: Mapped[List["WebauthnCredential"]] = relationship(
+        back_populates="logins")

@@ -293,9 +293,9 @@ def handler_update_credential(credential):
 @verify_credential_and_owner
 def handler_delete_credential(credential):
     db.session.delete(credential)
-    try:
-        db.session.commit()
-        return "success", 200
+    # try:
+    db.session.commit()
+    return "success", 200
 
-    except SQLAlchemyError:
-        abort(500)
+#     except SQLAlchemyError:
+#         abort(500)
