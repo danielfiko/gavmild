@@ -1,10 +1,17 @@
 from app.database.database import db
 from datetime import datetime
 from typing import List, Optional
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Column, func
 #from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from flask_login import current_user
+
+
+# wishes_in_list = db.Table(
+#     "wishes_in_list",
+#     Column("wish", ForeignKey("wish.id"), primary_key=True),
+#     Column("list", ForeignKey("wish_list.id"), primary_key=True),
+# )
 
 
 class ClaimedWish(db.Model):
@@ -35,6 +42,10 @@ class Wish(db.Model):
     claims: Mapped[List["ClaimedWish"]] = relationship(back_populates="wish", cascade="delete")
     co_wishers: Mapped[List["CoWishUser"]] = relationship("CoWishUser", cascade="delete")
     reported_link: Mapped["ReportedLink"] = relationship(back_populates="wish")
+    # lists: Mapped[List["WishList"]] = relationship(
+    #     secondary=wishes_in_list, back_populates="wishes"
+    # )
+
 
     def is_claimed_by_user(self, user_id):
         """Check if the wish is claimed by the specified user."""
@@ -150,3 +161,60 @@ class Group(db.Model):
     date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
     title: Mapped[str] = mapped_column(db.String(30), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(db.String(255))
+
+
+# class WishList(db.Model):
+#     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+#     user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"))
+#     title: Mapped[str] = mapped_column(db.String(30))
+#     default_list: Mapped[int] = mapped_column(db.Integer, default=0)
+#     private: Mapped[int] = mapped_column(db.Integer, default=0)
+#     created_at: Mapped[datetime] = mapped_column(db.DateTime, default=func.utcnow())
+#     expires_at: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
+#     archived_at: Mapped[Optional[datetime]] = mapped_column(db.DateTime)
+#
+#     # Relationship
+#     wishes: Mapped[List[Wish]] = relationship(
+#         secondary=wishes_in_list, back_populates="lists"
+#     )
+#     user: Mapped["User"] = relationship(back_populates="lists")
+#
+#     def is_active(self):
+#         print(f"Title: {self.title}")
+#         now = datetime.utcnow()
+#         return self.expires_at > now and self.archived_at > now if self.archived_at is not None else True
+#
+#     @staticmethod
+#     def get_active_lists_from_ids(list_ids):
+#         return db.session.execute(
+#             db.select(WishList)
+#             .where(
+#                 WishList.id.in_(list_ids),
+#                 WishList.user_id == current_user.id,
+#                 WishList.expires_at > datetime.utcnow(),
+#                 WishList.archived_at.is_(None))
+#         ).scalars()
+#
+#     @staticmethod
+#     def get_active_list_ids(list_ids):
+#         active_lists = WishList.get_active_lists_from_ids(list_ids)
+#         active_ids = []
+#         for wish_list in active_lists:
+#             active_ids.append(wish_list.id)
+#         return active_ids
+#
+#     @staticmethod
+#     def get_active_lists(user_id):
+#         query = (db.select(WishList.id, WishList.title, WishList.expires_at, WishList.private)
+#                  .where(
+#                     WishList.user_id == user_id,
+#                     WishList.default_list  == 0,
+#                     WishList.expires_at > datetime.utcnow(),
+#                     WishList.archived_at.is_(None)
+#                 ))
+#
+#         if not user_id == current_user.id:
+#             query = query.where(not WishList.private)
+#
+#         result = db.session.execute(query).mappings().all()
+#         return result

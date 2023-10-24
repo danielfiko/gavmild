@@ -179,6 +179,27 @@ header {
 
 /*
 /*
+/*      Form items
+/*
+*/
+
+select, input, textarea, button {
+  padding: 0.5rem 0.63rem;
+  display: block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: none;
+  font-family: inherit;
+  font-size: 0.8em;
+}
+
+.full-width-form > * {
+  width: 100%;
+  margin: 2px 0 12px 0;
+}
+
+/*
+/*
 /*      Main
 /*
 */
@@ -197,8 +218,10 @@ main {
 
 #content-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     gap: 10px;
+    margin-bottom: 1.6rem;
 }
 
 #content-header h1 {
@@ -325,7 +348,6 @@ main {
     flex-wrap: wrap;
     gap: 6px;
     margin-top: 10px;
-    margin-bottom: 25px;
     max-width: 100%;
 }
 input.chk-btn {
@@ -340,7 +362,7 @@ input.chk-btn + label {
     color: #8d8d8d;
 }
 input.chk-btn:not(:checked) + label:hover {
-  box-shadow: 0px 0px 2px #bababa;
+  box-shadow: 0 0 2px #bababa;
 }
 input.chk-btn[type="radio"]:checked + label,
 input.chk-btn + label:active,
@@ -511,7 +533,7 @@ footer input[type="checkbox"]:checked ~ .hamburger-lines .line3 {
 }
 
 .remember-me * {
-    width: auto;
+    width: auto !important;
     margin-bottom: 12px;
     padding: 0;
 }
@@ -645,4 +667,149 @@ a.blue-text {
         justify-self: left;
         align-self: center;
     }
+}
+
+/*
+/*
+/*      Dashboard
+/*
+*/
+.a-blue {
+    color: #3060c0;
+    cursor: pointer;
+}
+.a-blue:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.25rem;
+}
+.breadcrumb {
+    width: 100%;
+    color: #3060c0;
+}
+.breadcrumb a > * {
+    margin-right: 0.4rem;
+}
+.content-subtitle {
+    margin-bottom: 1em;
+}
+.dashboard-element {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgb(182, 182, 182);
+    border-radius: 5px;
+}
+.dashboard-element > * {
+    border-bottom: inherit;
+}
+.dashboard-element > *:last-child {
+    border-bottom: none;
+}
+.dashboard-element h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+    margin-bottom: 0.5em;
+}
+.dashboard-element > div:first-child {
+    display: flex;
+}
+.dashboard-element-description {
+    border-right: 1px solid #b6b6b6;
+}
+.dashboard-element > div:first-child div:first-child {
+    flex-grow: 2;
+}
+.dashboard-element > div:first-child div:last-child {
+    background-color: #ececec;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+.dashboard-element > div:first-child div {
+    padding: 2rem;
+}
+.dashboard-element table {
+    width: 100%;
+    border-spacing: 0;
+}
+.dashboard-element table thead {
+    background-color: #ececec;
+    text-align: left;
+}
+.dashboard-element table > * > * > * {
+    padding: 0.5rem;
+    border-bottom: 1px solid #b6b6b6;
+}
+.dashboard-element table > *:last-child > *:last-child > * {
+    border-bottom: none;
+}
+.dashboard-element table > * > * > *:first-child {
+    padding-left: 2rem;
+}
+.dashboard-element table > * > * > *:last-child {
+    padding-right: 2rem;
+    text-align: right;
+}
+.dashboard-element table a {
+    color: #3060c0;
+    cursor: pointer;
+}
+.dashboard-element tr.edit-item td:first-child {
+    width: 100%;
+}
+.dashboard-element tr.edit-item div {
+    display: flex;
+}
+.dashboard-element tr.edit-item div > div {
+    margin-left: auto;
+    gap: 1rem;
+}
+.dashboard-element .edit-item i {
+    transition: all .2s ease-in;
+}
+.blue-button {
+    background-color: #3060c0;
+    color: #fff;
+}
+.dashboard-element > div:first-child button {
+    margin: auto auto;
+    padding: 0.5rem 1rem;
+    background-color: #3060c0;
+    color: #fff;
+}
+.label-green {
+    background-color: #a8e9c0;
+    color: #0a2614;
+    padding: 0.3rem 0.5rem;
+    border-radius: 50px;
+    font-weight: 400;
+    font-size: 0.75rem;
+}
+.message-box {
+    /*width: fit-content;*/
+    padding: 1em;
+    margin: 1em 0;
+    border-radius: 4px;
+}
+.error-message {
+    display: none;
+    background-color: #f9c4c5;
+    border: 1px solid #c6606e;
+    color: #6f050d;
+}
+.success-message {
+    display: none;
+    background-color: #a8e9c0;
+    border: 1px solid #55d584;
+    color: #0a2614;
+}
+.add-key-container {
+    width: fit-content;
+}
+.add-key-container form > input[type=text] {
+    width:100%;
+    margin-bottom: 0.5em;
 }

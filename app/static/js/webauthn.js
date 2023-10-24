@@ -12,9 +12,14 @@ async function handleRegistration() {
     const {startRegistration} = SimpleWebAuthnBrowser;
     const elemSuccess = document.getElementById('success');
     const elemError = document.getElementById('error');
+    const successContainer = $(".success-message")
+    const errorContainer = $(".error-message")
+
     // Reset success/error messages
     elemSuccess.innerHTML = '';
     elemError.innerHTML = '';
+    successContainer.hide()
+    errorContainer.hide()
 
     // GET registration options from the endpoint that calls
     // @simplewebauthn/server -> generateRegistrationOptions()
@@ -27,11 +32,11 @@ async function handleRegistration() {
     } catch (error) {
     // Some basic error handling
     if (error.name === 'InvalidStateError') {
-        elemError.innerText = 'Error: Authenticator was probably already registered by user';
+        elemError.innerText = 'Feil: Sikkerhetsnøkkelen er antakeligvis allerede registrert.';
     } else {
         elemError.innerText = error;
     }
-
+    errorContainer.show();
     throw error;
     }
 
@@ -46,16 +51,24 @@ async function handleRegistration() {
     });
 
     // Wait for the results of verification
-    const verificationJSON = await verificationResp.json();
+    const htmlContent = await verificationResp.text();
 
     // Show UI appropriate for the `verified` status
-    if (verificationJSON && verificationJSON.verified) {
-    elemSuccess.innerHTML = 'Passordløs innloggin ble lagt til!';
+    if (verificationResp.ok) { // verificationJSON && verificationJSON.verified) {
+        // elemSuccess.innerHTML = 'Sikkerhetsnøkkelen ble lagt til!';
+        // successContainer.show();
+        $(".add-key-container").html(htmlContent)
     } else {
-    elemError.innerHTML = `Oisann, noe gikk galt! Feilmelding: <pre>${JSON.stringify(
-        verificationJSON,
-    )}</pre>`;
+        const verificationJSON = await verificationResp.json();
+        elemError.innerHTML = `Oisann, noe gikk galt! Feilmelding: <pre>${JSON.stringify(
+            verificationJSON,
+        )}</pre>`;
+        errorContainer.show();
     }
+}
+
+function nameSecurityKey() {
+
 }
 
 async function handleLogin() {

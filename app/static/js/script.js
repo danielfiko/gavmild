@@ -17,6 +17,9 @@ $(document).ready(function() {
     $(".sidebar-nav .order-by").click(order_users_by);
     $("#order_by").on("change", requestWishes);
     $(".toggle-password").click(togglePasswordVisibility);
+    $(".edit-item").on("click", editListItem);
+    $("#add-new-key").on("click", function() {window.location.href = "dashboard/add-security-key"})
+
     
     checkPathAndLoadWishContent();
     // Event listener to handle back button and restore modal state
@@ -522,4 +525,185 @@ function submitListForm(event){
         $("button#submit i.fa-spinner").hide()
         $("button#submit span").show()
     })
+}
+
+function editListItem() {
+    let clicked = $(this)
+    var parent = clicked.parent();
+    var siblings = clicked.siblings();
+    parent.toggleClass("editing");
+
+    if (parent.hasClass("editing")) {
+        let key_name = clicked.siblings().first().text();
+        let entry_id = clicked.data("entry-id");
+        clicked.find("i").css("transform", "rotate(90deg)");
+        siblings.addBack().css("border-bottom", "none");
+        var input = $($(document.createElement('input')))
+            .attr("type", "text")
+            .val(key_name);
+        siblings.first().empty().append(input);
+        // Create the <tr> element with class 'edit-item'
+        var $row = $($(document.createElement('tr')))
+            .addClass('edit-item');
+
+        // Create the first <td> element with a delete button
+        var $td1 = $($(document.createElement('td')))
+            .attr("colspan", "4");
+        var $innerDiv = $($(document.createElement('div')));
+        $td1.append($innerDiv);
+        var $deleteButton = $($(document.createElement('button')))
+            .addClass('delete')
+            .text('Slett')
+            .on("click", function () {
+                showAlertModal({
+                    title: "Slette nøkkel?",
+                    message: "Sikkerhetsnøkkelen vil bli slettet for godt.",
+                    send_callback: function() {
+                        deleteCredential(entry_id, clicked, parent)
+                    }
+                })});
+        $innerDiv.append($deleteButton);
+        var $buttonsDiv = $($(document.createElement('div')));
+        var $cancelButton = $($(document.createElement('button')))
+            .addClass('cancel')
+            .text('Avbryt')
+            .on("click", function(){
+                clicked.trigger("click")
+            });
+
+        var $saveButton = $($(document.createElement('button')))
+            .addClass('save blue-button')
+            .text('Lagre')
+            .on("click", function(){
+                updateCredentialName(
+                    entry_id,
+                    siblings.first().children("input").val(),
+                    clicked.trigger("click")
+                )});
+        $buttonsDiv.append($cancelButton, $saveButton);
+        $innerDiv.append($buttonsDiv);
+
+        // Append the <td> elements to the <tr> element
+        $row.append($td1);
+
+        // Append the <tr> element to the DOM (assuming you have a table with id 'myTable')
+        parent.after($row);
+    }
+    else {
+        let key_name = siblings.first().children("input").val()
+        clicked.find("i").css("transform", "");
+        siblings.addBack().css("border-bottom", "");
+        siblings.first().empty().text(key_name);
+        parent.next(".edit-item").remove();
+    }
+}
+
+function updateCredentialName(entry_id, label, callback) {
+    $.post("/webauthn/update", {
+        entry_id: entry_id,
+        label:label
+    }, function () {
+        callback
+    })
+}
+
+function deleteCredential(entry_id, clicked, parent) {
+    $.ajax({
+        url: "/webauthn/delete",
+        type: "DELETE", // or "GET" or any other HTTP method you want to use
+        data: {
+            entry_id: entry_id
+        }
+    })
+        .done(function () {
+            clicked.trigger("click");
+            parent.remove();
+            removeAlertModal();
+            if (!$("tbody").children().length) {
+                location.reload();
+            }
+        })
+        .fail(function() {
+            removeAlertModal()
+            showAlertModal({
+                title: "Oisann",
+                message: "Det oppstod en feil, prøv på nytt."
+            })
+        })
+}
+
+function addCredential() {
+
+}
+
+function createAlertModal(message, title, img, img_alt, confirm=false, close_all=false) {
+    // Create a new div element with the specified classes
+    var confirmActionDiv = $('<div>').addClass('confirm-action content');
+
+    // Check if 'title' variable is provided and create an h2 element
+    if (title) {
+        var titleElement = $('<h2>').text(title);
+        confirmActionDiv.append(titleElement);
+    }
+
+    // Check conditions and create either an image or a paragraph element
+    if (img) {
+        var imgElement = $('<img>').attr('src', img).attr('alt', img_alt);
+        confirmActionDiv.append(imgElement);
+    } else if (message) {
+        var messageElement = $('<p>').text(message);
+        confirmActionDiv.append(messageElement);
+    }
+
+    // Create a div element with class 'actions'
+    var actionsDiv = $('<div>').addClass('actions');
+
+    // Check the 'buttons' variable and add appropriate buttons
+    if (confirm) {
+        var sendButton = $('<button>').addClass('button send').text('Send');
+        var cancelButton = $('<button>').addClass('button cancel').attr("id", "close-button").text('Avbryt');
+        actionsDiv.append(sendButton, cancelButton);
+    } else {
+        var closeButton = $('<button>')
+            .addClass('button cancel')
+            .attr("id", "close-button")
+            .text('Lukk');
+        if (close_all) {
+            closeButton.attr('data-close-all', 'true');
+        }
+        actionsDiv.append(closeButton);
+    }
+
+    // Append the 'actions' div to the main confirmActionDiv
+    confirmActionDiv.append(actionsDiv);
+
+    // Append the confirmActionDiv to an element with class 'container'
+    $(".confirm-action.modal-content").append(confirmActionDiv);
+}
+
+function showAlertModal(options) {
+    var title = options.title;
+    var img = options.img;
+    var img_alt = options.img_alt;
+    var message = options.message;
+    var close_all = options.close_all;
+    var send_callback = options.send_callback;
+    var confirm = !!options.send_callback;
+    createAlertModal(message, title, img, img_alt, confirm, close_all);
+    $("#modal-confirm").css("display", "flex");
+    if (confirm) {
+        $(".button.send").on("click", send_callback);
+    }
+
+    var confirmModal = document.getElementById("modal-confirm");
+    var cancelButton = document.getElementById("close-button");
+    window.addEventListener("click", function(event) {
+        if (event.target === confirmModal || event.target === cancelButton) {
+            removeAlertModal()
+        }})
+}
+
+function removeAlertModal() {
+    $(".confirm-action.content").remove();
+    $("#modal-confirm").hide();
 }

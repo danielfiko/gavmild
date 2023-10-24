@@ -10,82 +10,82 @@
 {% endblock %}
 {% block modal_right %}
     <h2>Ønskedetaljer</h2>
-    <form id="wishform" action="/api/{{ form_action }}" method="POST">
+    <form id="wishform" class="full-width-form" action="/api/{{ form_action }}" method="POST">
         {{ wish_form.csrf_token }}
         {{ wish_form.co_wisher }}
         {{ wish_form.edit_id(value=wish.id) }}
-    </form>
-    {{ wish_form.wish_url.label }}
-    {{ wish_form.wish_url(value=wish.url) }}
-    {{ wish_form.wish_title.label }}
-    {{ wish_form.wish_title(value=wish.title) }}
-    <div class="modal-form-row">
-        {{ wish_form.quantity.label }}
-        {{ wish_form.price.label }}
-        {{ wish_form.quantity }}
-        {{ wish_form.price(value=wish.price) }}
-        {#<div class="add-co-wisher-button-wrapper">
-            <button class="add-co-wisher-button button-red .js-typeahead" form="none" type="button">
-                <i class="fa fa-user-plus"></i>
-            </button>
-        </div>#}
-    </div>
-
-        <div>
-            <form>
-                <div class="typeahead__container">
-                    <fieldset class="add-co-wisher">
-                        {{ wish_form.co_wisher.label }}
-                        <div class="typeahead__field">
-                            <div class="typeahead__query">
-                                <input class="js-typeahead" name="co_wisher" autocomplete="off">
-                            </div>
-                            <div class="typeahead__button">
-                                <button type="submit" id="addWisherBtn">
-                                    <i class="fa fa-user-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-            </form>
+        {{ wish_form.wish_url.label }}
+        {{ wish_form.wish_url(value=wish.url) }}
+        {{ wish_form.wish_title.label }}
+        {{ wish_form.wish_title(value=wish.title) }}
+        <div class="modal-form-row">
+            {{ wish_form.quantity.label }}
+            {{ wish_form.price.label }}
+            {{ wish_form.quantity }}
+            {{ wish_form.price(value=wish.price) }}
+            {#<div class="add-co-wisher-button-wrapper">
+                <button class="add-co-wisher-button button-red .js-typeahead" form="none" type="button">
+                    <i class="fa fa-user-plus"></i>
+                </button>
+            </div>#}
         </div>
-        <ul class="co-wisher-list list-no-style edit-style">
-            {% if wish.co_wishers|length < 0 %}
-                {% for user in wish.co_wishers %}
-                    <li id="{{ user.user_id }}">
-                        {{ user.first_name }}
-                        {{ ' <a id={{ user.id }} class="delete-co-wisher">(x)</a>'
-                        if wish.id == current_user.id }}
-                    </li>
-                {% endfor %}
-            {% endif %}
-        </ul>
 
-    {{ wish_form.wish_description.label }}
-    {{ wish_form.wish_description }}
-    {% if (wish.description) %}
-    <script>document.getElementById('description').value="{{ wish.description }}";</script>
-    {% endif %}
-{#    <label for='list-filters'>Ønskeliste</label>#}
-{#    <div class="list-filters">#}
-{#        {% for list in lists %}#}
-{#            {% if not loop.first %}#}
-{#            <input type="checkbox" id='c{{ loop.index }}' class='chk-btn' data-list-id="{{ list.id }}" />#}
-{#            <label for='c{{ loop.index }}'>{{ list.title }}</label>#}
-{#            {% endif %}#}
-{#        {% endfor %}#}
-{#    </div>#}
-    <div class="form-options">
-        {% if wish.desired %}
-            {{ wish_form.desired(checked="true") }}
-        {% else %}
-            {{ wish_form.desired }}
+            <div>
+                <form>
+                    <div class="typeahead__container">
+                        <fieldset class="add-co-wisher">
+                            {{ wish_form.co_wisher.label }}
+                            <div class="typeahead__field">
+                                <div class="typeahead__query">
+                                    <input class="js-typeahead" name="co_wisher" autocomplete="off">
+                                </div>
+                                <div class="typeahead__button">
+                                    <button type="submit" id="addWisherBtn">
+                                        <i class="fa fa-user-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </form>
+            </div>
+            <ul class="co-wisher-list list-no-style edit-style">
+                {% if wish.co_wishers|length < 0 %}
+                    {% for user in wish.co_wishers %}
+                        <li id="{{ user.user_id }}">
+                            {{ user.first_name }}
+                            {{ ' <a id={{ user.id }} class="delete-co-wisher">(x)</a>'
+                            if wish.id == current_user.id }}
+                        </li>
+                    {% endfor %}
+                {% endif %}
+            </ul>
+
+        {{ wish_form.wish_description.label }}
+        {{ wish_form.wish_description }}
+        {% if (wish.description) %}
+        <script>document.getElementById('description').value="{{ wish.description }}";</script>
         {% endif %}
-        {{ wish_form.desired.label }}
-        <div class="form-actions">
-            {{ '<a id="%s" class="delete-wish">Slett</a>'|safe % wish.id if wish.user_id == current_user.id }}
-            {{ wish_form.submit(class_="button-red button") }}
+    {#    <label for='list-filters'>Ønskeliste</label>#}
+    {#    <div class="list-filters">#}
+    {#        {% for list in lists %}#}
+    {#            {% if not loop.first %}#}
+    {#            <input type="checkbox" id='c{{ loop.index }}' class='chk-btn' data-list-id="{{ list.id }}" />#}
+    {#            <label for='c{{ loop.index }}'>{{ list.title }}</label>#}
+    {#            {% endif %}#}
+    {#        {% endfor %}#}
+    {#    </div>#}
+        <div class="form-options">
+            {% if wish.desired %}
+                {{ wish_form.desired(checked="true") }}
+            {% else %}
+                {{ wish_form.desired }}
+            {% endif %}
+            {{ wish_form.desired.label }}
+            <div class="form-actions">
+                {{ '<a id="%s" class="delete-wish">Slett</a>'|safe % wish.id if wish.user_id == current_user.id }}
+                {{ wish_form.submit(class_="button-red button") }}
+            </div>
         </div>
-    </div>
+    </form>
 {% endblock %}

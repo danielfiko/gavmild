@@ -251,19 +251,6 @@ button.claim-button i, button.claim-button span {
 /*}*/
 
 
-.co-wish-search-field, select, input, textarea, button {
-  width: 100%;
-  padding: 8px 10px;
-  margin: 2px 0 12px 0;
-  display: block;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  resize: none;
-  font-family: inherit;
-  font-size: 0.8em;
-}
-
 input.co-wish-search-field {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;

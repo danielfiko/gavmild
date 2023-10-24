@@ -1,8 +1,6 @@
 {% extends "layouts/base.html" %}
-
 {% block body %}
-{# {{ ajaxform.hidden_tag() }} #}
-{{ ajaxform.filter(value=filter) }}
+{{ ajaxform.filter(value=filter) if ajaxform }}
 
 <div id="modal" class="modal">
     <div class="modal-content" id="modal-content">
@@ -12,35 +10,32 @@
     <div class="confirm-action modal-content" id="modal-content">
     </div>
 </div>
+
 <div class="container">
     <header>
         <a href="/"><img src="{{ url_for('static', filename='img/logo.png') }}" class="site-logo" alt="Gavmild logo"></a>
     </header>
+
     <div class="header-nav-container nav-toggle-item background-white display-none">
         <ul class="header-nav list-no-style">
             <li><i class="fas fa-user"></i> <a href="/dashboard">{{ current_user.username }}</a></li>
             <li><button type="button" class="logout-button button-red"><i class="fas fa-sign-out-alt"></i> Logg ut</button></li>
         </ul>
     </div>
+
     <nav class="sidebar-nav nav-toggle-item background-white display-none">
         {% include "nav_logged_in.html" %}
     </nav>
+
     <main>
         <div id="content-header">
+        {% block content_header %}
             {% if page_title %}
                 <h1>{{ page_title }}</h1>
             {% endif %}
-            {% if "user" in filter %}
-                <label>Sorter etter:</label>
-                <select name="order_by" id="order_by">
-                    <option value="newest_first">Nyeste først</option>
-                    <option value="price_low_high">Pris (lav-høy)</option>
-                    <option value="price_high_low">Pris (høy-lav)</option>
-                </select>
-            {% endif %}
+        {% endblock %}
         </div>
-        <div class="wishes-list">
-        </div>
+        {% block main_content %}{% endblock %}
     </main>
     <footer>
         <div class="footer">

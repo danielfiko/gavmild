@@ -17,4 +17,6 @@ build/
 
 secrets/
 notater.txt
+app/static/js/webauthn_original.js
+webauthn_original.js
 .idea/

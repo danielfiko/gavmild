@@ -1,5 +1,7 @@
 import json
 import secrets
+from datetime import datetime
+from functools import wraps
 
 from webauthn import (
     generate_registration_options,
@@ -15,11 +17,13 @@ from webauthn.helpers.structs import (
     AuthenticationCredential, ResidentKeyRequirement
 )
 
-from flask import Blueprint, request, current_app, render_template, flash, Response, session, redirect, url_for
+from flask import Blueprint, request, current_app, render_template, flash, Response, session, redirect, url_for, abort
 from flask_login import login_required, current_user, login_user
 
+from app.auth.controllers import log_login_to_database
 from app.auth.models import User
 from app.database.database import db
+from app.forms import CredentialForm
 from app.webauthn.models import WebauthnCredential
 from app import csrf
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -154,7 +158,9 @@ def handler_verify_registration_response():
         return f"Credentials {verification.credential_id} is already registered."
 
     print("verified")
-    return {"verified": True}
+    entry_id = new_credential.entry_id
+    form = CredentialForm()
+    return render_template("name_security_key.html", entry_id=entry_id, form=form)
 
 
 ################
@@ -237,5 +243,59 @@ def handler_verify_authentication_response():
     db.session.commit()
 
     login_user(user_credential.user)
+    log_login_to_database(user_credential.rp_user_id, "security_key", user_credential.entry_id)
 
     return {"verified": True, "redirect": url_for("wishlist.index")}
+
+
+def verify_credential_and_owner(view_function):
+    @wraps(view_function)
+    def decorated_function(*args, **kwargs):
+        form = CredentialForm()
+
+        if not form.validate_on_submit():
+            for error in form.errors:
+                print(error)
+            abort(400)
+
+        entry_id = form.entry_id.data
+        credential = db.session.get(WebauthnCredential, entry_id)
+
+        if credential is None or not credential.current_user_is_owner():
+            print("Credential not found or user unauthorized")
+            abort(403)
+
+        return view_function(credential, *args, **kwargs)
+    return decorated_function
+
+
+@webauthn_bp.post("/update")
+@login_required
+@verify_credential_and_owner
+def handler_update_credential(credential):
+    label = request.values.get("label")
+    credential.label = label
+    db.session.add(credential)
+
+    try:
+        db.session.commit()
+
+        if request.values.get("redirect") == "true":
+            return redirect(url_for("auth.dashboard"))
+        return "success", 200
+
+    except SQLAlchemyError:
+        abort(500)
+
+
+@webauthn_bp.delete("/delete")
+@login_required
+@verify_credential_and_owner
+def handler_delete_credential(credential):
+    db.session.delete(credential)
+    try:
+        db.session.commit()
+        return "success", 200
+
+    except SQLAlchemyError:
+        abort(500)

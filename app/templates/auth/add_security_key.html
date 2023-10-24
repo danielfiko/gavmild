@@ -1,0 +1,17 @@
+{% extends "layouts/logged_in_content.html" %}
+{% block content_header %}
+{{ super() }}
+    <div class="breadcrumb">
+        <a href="{{ breadcrumb_path }}" class="a-blue"><i class="fa-solid fa-arrow-left"></i><span>Tilbake</span></a>
+    </div>
+{% endblock %}
+{% block main_content %}
+    <div class="add-key-container">
+        <h2 class="content-subtitle">Legg til sikkerhetsnøkkel</h2>
+        <div class="message-box success-message"><p id="success"></p></div>
+        <div class="message-box error-message"><p id="error"></p></div>
+        <p>Følg instruksjonene på skjermen for å legge til sikkerhetsnøkkel.</p>
+        <p>Hvis sikkerhetsnøkkelen din ikke responderer, <a id="webauth-register" class="a-blue">trykk her</a>.</p>
+        <script>handleRegistration()</script>
+    </div>
+{% endblock %}

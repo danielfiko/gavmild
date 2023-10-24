@@ -109,5 +109,12 @@ class AjaxForm(FlaskForm):
 class TelegramConnectForm(FlaskForm):
     pass
 
+
 class APIform(FlaskForm):
     pass
+
+
+class CredentialForm(FlaskForm):
+    entry_id = IntegerField(validators=[InputRequired()])
+    label = StringField(validators=[Optional(), Length(min=2, max=90)])
+    submit = SubmitField("Lagre")

@@ -4,19 +4,21 @@ from flask import Blueprint, render_template, redirect, url_for, flash, abort, j
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from sqlalchemy import func
-
+import pytz
+from app.constants import FULL_NORWEGIAN_MONTHS
 from app.forms import RegisterForm, LoginForm, ChangePasswordForm, AjaxForm, WishForm, APIform
-#from app.blueprints.auth.models import User
+# from app.blueprints.auth.models import User
 import random as rand
 from app.database.database import db
-from app.auth.models import User, PasswordResetToken
+from app.auth.models import User, PasswordResetToken, UserLogin
 from app.telegram.models import TelegramUser
 import os
 from sqlalchemy.exc import SQLAlchemyError
 import random
 import string
 
-from app.wishlist.controllers import get_users_ordered_by_settings
+from app.webauthn.models import WebauthnCredential
+from app.wishlist.controllers import get_users_ordered_by_settings, logged_in_content
 
 APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATE_PATH = os.path.join(APP_PATH, 'templates/auth')
@@ -48,44 +50,51 @@ def load_user(user_id):
 
 auth_bp = Blueprint('auth', __name__, template_folder=TEMPLATE_PATH)
 
+
 ###########
+def datetime_to_local(rows):
+    norway_timezone = pytz.timezone('Europe/Oslo')
+    for row in rows:
+        local_timestamp = row.created_at.replace(tzinfo=pytz.utc).astimezone(norway_timezone)
+        row.created_at = local_timestamp
+    return rows
 
 
-@auth_bp.route("/dashboard", methods=["GET", "POST"])
+@auth_bp.route("/dashboard")
 @login_required
 def dashboard():
-    page_title = "Instillinger"
+    template_name = "dashboard.html"
+    page_title = "Dashboard"
+    credentials = None
+    if len(current_user.webauthn_credentials) > 0:
+        credentials = current_user.webauthn_credentials
 
-    months = {1: "jan.", 2: "feb.", 3: "mar.", 4: "apr.", 5: "mai", 6: "jun.", 7: "jul.", 8: "aug.", 9: "sep.",
-              10: "okt.", 11: "nov.", 12: "des."}
-    # other_users = User.query.filter(id != current_user).all()
+    return logged_in_content(
+        template_name,
+        page_title=page_title,
+        credentials=credentials,
+        # norwegian_months=norwegian_months,
+        # last_login_time=last_login_time,
+        # operating_system=operating_system
+    )
 
-    other_users = get_users_ordered_by_settings()
 
-    # Get users with birthday next 60 days
-    start = datetime.now()
-    end = start + timedelta(days=60)
-    user_birthdays = db.session.execute(
-        db.select(User)
-        .where(func.dayofyear(User.date_of_birth) >= func.dayofyear(start))
-        .where(func.dayofyear(User.date_of_birth) <= func.dayofyear(end))
-        .order_by(func.dayofyear(User.date_of_birth))
-    ).scalars()
-    birthdays = [{"id": u.id, "first_name": u.first_name,
-                  "birthday": f"{u.date_of_birth.day}. {months[u.date_of_birth.month]}"} for u in user_birthdays]
-    ajaxform = AjaxForm()
-    wishform = WishForm()
-    api_form = APIform()
-    order_by = current_user.preferences.order_users_by
+@auth_bp.route("/dashboard/add-security-key", methods=["POST", "GET"])
+@login_required
+def handler_add_security_key():
+    if request.method == "GET":
+        template_name = "add_security_key.html"
+        page_title = "Passordløs innlogging"
+        breadcrumb_path = url_for("auth.dashboard")
+        credentials = current_user.webauthn_credentials
 
-    return render_template("dashboard.html",
-                           ajaxform=ajaxform,
-                           wishform=wishform,
-                           other_users=other_users,
-                           birthdays=birthdays,
-                           page_title=page_title,
-                           api_form=api_form,
-                           order_by=order_by)
+        return render_template(template_name,
+                               page_title=page_title,
+                               breadcrumb_path=breadcrumb_path,
+                               credentials=credentials)
+    if request.method == "POST":
+        request.args.get('key')
+
 
 @auth_bp.route("/login")
 def login():
@@ -110,24 +119,39 @@ def login_api():
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
                 if user.force_pw_change:
-                    return render_template("change_pw.html", form=form, email=form.email.data, temp_password_required=True)
+                    return render_template("change_pw.html", form=form, email=form.email.data,
+                                           temp_password_required=True)
                 if form.remember_me.data:
                     login_user(user, remember=True)
-                    print("Remember me!!!!!!!!!!!")
+                    print("my name's jeff")
+
                 else:
                     login_user(user)
-                    print("Don't remember me!!!!!!!!! " + str(form.remember_me.data))
-                    #testkommentar
-                    #testkommentar
+
+                log_login_to_database(user.id, "password")
+
                 return redirect(url_for("wishlist.index"))
             else:
                 flash("Feil passord")
-            
-        else: 
+
+        else:
             flash("Feil brukernavn eller passord")
-    #else:
+    # else:
     #    flash("Det oppstod en feil, prøv igjen (LoginForm not validated).")
     return redirect(url_for("auth.login"))
+
+
+def log_login_to_database(user_id, login_type, entry_id=None):
+    ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
+    user_agent = request.user_agent.string
+    login_entry = UserLogin(
+        user_id=user_id,
+        login_type=login_type,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        credential=entry_id if entry_id is not None else None)
+    db.session.add(login_entry)
+    db.session.commit()
 
 
 @auth_bp.route("/api/change-pw", methods=["POST"])
@@ -161,7 +185,7 @@ def logout_api():
     if "token" in request.args:
         name = request.args["name"] if "name" in request.args else None
         return redirect(url_for("auth.user_reset_password", token=request.args["token"], name=name))
-    
+
     return redirect(url_for("wishlist.index"))
 
 
@@ -204,7 +228,8 @@ def set_order_by():
     if not order_by_value in ["birthday", "first_name"]:
         abort(400)
     user.preferences.order_users_by = order_by_value
-    users = [{"first_name": u.first_name, "path": url_for('wishlist.user', user_id=u.id)} for u in get_users_ordered_by_settings()]
+    users = [{"first_name": u.first_name, "path": url_for('wishlist.user', user_id=u.id)} for u in
+             get_users_ordered_by_settings()]
     try:
         db.session.commit()
         return jsonify(users)
@@ -218,7 +243,7 @@ def forgot_password():
     if current_user.id != 1:
         abort(401)
     users = db.session.execute(db.select(User.first_name, User.id)).mappings()
-    
+
     return render_template("reset-password.html", users=users)
 
 
@@ -227,7 +252,7 @@ def forgot_password():
 def restet_password():
     if current_user.id != 1:
         abort(401)
-    
+
     user = db.session.get(User, request.form["user_id"])
     temp_password = generate_unique_code()
     hashed_password = bcrypt.generate_password_hash(temp_password)
@@ -245,17 +270,17 @@ def restet_password():
 #         token_id, token_string = token.split("-")
 #     except ValueError:
 #         return error_message
-    
+
 #     token_entry = db.session.get(PasswordResetToken, token_id)
 #     if token_entry is not None and token_entry.expires_at > datetime.utcnow() and not token_entry.used_at:
 #         name = request.args["name"] if "name" in request.args else None
 #         if current_user.is_authenticated and current_user.id != token_entry.user.id:
 #             return render_template("change_pw_error.html", message=f"Beklager, men det ser ut til at du prøver å endre passordet til en annen bruker enn den som er logget inn. Vennligst <a href='{url_for('auth.logout_api', token= token_id+'-'+token_string, name=name)}' class='blue-text'>logg ut</a> av den gjeldende brukerkontoen før du forsøker å endre passordet.")
-        
+
 #         if bcrypt.check_password_hash(token_entry.token, token_string):
 #             form = LoginForm()
 #             return render_template("change_pw.html", form=form, name=name)
-    
+
 #     return error_message
 
 def token_required(view_function):
@@ -264,14 +289,15 @@ def token_required(view_function):
         if token:
             token_id, token_string = extract_token_data(token)
             token_entry = get_password_reset_token_entry(token_id)
-            
+
             if is_valid_token(token_entry, token_string):
                 return view_function(token_entry, *args, **kwargs)
-            
-        error_message = get_error_message("Beklager, men det ser ut til at lenken du prøver å bruke enten er feil eller ikke er gyldig lenger. Vennligst kontroller at du har riktig lenke.")
-        return error_message
-    return decorated_function
 
+        error_message = get_error_message(
+            "Beklager, men det ser ut til at lenken du prøver å bruke enten er feil eller ikke er gyldig lenger. Vennligst kontroller at du har riktig lenke.")
+        return error_message
+
+    return decorated_function
 
 
 @auth_bp.get("/bytt-passord/<token>")
@@ -284,6 +310,7 @@ def user_reset_password(token_entry):
 def get_error_message(message):
     return render_template("change_pw_error.html", message=message)
 
+
 def extract_token_data(token):
     try:
         token_id, token_string = token.split("-")
@@ -291,22 +318,26 @@ def extract_token_data(token):
     except ValueError:
         return None, None
 
+
 def get_password_reset_token_entry(token_id):
     return db.session.get(PasswordResetToken, token_id)
 
+
 def is_valid_token(token_entry, token_string):
     return (
-        token_entry is not None 
-        and token_entry.expires_at > datetime.utcnow() 
-        and not token_entry.used_at 
-        and bcrypt.check_password_hash(token_entry.token, token_string)
+            token_entry is not None
+            and token_entry.expires_at > datetime.utcnow()
+            and not token_entry.used_at
+            and bcrypt.check_password_hash(token_entry.token, token_string)
     )
+
 
 def handle_valid_token(token_entry, name):
     if current_user.is_authenticated and current_user.id != token_entry.user.id:
         logout_url = url_for("auth.logout_api", token=f"{token_entry.id}-{token_entry.token}", name=name)
-        return render_template("change_pw_error.html", message=f"Beklager, men det ser ut til at du prøver å endre passordet til en annen bruker enn den som er logget inn. Vennligst <a href='{logout_url}' class='blue-text'>logg ut</a> av den gjeldende brukerkontoen før du forsøker å endre passordet.")
-    
+        return render_template("change_pw_error.html",
+                               message=f"Beklager, men det ser ut til at du prøver å endre passordet til en annen bruker enn den som er logget inn. Vennligst <a href='{logout_url}' class='blue-text'>logg ut</a> av den gjeldende brukerkontoen før du forsøker å endre passordet.")
+
     form = ChangePasswordForm()
     return render_template("change_pw.html", form=form, name=name)
 
@@ -314,7 +345,6 @@ def handle_valid_token(token_entry, name):
 @auth_bp.post("/bytt-passord/<token>")
 @token_required
 def user_change_password(token_entry):
-    print("red onion")
     form = ChangePasswordForm()
     name = request.args.get("name")
 
