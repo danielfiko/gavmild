@@ -51,10 +51,30 @@ class User(db.Model, UserMixin):
             .where(func.dayofyear(User.date_of_birth) >= func.dayofyear(start))
             .where(func.dayofyear(User.date_of_birth) <= func.dayofyear(end) + turn_of_year_days)
             .order_by(func.dayofyear(User.date_of_birth))
-        ).scalars()
-        birthdays = [{"id": u.id, "first_name": u.first_name,
-                      "birthday": f"{u.date_of_birth.day}. {month_mappings[u.date_of_birth.month]}"} for u in
-                     user_birthdays]
+        ).all()
+
+        if len(user_birthdays) == 0:
+            print("jibi jaba")
+            user_birthdays = db.session.execute(
+                db.select(User)
+                .where(func.dayofyear(User.date_of_birth) >= func.dayofyear(start))
+                .order_by(func.dayofyear(User.date_of_birth))
+            ).first()
+
+            if user_birthdays is None:
+                print("lapopa papa")
+                user_birthdays = db.session.execute(
+                    db.select(User)
+                    .order_by(func.dayofyear(User.date_of_birth))
+                ).first()
+
+            birthdays = [{"id": user_birthdays[0].id, "first_name": user_birthdays[0].first_name,
+                          "birthday": f"{user_birthdays[0].date_of_birth.day}. {month_mappings[user_birthdays[0].date_of_birth.month]}"}]
+        else:
+            birthdays = [{"id": u[0].id, "first_name": u[0].first_name,
+                          "birthday": f"{u[0].date_of_birth.day}. {month_mappings[u[0].date_of_birth.month]}"} for u in
+                         user_birthdays]
+
         print(f"Birthdays: {birthdays}")
         return birthdays
 
