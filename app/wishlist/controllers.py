@@ -18,11 +18,6 @@ wishlist_bp = Blueprint('wishlist', __name__, template_folder=TEMPLATE_PATH,
 @wishlist_bp.route("/")
 @wishlist_bp.route("/wish/<int:wish_id>")
 def index(wish_id=0):
-    print(request.user_agent.string)
-    from werkzeug.user_agent import UserAgent
-
-    user_agent = UserAgent(request.user_agent.string)
-    print(user_agent.platform)
     if current_user.is_authenticated:
         return logged_in_content(
             "wish_content.html",

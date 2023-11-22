@@ -42,15 +42,20 @@ class User(db.Model, UserMixin):
         month_mappings = ABBREVIATED_NORWEGIAN_MONTHS
         start = datetime.now()
         end = start + timedelta(days=60)
+        turn_of_year_days = 0
+        if start.year != end.year:
+            turn_of_year_days = 365
+
         user_birthdays = db.session.execute(
             db.select(User)
             .where(func.dayofyear(User.date_of_birth) >= func.dayofyear(start))
-            .where(func.dayofyear(User.date_of_birth) <= func.dayofyear(end))
+            .where(func.dayofyear(User.date_of_birth) <= func.dayofyear(end) + turn_of_year_days)
             .order_by(func.dayofyear(User.date_of_birth))
         ).scalars()
         birthdays = [{"id": u.id, "first_name": u.first_name,
                       "birthday": f"{u.date_of_birth.day}. {month_mappings[u.date_of_birth.month]}"} for u in
                      user_birthdays]
+        print(f"Birthdays: {birthdays}")
         return birthdays
 
     def last_login(self):
