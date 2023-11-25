@@ -45,6 +45,7 @@ def typeahead():
 @api_bp.post("/add")
 @api_login_required
 def add():
+    print(datetime.utcnow())
     form = WishForm()
     if form.validate():
         if len(form.wish_img_url.data) < 5:
