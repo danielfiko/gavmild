@@ -143,6 +143,7 @@ def is_unique_primary_key(model, primary_key):
     return existing_record is None
 
 def generate_unique_code(model, length=None):
+    length = length or 10
     while True:
         unique_code = generate_code(length)
         if is_unique_primary_key(model, unique_code):
@@ -254,7 +255,7 @@ def report_link():
             modal_message = "Det er allerede sendt en beskjed om denne lenken."
             modal_buttons = "close"
             return render_template(
-                "/wishlist/action_confirmation.html",
+                "/wishlist/modal/action_confirmation.html",
                 title=modal_title, message=modal_message, buttons=modal_buttons, form=form)
 
         elif report_confirmed:
@@ -300,7 +301,7 @@ def report_link():
 
             finally:
                 return render_template(
-                    "/wishlist/action_confirmation.html",
+                    "/wishlist/modal/action_confirmation.html",
                     title = modal_title,
                     message = modal_message,
                     buttons = modal_buttons,
@@ -311,14 +312,14 @@ def report_link():
             
             if wish:
                 return render_template(
-                    "/wishlist/action_confirmation.html",
+                    "/wishlist/modal/action_confirmation.html",
                     title = modal_title,
                     message = f"Det blir sendt en melding til {wish.user.first_name} om at lenken ikke fungerer.",
                     buttons = "confirm",
                     form=form)
 
     return render_template(
-        "/wishlist/action_confirmation.html",
+        "/wishlist/modal/action_confirmation.html",
         title = "Det oppstod en feil",
         message = '''Handlingen kunne ikke fullføres på grunn av en sikkerhetsfeil (CSRF). 
                     Vennligst last inn siden på nytt og prøv igjen. 

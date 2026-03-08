@@ -67,7 +67,7 @@ def get_user_page(user_id):
 
 def logged_in_content(template_name, **kwargs):  # TODO: Flytt form-variablene dit de hører hjemme
     users = get_users_ordered_by_settings()
-    order_by = current_user.preferences.order_users_by
+    order_by = current_user.preferences.order_users_by if current_user.preferences else None
     birthdays = User.upcoming_birthdays()
     ajaxform = AjaxForm()
     wishform = WishForm()

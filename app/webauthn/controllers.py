@@ -14,8 +14,12 @@ from webauthn.helpers.structs import (
     AuthenticatorSelectionCriteria,
     UserVerificationRequirement,
     RegistrationCredential,
-    AuthenticationCredential, ResidentKeyRequirement
+    AuthenticationCredential,
+    ResidentKeyRequirement,
+    PublicKeyCredentialDescriptor,
+    PublicKeyCredentialType
 )
+from webauthn.helpers import parse_authentication_credential_json, parse_registration_credential_json
 
 from flask import Blueprint, request, current_app, render_template, flash, Response, session, redirect, url_for, abort
 from flask_login import login_required, current_user, login_user
@@ -88,7 +92,7 @@ def handler_generate_registration_options():
     exclude_credentials = None
     if current_user.webauthn_credentials is not None:
         exclude_credentials = [
-            {"id": cred.id, "transports": cred.transports, "type": "public-key"}
+            PublicKeyCredentialDescriptor(id=cred.id, transports=cred.transports, type=PublicKeyCredentialType.PUBLIC_KEY)
             for cred in current_user.webauthn_credentials
         ]
     user_id = db.session.execute(
@@ -100,7 +104,7 @@ def handler_generate_registration_options():
     options = generate_registration_options(
         rp_name=WEBAUTHN_RP_NAME, # A name for your "Relying Party" server
         rp_id=WEBAUTHN_RP_ID, # Your domain on which WebAuthn is being used
-        user_id=user_id, #current_user.id), # An assigned random identifier
+        user_id=bytes.fromhex(user_id), #current_user.id), # An assigned random identifier
         user_name=current_user.email,# A user-visible hint of which account this credential belongs to
         exclude_credentials=exclude_credentials,
         # Require the user to verify their identity to the authenticator
@@ -113,6 +117,8 @@ def handler_generate_registration_options():
     session["current_challenge"] = options.challenge
     session["rp_user_id"] = user_id
 
+    print(options)
+    print("hei")
     options_json_string = options_to_json(options)
     options_json = json.loads(options_json_string)
     options_json["user"]["id"] = user_id
@@ -124,9 +130,9 @@ def handler_generate_registration_options():
 @login_required
 @csrf.exempt
 def handler_verify_registration_response():
-    body = request.get_data()
+    body = request.get_json()
     try:
-        credential = RegistrationCredential.model_validate_json(body)
+        credential = parse_registration_credential_json(body)
         verification = verify_registration_response(
             credential=credential,
             expected_challenge=session["current_challenge"],
@@ -143,7 +149,7 @@ def handler_verify_registration_response():
         user_handle=session["rp_user_id"],
         rp_user_id=current_user.id,
         sign_count=verification.sign_count,
-        transports=json.loads(body).get("transports", []),
+        transports=body.get("transports", []),
     )
     if not new_credential.transports:
         new_credential.transports = None
@@ -208,9 +214,9 @@ def handler_generate_authentication_options():
 @webauthn_bp.post("/authentication-verification")
 @csrf.exempt
 def handler_verify_authentication_response():
-    body = request.get_data()
+    body = request.get_json()
     try:
-        credential = AuthenticationCredential.model_validate_json(body)
+        credential = parse_authentication_credential_json(body)
 
         # Find the user's corresponding public key
         # user_credential = None
@@ -227,7 +233,7 @@ def handler_verify_authentication_response():
 
         # Verify the assertion
         verification = verify_authentication_response(
-            credential=AuthenticationCredential.model_validate_json(request.data),
+            credential=credential,
             expected_challenge=session["current_challenge"],
             expected_rp_id=WEBAUTHN_RP_ID,
             expected_origin=WEBAUTHN_ORIGIN,
