@@ -1,0 +1,20 @@
+services:
+  webapp:
+    build:
+      target: production
+    environment:
+      - WEBAUTHN_RP_ID=gavmild.dfiko.no
+      - WEBAUTHN_ORIGIN=https://gavmild.dfiko.no
+      - WEBAUTHN_RP_NAME=Gavmild
+    networks:
+      - backend
+      - nginx
+
+  telegram:
+    networks:
+      - backend
+      - nginx
+      
+networks:
+  nginx:
+    external: false

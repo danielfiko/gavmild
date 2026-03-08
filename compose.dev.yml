@@ -1,0 +1,8 @@
+services:
+  webapp:
+    build:
+      target: development
+    environment:
+      - WEBAUTHN_RP_ID=localhost
+      - WEBAUTHN_ORIGIN=http://localhost:5005
+      - WEBAUTHN_RP_NAME=Gavmild Local

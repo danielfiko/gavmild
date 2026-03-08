@@ -1,0 +1,133 @@
+services:
+  gavmild_db:
+    image: mariadb:10.9.8-jammy
+    restart: always
+    secrets:
+      - db-password
+      - dba-password
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - backnet
+    environment:
+      - MARIADB_DATABASE=gavmild
+      - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/db-password
+      - MARIADB_MYSQL_LOCALHOST_USER=1
+      - MARIADB_USER=dba
+      - MARIADB_PASSWORD_FILE=/run/secrets/dba-password
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--su-mysql", "--connect"]
+      start_period: 5s
+      timeout: 3s
+      interval: 5s
+      retries: 5
+
+  gavmild_backend:
+    build: gavmild
+    restart: always
+    secrets:
+      - dba-password
+      - flask-secret-key
+      - telegram-token
+      - bot-api-token
+      - prisjakt-id
+      - prisjakt-secret
+      - chat-group-id
+    ports:
+      - 5005:5005
+    networks:
+      - backnet
+      - nginx
+    environment:
+      - WEBAUTHN_RP_ID=gavmild.dfiko.no
+      - WEBAUTHN_ORIGIN=https://gavmild.dfiko.no
+      - WEBAUTHN_RP_NAME=Gavmild
+    depends_on:
+      gavmild_db:
+        condition: service_healthy
+    volumes:
+      - ./gavmild:/usr/src/backend
+      - /usr/src/backend/telegram
+
+  gavmild_telegram:
+    build: gavmild/telegram
+    restart: always
+    secrets:
+      - telegram-token
+      - bot-api-token
+      - openai-token
+      - prisjakt-secret
+      - prisjakt-id
+      - chat-group-id
+    ports:
+      - 5006:5006
+    networks:
+      - nginx
+
+  flask-tutorial:
+    restart: always
+    build: flask-tutorial
+    volumes:
+      - ./flask-tutorial/app/:/app
+    networks:
+      - nginx
+
+  dfiko_no:
+    build: dfiko_no
+    restart: always
+    networks:
+      - nginx
+
+  nginx:
+    image: nginx:1.25.2
+    build: nginx
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+    networks:
+      - nginx
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot:rw
+      - ./certbot/conf:/etc/letsencrypt:rw
+    command: >
+      certonly --webroot -w /var/www/certbot --force-renewal --email daniel.fiko@gmail.com
+      -d dfiko.no
+      -d flask.dfiko.no
+      -d gavmild.dfiko.no
+      --agree-tos
+
+networks:
+  nginx:
+  backnet:
+
+volumes:
+  db-data:
+
+secrets:
+  db-password:
+    file: gavmild/secrets/db_root.txt
+  dba-password:
+    file: gavmild/secrets/db_dba.txt
+  flask-secret-key:
+    file: gavmild/secrets/flask-secret-key.txt
+  telegram-token:
+    file: gavmild/secrets/telegram_token.txt
+  bot-api-token:
+    file: gavmild/secrets/bot-api-token.txt
+  openai-token:
+    file: gavmild/secrets/openai-token.txt
+  prisjakt-id:
+    file: gavmild/secrets/prisjakt-client-id.txt
+  prisjakt-secret:
+    file: gavmild/secrets/prisjakt-client-secret.txt
+  chat-group-id:
+    file: gavmild/secrets/chat-group-id.txt
