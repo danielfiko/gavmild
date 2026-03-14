@@ -6,12 +6,12 @@ services:
     environment:
       - FLASK_ENV=production
     networks:
-      - backend
-      - nginx
+      backend:
+      nginx:
+          aliases:
+          - gavmild-webapp
 
 networks:
   nginx:
     external: true
     name: www_nginx
-    aliases:
-          - gavmild-webapp
