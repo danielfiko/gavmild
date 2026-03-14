@@ -13,3 +13,5 @@ networks:
   nginx:
     external: true
     name: www_nginx
+    aliases:
+          - gavmild-webapp
