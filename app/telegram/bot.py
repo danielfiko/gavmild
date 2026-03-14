@@ -305,9 +305,16 @@ def start_bot(flask_app):
 
     def run():
         import asyncio
+
+        async def _run():
+            await application.initialize()
+            await application.start()
+            await application.updater.start_polling()
+            await asyncio.Event().wait()  # run until the daemon thread is killed
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        application.run_polling()
+        loop.run_until_complete(_run())
 
     thread = Thread(target=run, daemon=True, name="telegram-bot")
     thread.start()
