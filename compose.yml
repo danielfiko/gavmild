@@ -1,0 +1,65 @@
+services:
+  db:
+    image: mariadb:10.9.8-jammy
+    restart: always
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - backend
+    environment:
+      - MARIADB_DATABASE=gavmild
+      - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/db-password
+      - MARIADB_MYSQL_LOCALHOST_USER=1
+      - MARIADB_USER=dba
+      - MARIADB_PASSWORD_FILE=/run/secrets/dba-password
+    secrets:
+      - db-password
+      - dba-password
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--su-mysql", "--connect"]
+      start_period: 30s
+      timeout: 3s
+      interval: 5s
+      retries: 5
+
+  webapp:
+    build:
+      context: .
+      target: development
+    env_file:
+      - .env
+    secrets:
+      - dba-password
+      - flask-secret-key
+      - telegram-token
+      - openai-token
+      - prisjakt-secret
+    ports:
+      - 5005:5005
+    networks:
+      - backend
+    depends_on:
+      db:
+        condition: service_healthy
+
+networks:
+  backend:
+
+volumes:
+  db-data:
+    external: true
+    name: www_db-data
+
+secrets:
+  db-password:
+    file: ./secrets/db_root.txt
+  dba-password:
+    file: ./secrets/db_dba.txt
+  flask-secret-key:
+    file: ./secrets/flask-secret-key.txt
+  telegram-token:
+    file: ./secrets/telegram_token.txt
+  openai-token:
+    file: ./secrets/openai-token.txt
+  prisjakt-secret:
+    file: ./secrets/prisjakt-client-secret.txt

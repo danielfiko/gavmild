@@ -1,136 +1,171 @@
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
-from flask import Blueprint, jsonify, request, abort, current_app, render_template, flash, Response
-from flask_login import login_required, current_user
-from functools import wraps
-from app.database.database import db
-from app.telegram.models import TelegramUser, Suggestion, TelegramUserConnection, ReportedLink
-from app.wishlist.models import Wish
-from app.auth.models import User, PasswordResetToken
-from app.auth.controllers import bcrypt
-from app.forms import TelegramConnectForm, APIform
-from app import read_secret, api_login_required, csrf
-from sqlalchemy import desc
-from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime, timedelta
+import logging
+import os
 import random
 import string
-import os
+from datetime import datetime, timedelta, timezone
+
 import requests
-import ipaddress
-import socket
+from flask import current_app, render_template, request
+from flask_login import current_user, login_required
+from sqlalchemy import desc
+from sqlalchemy.exc import SQLAlchemyError
 
+from app import api_login_required, db
+from app.auth.controllers import hash_password_to_string
+from app.auth.models import PasswordResetToken, User
+from app.forms import APIform, TelegramConnectForm
+from app.telegram import telegram_bp
+from app.telegram.models import (
+    ReportedLink,
+    Suggestion,
+    TelegramUser,
+    TelegramUserConnection,
+)
+from app.wishlist.models import Wish
 
-APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TEMPLATE_PATH = os.path.join(APP_PATH, 'templates/telegram')
-
-telegram_bp = Blueprint("telegram_bot", __name__, url_prefix='/telegram', template_folder=TEMPLATE_PATH)
-filter_active_suggestions = (Suggestion.solved_at == None) & (Suggestion.deleted_at == None)
+filter_active_suggestions = (Suggestion.solved_at is None) & (Suggestion.deleted_at is None)
 
 class APIerror(Exception):
     pass
 
 
-def require_api_key(view_function):
-    @wraps(view_function)
-    def decorated_function(*args, **kwargs):
+# ---------------------------------------------------------------------------
+# Service functions (called directly by bot handlers in bot.py)
+# ---------------------------------------------------------------------------
 
-        if request.remote_addr != socket.gethostbyname('gavmild_telegram'):
-            # If the request is not coming from a local network, return 403 Forbidden
-            abort(403)
-        
-        if request.headers.get('X-Api-Key') != current_app.config["BOT_API_TOKEN"]:
-            abort(401, 'Invalid API Key')
-        
-        return view_function(*args, **kwargs)
-    return decorated_function
-
-
-@telegram_bp.route('/api/data', methods=['GET'])
-@require_api_key
-@csrf.exempt
-def get_data():
-    data = {"message": "Hello, Bot!"}
-    return jsonify(data)
-
-
-@telegram_bp.post("/suggestion")
-@require_api_key
-@csrf.exempt
-def add_suggestion():
-    json_data = request.get_json()
-    req_username = json_data.get('username')
-    req_id = json_data.get('id')
-    req_suggestion = json_data.get("suggestion")
-
-    user = TelegramUser.query.get(req_id)
-
+def svc_add_suggestion(username, user_id, suggestion_text):
+    """Create a suggestion from a Telegram user. Returns True on success."""
+    user = db.session.get(TelegramUser, user_id)
     if not user:
-        user = TelegramUser(id=req_id, chat_username=req_username)
-        try:
-            db.session.add(user)
-            db.session.commit()
-        except:
-            pass
-
-    if user.chat_username != req_username:
-        user.chat_username = req_username
-    suggestion = Suggestion(user_id=req_id, suggestion=req_suggestion)
+        user = TelegramUser.create(id=user_id, chat_username=username)
+    elif user.chat_username != username:
+        user.chat_username = username
+    Suggestion.create(user_id=user_id, suggestion=suggestion_text)
     try:
-        db.session.add(suggestion)
         db.session.commit()
-        return jsonify(success=True)
-    except:
-        pass
-    
-    return jsonify(success=False)
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        logging.getLogger(__name__).error(f"Failed to add suggestion: {e}")
+        return False
+    return True
 
 
-# @telegram_bp.post("/solve")
-# @require_api_key
-# @csrf.exempt
-# def suggestions_list():
-    
+def _get_suggestion_by_id(suggestion_id):
+    """Fetch an active suggestion by numeric id or 'siste' (latest)."""
+    if suggestion_id == "siste":
+        return db.session.execute(
+            db.select(Suggestion)
+            .where(filter_active_suggestions)
+            .order_by(desc(Suggestion.id))
+        ).scalars().first()
+    try:
+        return db.session.get(Suggestion, int(suggestion_id))
+    except (ValueError, TypeError):
+        return None
 
 
-def get_suggestion(json_data):
-    req_suggestion_id = json_data.get('suggestion_id')
- 
-    if req_suggestion_id == "siste":
-        suggestion = db.session.execute(db.select(Suggestion)
-                                        .where(filter_active_suggestions)
-                                        .order_by(desc(Suggestion.id))
-                                        ).scalars().first()
+def svc_delete_suggestion(suggestion_id):
+    """Soft-delete a suggestion. Returns dict with ok/message/not_found keys."""
+    suggestion = _get_suggestion_by_id(suggestion_id)
+    if not suggestion:
+        return {"ok": False, "not_found": True}
+    suggestion.deleted_at = datetime.now(timezone.utc)
+    try:
+        db.session.commit()
+        return {"ok": True, "message": suggestion.suggestion}
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        logging.getLogger(__name__).error(f"Failed to delete suggestion: {e}")
+        return {"ok": False}
+
+
+def svc_solve_suggestion(suggestion_id):
+    """Mark a suggestion as solved. Returns dict with ok/message/not_found keys."""
+    suggestion = _get_suggestion_by_id(suggestion_id)
+    if not suggestion:
+        return {"ok": False, "not_found": True}
+    suggestion.solved_at = datetime.now(timezone.utc)
+    try:
+        db.session.commit()
+        return {"ok": True, "message": suggestion.suggestion}
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        logging.getLogger(__name__).error(f"Failed to solve suggestion: {e}")
+        return {"ok": False}
+
+
+def svc_connect_user(chat_user_id, chat_username, identifier):
+    """Link a Telegram user to a webapp account via connection code.
+    Returns dict with ok/username, or ok=False with not_found key."""
+    connect_id = db.session.get(TelegramUserConnection, identifier)
+    if not connect_id:
+        return {"ok": False, "not_found": True}
+    telegram_user = db.session.get(TelegramUser, chat_user_id)
+    if telegram_user:
+        telegram_user.user_id = connect_id.user_id
     else:
-        suggestion = db.get_or_404(Suggestion, int(req_suggestion_id))
+        telegram_user = TelegramUser.create(
+            id=chat_user_id, chat_username=chat_username, user_id=connect_id.user_id
+        )
+    try:
+        db.session.delete(connect_id)
+        db.session.commit()
+        return {"ok": True, "username": telegram_user.user.username}
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        logging.getLogger(__name__).error(f"Failed to connect user: {e}")
+        return {"ok": False}
 
-    return suggestion
+
+def svc_get_users():
+    """Return list of dicts with id and first_name for all users."""
+    try:
+        rows = db.session.execute(db.select(User.id, User.first_name)).mappings().all()
+        return [{"id": r["id"], "first_name": r["first_name"]} for r in rows]
+    except SQLAlchemyError as e:
+        logging.getLogger(__name__).error(f"Failed to get users: {e}")
+        return None
 
 
-@telegram_bp.delete("/suggestion")
-@require_api_key
-@csrf.exempt
-def delete_suggestion():
-    suggestion = get_suggestion(request.get_json())
-    suggestion.deleted_at = datetime.utcnow()
+def svc_get_reset_token(chat_user_id):
+    """Generate a password-reset token for the user linked to chat_user_id.
+    Returns dict with ok/token/name, or ok=False with not_found/rate_limited keys."""
+    chat_user = db.session.get(TelegramUser, chat_user_id)
+    if not chat_user:
+        return {"ok": False, "not_found": True}
+
+    time_now = datetime.now(timezone.utc)
+    user = chat_user.user
+
+    if db.session.execute(
+        db.select(PasswordResetToken).where(
+            PasswordResetToken.user_id == user.id,
+            PasswordResetToken.expires_at > time_now,
+            PasswordResetToken.used_at.is_(None),
+        )
+    ).first():
+        return {"ok": False, "rate_limited": True}
+
+    expires_at = time_now + timedelta(minutes=15)
+    token_id = generate_unique_code(PasswordResetToken, 5)
+    token_string = generate_code(10)
+    hashed_token = hash_password_to_string(token_string)
+    reset_token = PasswordResetToken.create(
+        token_id=token_id, token=hashed_token, user_id=user.id, expires_at=expires_at
+    )
+    db.session.add(reset_token)
     try:
         db.session.commit()
-        return jsonify({"message": suggestion.suggestion})
-    except:
-        abort(500, 'Noe gikk galt, kunne ikke slette ønsket.')
+        return {"ok": True, "token": f"{token_id}-{token_string}", "name": user.first_name}
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        logging.getLogger(__name__).error(f"Failed to create reset token: {e}")
+        return {"ok": False}
 
 
-@telegram_bp.post("/solve")
-@require_api_key
-@csrf.exempt
-def solve_suggestion():
-    suggestion = get_suggestion(request.get_json())
-    suggestion.solved_at = datetime.utcnow()
-    try:
-        db.session.commit()
-        return jsonify({"message": suggestion.suggestion})
-    except:
-        abort(500, 'Noe gikk galt, kunne ikke slette ønsket.')
-
+# ---------------------------------------------------------------------------
+# Helpers (used by service functions and web routes below)
+# ---------------------------------------------------------------------------
 
 def generate_code(length=10):
     characters = string.ascii_letters + string.digits
@@ -153,6 +188,9 @@ def generate_unique_code(model, length=None):
 @telegram_bp.get("/connect")
 @login_required
 def connect_code():
+    if current_user.chat_user:
+        return render_template("connect-user.html", already_connected=True)
+
     connect_id = db.session.scalars(
         db.select(TelegramUserConnection)
         .where(TelegramUserConnection.user_id == current_user.id)
@@ -160,7 +198,7 @@ def connect_code():
 
     if not connect_id:
         identifier = generate_unique_code(TelegramUserConnection)
-        connect_id = TelegramUserConnection(identifier=identifier, user_id=current_user.id)
+        connect_id = TelegramUserConnection.create(identifier=identifier, user_id=current_user.id)
         db.session.add(connect_id)
     
     form = TelegramConnectForm()
@@ -174,37 +212,13 @@ def connect_code():
         return render_template("connect-user.html", e=e)
 
 
-@telegram_bp.post("/connect-user")
-@require_api_key
-@csrf.exempt
-def connect_user():
-    json_data = request.get_json()
-    chat_user_id = json_data.get('chat_user_id')
-    chat_username = json_data.get('chat_username')
-    identifier = json_data.get('identifier')
-
-    connect_id = db.get_or_404(TelegramUserConnection, identifier)
-    telegram_user = db.session.get(TelegramUser, chat_user_id)
-
-    if telegram_user:
-        telegram_user.user_id = connect_id.user_id
-    else:
-        telegram_user = TelegramUser(id=chat_user_id, chat_username=chat_username, user_id=connect_id.user_id)
-        db.session.add(telegram_user)
-    try:
-        db.session.delete(connect_id)
-        db.session.commit()
-        return jsonify(username=telegram_user.user.username)
-    except SQLAlchemyError as e:
-        abort(500, str(e.orig))
-
 def telegram_escape_text(input_string):
     escaped_string = input_string.replace("_", "\\_").replace("*", "\\*").replace("`", "\\`").replace("[", "\\[")
     return escaped_string
 
 def telegram_bot_sendtext(chat_id, message):
     try:
-        bot_token = read_secret("telegram-token")
+        bot_token = current_app.config["TELEGRAM_TOKEN"]
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         payload = {
             "chat_id": chat_id,
@@ -217,22 +231,22 @@ def telegram_bot_sendtext(chat_id, message):
 
     except requests.HTTPError as e:
         # Handle HTTP errors (4xx and 5xx status codes)
-        print("HTTP Error:", e.response.status_code)
+        current_app.logger.error(f"HTTP Error: {e.response.status_code}")
         raise APIerror() # Re-raise the exception after handling it, or handle it as appropriate for your application
 
     except requests.RequestException as e:
         # Handle request exceptions (e.g., network issues, timeouts)
-        print("Request Exception:", e)
+        current_app.logger.error(f"Request Exception: {e}")
         raise APIerror()  # Re-raise the exception after handling it, or handle it as appropriate for your application
 
     except Exception as e:
         # Handle other exceptions
-        print("An error occurred:", e)
+        current_app.logger.error(f"An error occurred: {e}")
         raise APIerror() # Re-raise the exception after handling it, or handle it as appropriate for your application
 
     else:
         # Code to run if there are no exceptions
-        print("Message sent successfully")
+        current_app.logger.info("Message sent successfully")
 
     finally:
         # Cleanup code (if any)
@@ -277,7 +291,7 @@ def report_link():
                 chat_user_id = ""
                 
                 if not chat_user:
-                    chat_user_id = read_secret("chat-group-id")
+                    chat_user_id = os.getenv("TELEGRAM_GROUP_ID") #TODO: Sentralisere uthenting av dette?
                     message += "\n\nDenne meldingen ble sendt her siden du ikke har koblet Telegram-kontoen din til Gavmild. Vennligst gå inn på https://gavmild.dfiko.no/telegram/connect for å gjøre det så snart som mulig."
                 
                 else:
@@ -288,8 +302,8 @@ def report_link():
                 modal_message = "Meldingen ble sendt, takk for at du ga beskjed."
                 modal_buttons = "close"
  
-            except SQLAlchemyError as e:
-                #db.session.rollback()  # Rollback changes in case of error
+            except SQLAlchemyError:
+                db.session.rollback()
                 modal_title = "Noe gikk galt"
                 modal_message = "Det oppstod en feil under lagring av feilmeldingen. Prøv igjen."
                 modal_buttons = "close"
@@ -328,48 +342,3 @@ def report_link():
         form=form)
 
 
-@telegram_bp.get("/users")
-@require_api_key
-@csrf.exempt
-def return_list_of_users():
-    users = db.session.execute(db.select(User.first_name)).scalars()
-    users = db.session.execute(db.select(User.id, User.first_name)).mappings()
-    users_json = {}
-    for idx, user in enumerate(users):
-        users_json[idx] = user
-    return users_json
-
-
-@telegram_bp.get("/reset-token/<int:chat_user_id>")
-@require_api_key
-@csrf.exempt
-def get_reset_password_token(chat_user_id):
-    chat_user = db.session.get(TelegramUser, chat_user_id)
-    if not chat_user:
-        abort(404)
-
-    time_now = datetime.utcnow()
-    user = chat_user.user
-
-    if db.session.execute(
-        db.select(PasswordResetToken)
-        .where(PasswordResetToken.user_id == user.id,
-               PasswordResetToken.expires_at > time_now,
-               PasswordResetToken.used_at.is_(None))
-               ).first():
-        abort(429)
-    
-    time_to_add = timedelta(minutes=15)
-    expires_at = time_now + time_to_add
-    token_id = generate_unique_code(PasswordResetToken, 5)
-    token_string = generate_code(10)
-    hashed_token = bcrypt.generate_password_hash(token_string)
-    reset_token = PasswordResetToken(token_id=token_id, token=hashed_token, user_id=user.id, expires_at=expires_at)
-    db.session.add(reset_token)
-    
-    try:
-        db.session.commit()
-        return {"token": f"{token_id}-{token_string}", "name": user.first_name}
-    
-    except SQLAlchemyError:
-        abort(500)

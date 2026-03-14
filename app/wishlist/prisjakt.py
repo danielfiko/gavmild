@@ -1,96 +1,65 @@
+import os
 import time
 import requests
+from threading import Lock
+
+from app.utils import read_secret
 
 
-def read_secret(secret_name):
-    try:
-        with open(f"/run/secrets/{secret_name}", "r") as secret_file:
-            return secret_file.read().strip()
-    except IOError:
-        return None
-
-client_id = read_secret("prisjakt-id")
-client_secret = read_secret("prisjakt-secret")
-token_url = "https://api.prisjakt.no/v1/auth/token"
-api_url = "https://api.prisjakt.no/v1/products/"
-
-access_token = None
-expiration_time = 0
-
-def get_access_token(client_id, client_secret, token_url):
+class PrisjaktClient:
     """
-    Get OAuth 2.0 access token and its expiration time.
+    Client for interacting with the Prisjakt API.
     
-    Args:
-        client_id (str): Client ID for OAuth 2.0 authentication.
-        client_secret (str): Client secret for OAuth 2.0 authentication.
-        token_url (str): URL to obtain OAuth 2.0 access token.
+    Usage:
+        client = PrisjaktClient()
+        response = client.get_product("123456")
+        if response.status_code == 200:
+            data = response.json()
+            # Do something with data
+    """
+    def __init__(self):
+        self.client_id = os.getenv("PRISJAKT_CLIENT_ID") #TODO: Sentralisere uthenting av dette?
+        self.client_secret = read_secret("prisjakt-secret")
+        self.token_url = "https://api.prisjakt.no/v1/auth/token"
+        self.base_api_url = "https://api.prisjakt.no/v1/products"
         
-    Returns:
-        str: OAuth 2.0 access token.
-        int: Expiration timestamp of the access token.
-    """
-    response = requests.post(
-        token_url,
-        data={
-            'grant_type': 'client_credentials',
-            "scope": "client",
-            'client_id': client_id,
-            'client_secret': client_secret
-        }
-    )
-    
-    if response.status_code == 200:
-        data = response.json()
-        access_token = data['access_token']
-        expires_in = data['expires_in']
-        expiration_time = int(time.time()) + expires_in  # Calculate expiration timestamp
-        return access_token, expiration_time
-    else:
-        data = response.json()
-        raise Exception("Failed to obtain access token: " + str(data))
+        self.access_token = None
+        self.expiration_time = 0
+        self._lock = Lock()
 
-def make_api_call(api_url, access_token):
-    """
-    Make an API call using the provided OAuth 2.0 access token.
-    
-    Args:
-        api_url (str): URL of the API endpoint to call.
-        access_token (str): OAuth 2.0 access token.
-        
-    Returns:
-        requests.Response: Response object from the API call.
-    """
-    headers = {'Authorization': f'Bearer {access_token}'}
-    response = requests.get(api_url, headers=headers)
-    return response
+    def _get_valid_token(self) -> str:
+        with self._lock:
+            if self.access_token and self.expiration_time - int(time.time()) > 60:
+                return self.access_token
+                
+            response = requests.post(
+                self.token_url,
+                data={
+                    'grant_type': 'client_credentials',
+                    "scope": "client",
+                    'client_id': self.client_id,
+                    'client_secret': self.client_secret
+                }
+            )
+            response.raise_for_status() # Automatically raises HTTP errors
+            
+            data = response.json()
+            self.access_token = data['access_token']
+            self.expiration_time = int(time.time()) + data['expires_in']
+            return self.access_token
 
-def get_authenticated_response(client_id, client_secret, token_url, api_url):
-    """
-    Get an authenticated API response by managing OAuth 2.0 token expiration.
-    
-    Args:
-        client_id (str): Client ID for OAuth 2.0 authentication.
-        client_secret (str): Client secret for OAuth 2.0 authentication.
-        token_url (str): URL to obtain OAuth 2.0 access token.
-        api_url (str): URL of the API endpoint to call.
-        
-    Returns:
-        requests.Response: Authenticated API response.
-    """
-    #access_token, expiration_time = get_access_token(client_id, client_secret, token_url)
+    def get_product(self, product_number: str) -> requests.Response:
+        token = self._get_valid_token()
+        headers = {'Authorization': f'Bearer {token}'}
+        return requests.get(f"{self.base_api_url}/{product_number}", headers=headers)
 
-    global expiration_time, access_token
-    
-    # Check if the token is expired or about to expire (within the next minute)
-    if expiration_time - int(time.time()) <= 60 or not access_token:
-        # Refresh the token if it's expired or about to expire
-        access_token, expiration_time = get_access_token(client_id, client_secret, token_url)
-    
-    # Make the API call using the refreshed access token
-    response = make_api_call(api_url, access_token)
-    return response
 
-def make_request(product_number):
-    response = get_authenticated_response(client_id, client_secret, token_url, api_url + product_number)
-    return response
+# Maintain backward compatibility for API imports
+_default_client: 'PrisjaktClient | None' = None
+
+def make_request(product_number: str) -> requests.Response:
+    """Legacy wrapper for backward compatibility with existing code."""
+    global _default_client
+    if _default_client is None:
+        _default_client = PrisjaktClient()
+    return _default_client.get_product(product_number)

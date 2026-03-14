@@ -6,12 +6,13 @@
 <body>
 <h1>Koble sammen Gavmild- og Telegram-konto</h1>
 <form id="pw-form">
-    {{ form.hidden_tag() }}
+    {% if form %}{{ form.hidden_tag() }}{% endif %}
 </form>
 {% if e %}
 <p>Det oppstod en feil: {{ e }}</p>
-{% endif %}
-{% if bot_url %}
+{% elif already_connected %}
+<p>Telegram-kontoen din er allerede koblet til Gavmild. Du trenger ikke gjøre noe mer.</p>
+{% elif bot_url %}
 <p><a href="{{ bot_url }}">Trykk her for å åpne en samtale med Gavmild bot i Telegram</a>, trykk deretter på "Start" i appen.</p>
 {% endif %}
 </body>

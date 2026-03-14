@@ -1,0 +1,8 @@
+services:
+  webapp:
+    build:
+      target: development
+    environment:
+      - FLASK_ENV=development
+    volumes:
+      - ./app:/usr/src/code/app

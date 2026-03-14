@@ -1,18 +1,13 @@
-from datetime import datetime, timedelta
-from flask import Blueprint, render_template, redirect, url_for, request
+from datetime import datetime
+
+from flask import render_template, redirect, url_for, abort
 from flask_login import login_required, current_user
 from sqlalchemy import func, desc
+
+from app import db
 from app.forms import APIform, WishForm, AjaxForm
-from app.database.database import db
+from app.wishlist import wishlist_bp
 from app.auth.models import User
-import os
-
-# from app.wishlist.models import WishList
-
-APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TEMPLATE_PATH = os.path.join(APP_PATH, 'templates/wishlist')
-wishlist_bp = Blueprint('wishlist', __name__, template_folder=TEMPLATE_PATH,
-                        url_prefix='/')  # static_folder='static/views'
 
 
 @wishlist_bp.route("/")
@@ -53,8 +48,11 @@ def get_users_ordered_by_settings():
 
 def get_user_page(user_id):
     page_title = None
+    target_user = db.session.get(User, user_id)
+    if target_user is None:
+        abort(404)
     if user_id != current_user.id:
-        page_title = db.session.get(User, user_id).first_name + "s ønskeliste"
+        page_title = target_user.first_name + "s ønskeliste"
     else:
         page_title = "Min ønskeliste"
 
@@ -66,6 +64,8 @@ def get_user_page(user_id):
 
 
 def logged_in_content(template_name, **kwargs):  # TODO: Flytt form-variablene dit de hører hjemme
+    # TODO: PERFORMANCE - This loads ALL users, ALL birthdays, and creates multiple form instances on every single page load.
+    #   Consider caching, lazy loading, or only loading what's needed per page.
     users = get_users_ordered_by_settings()
     order_by = current_user.preferences.order_users_by if current_user.preferences else None
     birthdays = User.upcoming_birthdays()

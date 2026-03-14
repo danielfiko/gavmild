@@ -9,6 +9,7 @@
         <main>
             <h1>Opprett konto</h1>
             <form method="POST" action="/api/register" class="register-form">
+                {{ form.hidden_tag() }}
                 {{ form.first_name.label }}
                 {{ form.first_name }}
                 {{ form.last_name.label }}
@@ -20,7 +21,6 @@
                 {{ form.date_of_birth.label }}
                 {{ form.date_of_birth }}
                 {{ form.submit }}
-                {{ form.hidden_tag() }}
             </form>
 
             <a href="{{url_for('auth.login')}}">Har du allerede en konto? Logg inn her.</a>

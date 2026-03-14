@@ -1,11 +1,16 @@
-from app.database.database import db
-from datetime import datetime
-from typing import List, Optional
-from sqlalchemy import ForeignKey, Column, func
-#from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import mapped_column, Mapped, relationship
-from flask_login import current_user
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, List, Optional
 
+from flask_login import current_user
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app import db
+
+if TYPE_CHECKING:
+    from app.auth.models import User
+    from app.telegram.models import ReportedLink
+    from app.wishlist.models import ClaimedWish, Wish
 
 # wishes_in_list = db.Table(
 #     "wishes_in_list",
@@ -14,11 +19,17 @@ from flask_login import current_user
 # )
 
 
+# TODO: Make date_created timezone-aware at the database level
+#  1. Change the column to DateTime(timezone=True) (SQLAlchemy) or use auto_now_add=True (Django)
+#  2. Write a migration to backfill existing rows: UPDATE table SET date_created = date_created AT TIME ZONE 'UTC'
+#  3. Remove the .replace(tzinfo=timezone.utc) workaround once migration is applied
+
+
 class ClaimedWish(db.Model):
     wish_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("wish.id"), primary_key=True)
     user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"), primary_key=True)
     quantity: Mapped[int] = mapped_column(db.Integer, nullable=False)
-    date: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow())
+    date: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="claimed_wishes")
@@ -27,7 +38,7 @@ class ClaimedWish(db.Model):
 
 class Wish(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow())
+    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"))
     title: Mapped[str] = mapped_column(db.String(90), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(db.String(255))
@@ -38,7 +49,7 @@ class Wish(db.Model):
     price: Mapped[Optional[int]] = mapped_column(db.Integer)
     
     # Relationships
-    user: Mapped[List["User"]] = relationship(back_populates="wishes")
+    user: Mapped["User"] = relationship(back_populates="wishes")
     claims: Mapped[List["ClaimedWish"]] = relationship(back_populates="wish", cascade="delete")
     co_wishers: Mapped[List["CoWishUser"]] = relationship("CoWishUser", cascade="delete")
     reported_link: Mapped["ReportedLink"] = relationship(back_populates="wish")
@@ -53,17 +64,17 @@ class Wish(db.Model):
     
     # TODO: Viser "i dag", dagen etter. Bør stå "i dag" og "1 dag siden"
     def time_since_creation(self):
-        today = datetime.utcnow()
-        difference_in_years = (today - self.date_created).days / 365
+        today = datetime.now(timezone.utc)
+        difference_in_years = (today - self.date_created.replace(tzinfo=timezone.utc)).days / 365
         difference = str(round(difference_in_years, 1)) + " år siden"
         if difference_in_years < 1:
-            difference_in_months = round((today - self.date_created).days / 30)
+            difference_in_months = round((today - self.date_created.replace(tzinfo=timezone.utc)).days / 30)
             if difference_in_months == 1:
                 difference = str(difference_in_months) + " måned siden"
             else:
                 difference = str(difference_in_months) + " måneder siden"
             if difference_in_months < 1:
-                difference_in_days = (today - self.date_created).days
+                difference_in_days = (today - self.date_created.replace(tzinfo=timezone.utc)).days
                 if difference_in_days == 1:
                     difference = str(difference_in_days) + " dag siden"
                 else:
@@ -87,17 +98,17 @@ class Wish(db.Model):
     def tojson(self):
         if self.user_id == current_user.id:
             claimed = 0  # Eget ønske
-        elif self.claimed_by_user_id == current_user.id:
+        elif self.is_claimed_by_user(current_user.id):
             claimed = 1  # Andres ønsket, jeg har claimet
-        elif self.claimed_by_user_id:
+        elif self.claims:
             claimed = 2  # Andres ønske, andre har claimet
         else:
             claimed = 3  # Andres ønske, ingen har claimet
 
-        date_now = datetime.utcnow()
-        num_months = (date_now.year - self.date_created.year) * 12 + (date_now.month - self.date_created.month)
+        date_now = datetime.now(timezone.utc)
+        num_months = (date_now.year - self.date_created.replace(tzinfo=timezone.utc).year) * 12 + (date_now.month - self.date_created.replace(tzinfo=timezone.utc).month)
         if not num_months:
-            time_ago = str(date_now - self.date_created)
+            time_ago = str(date_now - self.date_created.replace(tzinfo=timezone.utc))
         else:
             time_ago = str(num_months)
 
@@ -128,19 +139,19 @@ class ArchivedWish(db.Model):
     img_url: Mapped[Optional[str]] = mapped_column(db.String(255))
     desired: Mapped[bool] = mapped_column(db.Boolean, default=0)
     price: Mapped[Optional[int]] = mapped_column(db.Integer)
-    deleted_at: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow())
+    deleted_at: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class WishInGroup(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow())
+    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     wish_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("wish.id"))
     group_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("group.id"))
 
 
 class CoWishUser(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, ForeignKey("wish.id"), primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
+    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     co_wish_user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"), primary_key=True)
     
     user: Mapped["User"] = relationship("User")
@@ -151,18 +162,19 @@ class CoWishUser(db.Model):
 
 class GroupMember(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
+    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"))
     group_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("group.id"))
 
 
 class Group(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
+    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     title: Mapped[str] = mapped_column(db.String(30), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(db.String(255))
 
 
+# TODO: Remove all commented-out WishList code below — either implement it or clean it up to reduce noise.
 # class WishList(db.Model):
 #     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
 #     user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"))
@@ -181,7 +193,7 @@ class Group(db.Model):
 #
 #     def is_active(self):
 #         print(f"Title: {self.title}")
-#         now = datetime.utcnow()
+#         now = datetime.now(timezone.utc)
 #         return self.expires_at > now and self.archived_at > now if self.archived_at is not None else True
 #
 #     @staticmethod
@@ -191,7 +203,7 @@ class Group(db.Model):
 #             .where(
 #                 WishList.id.in_(list_ids),
 #                 WishList.user_id == current_user.id,
-#                 WishList.expires_at > datetime.utcnow(),
+#                 WishList.expires_at > datetime.now(timezone.utc),
 #                 WishList.archived_at.is_(None))
 #         ).scalars()
 #
@@ -209,7 +221,7 @@ class Group(db.Model):
 #                  .where(
 #                     WishList.user_id == user_id,
 #                     WishList.default_list  == 0,
-#                     WishList.expires_at > datetime.utcnow(),
+#                     WishList.expires_at > datetime.now(timezone.utc),
 #                     WishList.archived_at.is_(None)
 #                 ))
 #

@@ -13,7 +13,11 @@ $(document).ready(function() {
     $(".new-wish-button, .new-wish-button-label").click(addNewWish);
     //$(".user-lists-button").click(displayListsModal);
     $(".nav-checkbox").click(toggleHamburger);
-    $(".logout-button").click(function(){window.location.href='/api/logout'}); // FIXME: statisk link
+    $(".logout-button").click(function(){
+        ajaxCallCsrf('/api/logout', {csrf_token: $("#csrf_token").val()}).then(function(){
+            window.location.href='/';
+        });
+    });
     $(".sidebar-nav .order-by").click(order_users_by);
     $("#order_by").on("change", requestWishes);
     $(".toggle-password").click(togglePasswordVisibility);
@@ -25,6 +29,10 @@ $(document).ready(function() {
     // Event listener to handle back button and restore modal state
     $(window).on('popstate', function () {
         checkPathAndLoadWishContent();
+    });
+
+    $(window).resize(function(){
+        calculateColumnsAndAppendWishes(user_wishes)
     });
 });
 
@@ -118,9 +126,6 @@ function requestWishes() {
         else {
             calculateColumnsAndAppendWishes(user_wishes)
         }
-        $(window).resize(function(){
-            calculateColumnsAndAppendWishes(user_wishes)
-        })
     });
 }
 
@@ -184,7 +189,7 @@ function showModal(res) {
     $("#modal-content").html(res);
     $("#modal").css("display", "flex");
     $("#wishform").submit(submitWishForm);
-    $(document).on("click", function(event) {
+    $(document).off("click.modal").on("click.modal", function(event) {
         if (event.target === modal || $(event.target).closest(".close").length > 0) {
             hideModalAndUpdateUrl()
         }
@@ -247,7 +252,7 @@ function animateWishAdded(title, img) {
     let $modal = $(".modal-left");
     $modal.animate({maxWidth:"100%", width:"300px", paddingBottom: "20px", paddingTop: "50px"});
     let $h3 = $("<h3>").addClass("wish-item-title").css("padding-top", "10px").appendTo($modal);
-    $h3.append(title);
+    $h3.text(title);
     $modal.append('<p>lagt til din ønskeliste</p>');
     $(".modal-left img").attr("src", img)
     $(".modal-left p").css("padding-bottom", "30px");
@@ -304,7 +309,7 @@ function loadWishContent(id) {
 
 function addWishUser() {
     let co_wisher_list = [];
-    ajaxCallCsrf("/api/typeahead", { hello: "hello" }).then(function(users) {
+    ajaxCallCsrf("/api/typeahead", { csrf_token: $("#csrf_token").val(), searchbox: "" }).then(function(users) {
         $(".add-co-wisher-button-wrapper").hide();
         $(".typeahead__container").show();
         $(".js-typeahead").select()
@@ -316,7 +321,6 @@ function addWishUser() {
             hint: true,
             mustSelectItem: true,
             source: users,
-            debug: true,
             selector:{query:"input"},
             callback: {
                 onClick: function (node, a, item, event){
@@ -358,16 +362,13 @@ function addWishUser() {
 function deleteWishAndAppendWishes(wishes, idNumber) {
     idNumber = parseInt(idNumber)
     for (var key in wishes) {
-        console.log(wishes.hasOwnProperty(key))
-        console.log(wishes[key].id === idNumber)
         if (wishes.hasOwnProperty(key) && wishes[key].id === idNumber) {
             user_wishes.splice(key, 1);
             calculateColumnsAndAppendWishes(user_wishes);
-            console.log("found and deleted wish " + idNumber + " with key " + key)
+            return;
         }
     }
-    console.log("did not find key");
-    return null; // Return null if the wish with the specified idNumber is not found
+    return null;
 }
 
 
@@ -376,22 +377,22 @@ function handleAbortButtonClick(id) {
     if ($(".button.abort").data("close-all")) {
         deleteWishAndAppendWishes(user_wishes, id);
         hideModalAndUpdateUrl();
-        console.log("Beep-boop: " + id)
     }
 }
 
 function showActionConfirmation(res, id, callback) {
     $(".confirm-action.modal-content").html(res);
     $("#modal-confirm").css("display", "flex");
-    $(".button.send").click(callback);
-    $(".button.abort").click(
+    $(".button.send").off("click").click(callback);
+    $(".button.abort").off("click").click(
         function() {handleAbortButtonClick(id)}
         );
     var confirmModal = document.getElementById("modal-confirm");
-    window.addEventListener("click", function(event) {
+    $(confirmModal).off("click.confirm").on("click.confirm", function(event) {
         if (event.target == confirmModal) {
             handleAbortButtonClick(id)
-        }})
+        }
+    });
 }
 
 
@@ -603,7 +604,7 @@ function updateCredentialName(entry_id, label, callback) {
         entry_id: entry_id,
         label:label
     }, function () {
-        callback
+        callback();
     })
 }
 

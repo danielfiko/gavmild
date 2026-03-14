@@ -1,50 +1,46 @@
-import json
 import secrets
-from datetime import datetime
 from functools import wraps
 
+from flask import (
+    abort,
+    current_app,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
+from flask_login import current_user, login_required, login_user
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from webauthn import (
-    generate_registration_options,
-    verify_registration_response,
     generate_authentication_options,
+    generate_registration_options,
+    options_to_json,
     verify_authentication_response,
-    options_to_json
+    verify_registration_response,
+)
+from webauthn.helpers import (
+    parse_authentication_credential_json,
+    parse_registration_credential_json,
 )
 from webauthn.helpers.structs import (
     AuthenticatorSelectionCriteria,
-    UserVerificationRequirement,
-    RegistrationCredential,
-    AuthenticationCredential,
-    ResidentKeyRequirement,
     PublicKeyCredentialDescriptor,
-    PublicKeyCredentialType
+    PublicKeyCredentialType,
+    ResidentKeyRequirement,
+    UserVerificationRequirement,
 )
-from webauthn.helpers import parse_authentication_credential_json, parse_registration_credential_json
 
-from flask import Blueprint, request, current_app, render_template, flash, Response, session, redirect, url_for, abort
-from flask_login import login_required, current_user, login_user
-
-from app.auth.controllers import log_login_to_database
+from app import csrf, db
+from app.auth.controllers import log_user_login
 from app.auth.models import User
-from app.database.database import db
 from app.forms import CredentialForm
+from app.webauthn import webauthn_bp
 from app.webauthn.models import WebauthnCredential
-from app import csrf
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-import os
 
 
-APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TEMPLATE_PATH = os.path.join(APP_PATH, 'templates/webauthn')
-
-webauthn_bp = Blueprint("webauthn", __name__, url_prefix='/webauthn', template_folder=TEMPLATE_PATH)
-
-WEBAUTHN_RP_ID = os.environ["WEBAUTHN_RP_ID"]
-WEBAUTHN_ORIGIN = os.environ["WEBAUTHN_ORIGIN"]
-WEBAUTHN_RP_NAME = os.environ["WEBAUTHN_RP_NAME"]
-
-
-@webauthn_bp.route("/")
+@webauthn_bp.route("/") #TODO: Fjerne denne?
 @login_required
 @csrf.exempt
 def webauthn_index():
@@ -77,11 +73,10 @@ def generate_unique_user_handle(length=None):
     while True:
         unique_id = generate_random_opaque_bytes(length)
         if is_unique_user_handle(unique_id):
-            print("User handle:")
-            print(unique_id)
-            print(f"Length: {len(unique_id)}")
+            current_app.logger.debug(f"Generated User handle: {unique_id}")
+            current_app.logger.debug(f"Length: {len(unique_id)}")
             utf_encoded = unique_id.encode("utf-8")
-            print(f"UTF-8 encoded length: {len(utf_encoded)}")
+            current_app.logger.debug(f"UTF-8 encoded length: {len(utf_encoded)}")
             return unique_id
 
 
@@ -102,8 +97,8 @@ def handler_generate_registration_options():
     if user_id is None:
         user_id = generate_unique_user_handle(64)
     options = generate_registration_options(
-        rp_name=WEBAUTHN_RP_NAME, # A name for your "Relying Party" server
-        rp_id=WEBAUTHN_RP_ID, # Your domain on which WebAuthn is being used
+        rp_name=current_app.config.get("WEBAUTHN_RP_NAME", ""), # A name for your "Relying Party" server
+        rp_id=current_app.config.get("WEBAUTHN_RP_ID", ""), # Your domain on which WebAuthn is being used
         user_id=bytes.fromhex(user_id), #current_user.id), # An assigned random identifier
         user_name=current_user.email,# A user-visible hint of which account this credential belongs to
         exclude_credentials=exclude_credentials,
@@ -117,13 +112,8 @@ def handler_generate_registration_options():
     session["current_challenge"] = options.challenge
     session["rp_user_id"] = user_id
 
-    print(options)
-    print("hei")
-    options_json_string = options_to_json(options)
-    options_json = json.loads(options_json_string)
-    options_json["user"]["id"] = user_id
-    options_json_string = json.dumps(options_json)
-    return options_json_string
+    current_app.logger.debug(f"Generated registration options: {options}")
+    return options_to_json(options)
 
 
 @webauthn_bp.post("/registration-verification")
@@ -136,13 +126,13 @@ def handler_verify_registration_response():
         verification = verify_registration_response(
             credential=credential,
             expected_challenge=session["current_challenge"],
-            expected_rp_id=WEBAUTHN_RP_ID,
-            expected_origin=WEBAUTHN_ORIGIN,
+            expected_rp_id=current_app.config.get("WEBAUTHN_RP_ID", ""),
+            expected_origin=current_app.config.get("WEBAUTHN_ORIGIN", ""),
             require_user_verification=True,
         )
     except Exception as err:
-        return {"verified": False, "msg": str(err), "status": 400}
-
+        return jsonify({"verified": False, "msg": str(err)}), 400
+    
     new_credential = WebauthnCredential(
         id=verification.credential_id,
         public_key=verification.credential_public_key,
@@ -157,13 +147,12 @@ def handler_verify_registration_response():
     try:
         db.session.add(new_credential)
         db.session.commit()
-        print("added new credential")
+        current_app.logger.info(f"Added new WebAuthn credential for user {current_user.id}")
     except IntegrityError:
-        # The credential_id was already taken, which caused the
-        # commit to fail. Show a validation error.
-        return f"Credentials {verification.credential_id} is already registered."
+        db.session.rollback()
+        return jsonify({"verified": False, "msg": f"Credential {verification.credential_id} is already registered."}), 409
 
-    print("verified")
+    current_app.logger.info("Registration verification successful")
     entry_id = new_credential.entry_id
     form = CredentialForm()
     return render_template("name_security_key.html", entry_id=entry_id, form=form)
@@ -199,7 +188,7 @@ def handler_generate_authentication_options():
         #     break
 
     options = generate_authentication_options(
-        rp_id=WEBAUTHN_RP_ID,
+        rp_id=current_app.config.get("WEBAUTHN_RP_ID", ""),
         allow_credentials=allow_credentials,
         user_verification=UserVerificationRequirement.REQUIRED,
     )
@@ -235,23 +224,24 @@ def handler_verify_authentication_response():
         verification = verify_authentication_response(
             credential=credential,
             expected_challenge=session["current_challenge"],
-            expected_rp_id=WEBAUTHN_RP_ID,
-            expected_origin=WEBAUTHN_ORIGIN,
+            expected_rp_id=current_app.config.get("WEBAUTHN_RP_ID", ""),
+            expected_origin=current_app.config.get("WEBAUTHN_ORIGIN", ""),
             credential_public_key=user_credential.public_key,
             credential_current_sign_count=user_credential.sign_count,
             require_user_verification=True,
         )
     except Exception as err:
-        return {"verified": False, "msg": str(err), "status": 400}
+        return jsonify({"verified": False, "msg": str(err)}), 400
 
     # Update our credential's sign count to what the authenticator says it is now
     user_credential.sign_count = verification.new_sign_count
     db.session.commit()
 
+    session.pop("current_challenge", None)
     login_user(user_credential.user)
-    log_login_to_database(user_credential.rp_user_id, "security_key", user_credential.entry_id)
+    log_user_login(user_credential.rp_user_id, "security_key", user_credential.entry_id)
 
-    return {"verified": True, "redirect": url_for("wishlist.index")}
+    return jsonify({"verified": True, "redirect": url_for("wishlist.index")})
 
 
 def verify_credential_and_owner(view_function):
@@ -260,15 +250,16 @@ def verify_credential_and_owner(view_function):
         form = CredentialForm()
 
         if not form.validate_on_submit():
-            for error in form.errors:
-                print(error)
+            for field, errors in form.errors.items():
+                for error in errors:
+                    current_app.logger.warning(f"Form validation error in {field}: {error}")
             abort(400)
 
         entry_id = form.entry_id.data
         credential = db.session.get(WebauthnCredential, entry_id)
 
         if credential is None or not credential.current_user_is_owner():
-            print("Credential not found or user unauthorized")
+            current_app.logger.warning(f"Unauthorized credential access attempt. Credential ID: {entry_id}, User ID: {current_user.id if current_user.is_authenticated else 'Unauthenticated'}")
             abort(403)
 
         return view_function(credential, *args, **kwargs)
@@ -299,9 +290,9 @@ def handler_update_credential(credential):
 @verify_credential_and_owner
 def handler_delete_credential(credential):
     db.session.delete(credential)
-    # try:
-    db.session.commit()
-    return "success", 200
-
-#     except SQLAlchemyError:
-#         abort(500)
+    try:
+        db.session.commit()
+        return "success", 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        abort(500)

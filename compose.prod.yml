@@ -1,0 +1,15 @@
+services:
+  webapp:
+    build:
+      target: production
+    restart: always
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - backend
+      - nginx
+
+networks:
+  nginx:
+    external: true
+    name: www_nginx

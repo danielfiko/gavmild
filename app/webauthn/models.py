@@ -1,18 +1,21 @@
-from datetime import datetime
-from typing import Optional, List
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, List, Optional
 
 import pytz
+from flask import current_app
 from flask_login import current_user
-from sqlalchemy import ForeignKey, Column, desc
-# from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import mapped_column, Mapped, relationship
+from sqlalchemy import ForeignKey, desc
+from sqlalchemy.dialects.mysql import BLOB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from user_agents import parse
+from webauthn.helpers.structs import AuthenticatorTransport
 
+from app import db
 from app.auth.models import UserLogin
 from app.constants import FULL_NORWEGIAN_MONTHS
-from app.database.database import db
-from webauthn.helpers.structs import AuthenticatorTransport
-from sqlalchemy.dialects.mysql import BLOB
-from user_agents import parse
+
+if TYPE_CHECKING:
+    from app.auth.models import User, UserLogin
 
 
 class WebauthnCredential(db.Model):
@@ -24,7 +27,7 @@ class WebauthnCredential(db.Model):
     sign_count: Mapped[int] = mapped_column(db.Integer)
     transports: Mapped[Optional[List[AuthenticatorTransport]]] = mapped_column(db.String(255))
     label: Mapped[str] = mapped_column(db.String(90), default="Sikkerhetsnøkkel")
-    created_at: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="webauthn_credentials")
@@ -47,7 +50,7 @@ class WebauthnCredential(db.Model):
         results = db.session.scalar(db.select(UserLogin.login_time)
                                     .where(UserLogin.credential == self.entry_id)
                                     .order_by(desc(UserLogin.login_time)))
-        print(type(results))
+        current_app.logger.debug(f"Last used time type: {type(results)}")
         # return "ok"
         try:
             local_timestamp = results.replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Europe/Oslo'))
@@ -59,13 +62,9 @@ class WebauthnCredential(db.Model):
             return "-"
 
     def last_used_os(self):
-        results = db.session.execute(db.select(UserLogin.user_agent)
-                                     .where(UserLogin.credential == self.entry_id)
-                                     .order_by(desc(UserLogin.login_time))).first()
-
-        try:
-            user_agent = parse(results.user_agent)
-            operating_system = user_agent.os.family
-            return operating_system
-        except AttributeError:
+        user_agent_string = db.session.scalar(db.select(UserLogin.user_agent)
+                                              .where(UserLogin.credential == self.entry_id)
+                                              .order_by(desc(UserLogin.login_time)))
+        if user_agent_string is None:
             return None
+        return parse(user_agent_string).os.family

@@ -51,18 +51,15 @@ async function handleRegistration() {
     });
 
     // Wait for the results of verification
-    const htmlContent = await verificationResp.text();
-
-    // Show UI appropriate for the `verified` status
-    if (verificationResp.ok) { // verificationJSON && verificationJSON.verified) {
-        // elemSuccess.innerHTML = 'Sikkerhetsnøkkelen ble lagt til!';
-        // successContainer.show();
+    // Check HTTP status rather than consuming body twice
+    if (verificationResp.ok) {
+        const htmlContent = await verificationResp.text();
         $(".add-key-container").html(htmlContent)
     } else {
         const verificationJSON = await verificationResp.json();
-        elemError.innerHTML = `Oisann, noe gikk galt! Feilmelding: <pre>${JSON.stringify(
-            verificationJSON,
-        )}</pre>`;
+        elemError.innerText = (verificationJSON && verificationJSON.msg)
+            ? verificationJSON.msg
+            : 'Oisann, noe gikk galt! Prøv igjen.';
         errorContainer.show();
     }
 }
@@ -120,8 +117,8 @@ async function handleLogin() {
         }
     // elemSuccess.innerHTML = 'Success!';
     } else {
-    elemError.innerHTML = `Oh no, something went wrong! Response: <pre>${JSON.stringify(
-        verificationJSON,
-    )}</pre>`;
+        elemError.innerText = (verificationJSON && verificationJSON.msg)
+            ? verificationJSON.msg
+            : 'Oh no, something went wrong!';
     }
 }

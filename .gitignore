@@ -16,7 +16,7 @@ build/
 *.bak
 
 secrets/
-notater.txt
-app/static/js/webauthn_original.js
+scratch/
+.env
 webauthn_original.js
 .idea/

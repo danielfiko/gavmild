@@ -1,18 +1,18 @@
-import json
-from datetime import datetime, timedelta
-from app.auth.models import User
+# TODO: This file is 300+ lines. Consider splitting into separate modules: wish CRUD, list management, prisjakt integration, JSON serialization.
+import os
+import logging
+
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, abort, Response
-from flask_login import login_required, current_user
-# from app.blueprints.auth.models import User
-from sqlalchemy import func, Integer, case
-from app import api_login_required
-from app.forms import WishForm, AjaxForm, WishListForm
-from app.database.database import db
-from app.wishlist.models import Wish, CoWishUser, ClaimedWish, ArchivedWish  # , WishList, wishes_in_list
-from sqlalchemy import or_, and_, exc, asc, desc, text
+from flask_login import current_user
+from sqlalchemy import or_, desc
+from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 from urllib.parse import urlsplit
-import os
+
+from app import db, api_login_required
+from app.forms import WishForm, AjaxForm, WishListForm
+from app.auth.models import User
+from app.wishlist.models import Wish, CoWishUser, ClaimedWish, ArchivedWish  # , WishList, wishes_in_list
 
 APP_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATE_PATH = os.path.join(APP_PATH, 'templates/wishlist')
@@ -30,32 +30,27 @@ def typeahead():
     if request.method == "POST":
         if searchform.validate():
             searchbox = searchform.searchbox.data
-            result = User.query.filter(User.username.like(searchbox + "%")).limit(5).all()
-            jsonstring = jsonify([e.tojson() for e in result])
-            return jsonstring
-        elif request.form["hello"]:
-            print("hello")
-            result = User.query.filter(User.username.like("%")).all()
-            jsonstring = jsonify([e.tojson() for e in result])
-            return jsonstring
-    else:
-        return "MeRkElIgE gReIeR", 500
-
+            result = db.session.execute(
+                db.select(User).where(
+                    User.username.like(searchbox + "%")
+                ).limit(5)
+            ).scalars().all()
+            return jsonify([e.tojson() for e in result])
+    return jsonify([]), 200
 
 @api_bp.post("/add")
 @api_login_required
 def add():
-    print(datetime.utcnow())
     form = WishForm()
     if form.validate():
-        if len(form.wish_img_url.data) < 5:
+        if not form.wish_img_url.data or len(form.wish_img_url.data) < 5:
             form.wish_img_url.data = url_for('static', filename='gift-default.png')
         try:
             new_wish = Wish(user_id=current_user.id, title=form.wish_title.data,
                             description=form.wish_description.data, quantity=form.quantity.data, url=form.wish_url.data,
                             img_url=form.wish_img_url.data, desired=form.desired.data, price=form.price.data)
 
-            request_list_ids = request.form.getlist("lists[]", type=int)
+            # request_list_ids = request.form.getlist("lists[]", type=int)
             active_lists = []  # WishList.get_active_lists_from_ids(request_list_ids)
 
             for wish_list in active_lists:
@@ -73,11 +68,12 @@ def add():
                 flash("Det oppstod en feil, gi Daniel beskjed")
                 return "Det oppstod en feil ved oppretting av ønsket", 500
 
-            # FIXME: Kun ta i mot liste (tar i mot string nå og lagrer komma i tabellen)
             if form.co_wisher.data:
-                for user_id in form.co_wisher.data:
-                    new_co_wisher = CoWishUser(id=new_wish.id, co_wish_user_id=user_id)
-                    db.session.add(new_co_wisher)
+                for co_user_id in form.co_wisher.data.split(","):
+                    co_user_id = co_user_id.strip()
+                    if co_user_id:
+                        new_co_wisher = CoWishUser(id=new_wish.id, co_wish_user_id=co_user_id)
+                        db.session.add(new_co_wisher)
                 db.session.commit()
 
             return jsonify({'success': True}), 200, {'ContentType': 'application/json'}
@@ -91,7 +87,7 @@ def update():
     wishform = WishForm()
 
     if wishform.validate() and wishform.edit_id.data:
-        wish = Wish.query.get(wishform.edit_id.data)
+        wish = db.session.get(Wish, wishform.edit_id.data)
 
         if wish.user_id == current_user.id:
             if wishform.wish_url.data != wish.url and wish.reported_link:
@@ -103,28 +99,30 @@ def update():
             wish.url = wishform.wish_url.data
             wish.price = wishform.price.data
 
-            if len(wish.img_url) < 5:
+            if not wish.img_url or len(wish.img_url) < 5:
                 wish.img_url = url_for('static', filename='gift-default.png')
-
             else:
                 wish.img_url = wishform.wish_img_url.data
             wish.desired = 1 if wishform.desired.data else 0
-            form_co_wishers = wishform.co_wisher.data.split(",")
 
-            if form_co_wishers[0]:
-                for user_id in form_co_wishers:
-                    new_co_wisher = CoWishUser(id=wishform.edit_id.data, co_wish_user_id=user_id)
-
-                    if new_co_wisher:
-                        db.session.add(new_co_wisher)
+            db.session.execute(
+                db.delete(CoWishUser).where(CoWishUser.id == wish.id)
+            )
+            form_co_wishers = wishform.co_wisher.data.split(",") if wishform.co_wisher.data else []
+            for co_user_id in form_co_wishers:
+                co_user_id = co_user_id.strip()
+                if co_user_id:
+                    db.session.add(CoWishUser(id=wishform.edit_id.data, co_wish_user_id=co_user_id))
 
             try:
                 db.session.commit()
-
             except Exception as error:
-                print(str(error.orig) + " for parameters" + str(error.params))
+                db.session.rollback()
+                logging.error(f"Error updating wish {wish.id}: {error}")
+                return "Det oppstod en feil med oppdatering av ønsket", 500
 
-            return redirect(request.referrer)
+            referrer = request.referrer
+            return redirect(referrer) if referrer else redirect(url_for('wishlist.index'))
     return "Noe gikk galt med oppdatering av ønske", 400
 
 
@@ -141,10 +139,17 @@ def delete_prompt():
 @api_bp.delete("/delete")
 @api_login_required
 def delete():
-    wish_id = int(request.values.get("id"))
-    if wish_id:
-        wish = db.session.get(Wish, wish_id)
-
+    wish_id = request.values.get("id")
+    if not wish_id:
+        return render_template(
+            "/wishlist/modal/action_confirmation.html",
+            title="Oisann",
+            message="Det oppstod en feil, prøv igjen kanskje?",
+            buttons="close")
+    wish = db.session.get(Wish, int(wish_id))
+    if wish is None:
+        abort(404)
+    if True:
         if wish.user_id == current_user.id:
             archived_wish = ArchivedWish(date_created=wish.date_created, user_id=wish.user_id, title=wish.title,
                                          description=wish.description, quantity=wish.quantity, url=wish.url,
@@ -162,8 +167,13 @@ def delete():
                     close_all=True)
 
             except SQLAlchemyError as e:
-                pass  # return f"Noe gikk galt - kunne ikke slette ønsket: {str(e)}"
-
+                db.session.rollback()
+                logging.error(f"Error deleting wish: {e}")
+                return render_template(
+                    "/wishlist/modal/action_confirmation.html",
+                    title="Oisann",
+                    message="Kunne ikke slette ønsket akkurat nå. Prøv igjen senere.",
+                    buttons="close")
         else:
             return render_template(
                 "/wishlist/modal/action_confirmation.html",
@@ -183,35 +193,50 @@ def delete():
 def claim():
     form = AjaxForm()
     if form.validate():
-        wish = Wish.query.get(form.claimed_wish_id.data)
-        if not wish.claims and wish.user_id != current_user.id:  # Sjekker ikke om bruker har lov til å ta valgte ønske
+        wish = db.session.get(Wish, form.claimed_wish_id.data)
+        if wish is None:
+            abort(404)
+        if not wish.claims and wish.user_id != current_user.id:
             claim = ClaimedWish(wish_id=form.claimed_wish_id.data, user_id=current_user.id, quantity=1)
             db.session.add(claim)
-            db.session.commit()
         elif wish.is_claimed_by_user(current_user.id):
-            ClaimedWish.query.filter(ClaimedWish.user_id == current_user.id, ClaimedWish.wish_id == wish.id).delete()
-
+            db.session.execute(
+                db.delete(ClaimedWish).where(
+                    (ClaimedWish.user_id == current_user.id) &
+                    (ClaimedWish.wish_id == wish.id)
+                )
+            )
         else:
             return "Feil ved claiming", 400
 
         try:
             db.session.commit()
-
-        except:
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logging.error(f"Error when claiming wish: {e}")
             return "Det oppstod en feil med å ta ønsket.", 500
 
-        return redirect(request.referrer)
+        referrer = request.referrer
+        return redirect(referrer) if referrer else redirect(url_for('wishlist.index'))
 
 
 @api_bp.post("/wish/all")
 @api_login_required
 def wish_mobile():
-    wishes = Wish.query.filter(Wish.user_id != current_user.id) \
-        .order_by(desc(Wish.date_created), desc(Wish.desired)).limit(30).all()
+    wishes = db.session.execute(
+        db.select(Wish).options(
+            joinedload(Wish.user),
+            selectinload(Wish.claims),
+            selectinload(Wish.co_wishers).joinedload(CoWishUser.user)
+        ).where(Wish.user_id != current_user.id)
+        .order_by(desc(Wish.date_created), desc(Wish.desired))
+        .limit(30)
+    ).scalars().all()
     return wishes_to_json(wishes)
 
 
 @api_bp.get("/wish/all2")
+@api_login_required
 def wish_mobile2():
     wishes = db.session.execute(
         db.select(Wish)
@@ -232,8 +257,13 @@ def wish_mobile2():
 @api_login_required
 def claimed():
     form = AjaxForm()
+    wishes = []
     if form.validate():
-        wishes = Wish.query.filter(Wish.claims.any(ClaimedWish.user_id == current_user.id)).all()
+        wishes = db.session.execute(db.select(Wish).options(
+            joinedload(Wish.user),
+            selectinload(Wish.claims),
+            selectinload(Wish.co_wishers).joinedload(CoWishUser.user)
+        ).where(Wish.claims.any(ClaimedWish.user_id == current_user.id))).scalars().all()
     return wishes_to_json(wishes)
 
 
@@ -241,25 +271,28 @@ def claimed():
 # TODO: Ha separat "ønsker meg mest" for co wishere
 # TODO: Bestem redigeringsrettigheter/sletterettigheter for co wisher
 @api_bp.post("/wish/user/<int:user_id>")
+@api_login_required
 def return_user_wishes(user_id):
     form = AjaxForm()
-    if form.validate():
-        wishes = ""
-        if request.values.get("order_by") == "price_high_low":
-            wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
-                                           .any(CoWishUser.co_wish_user_id == user_id))
-                                       ).order_by(Wish.price.desc()).all()
+    if not form.validate():
+        return jsonify({"error": "Invalid request"}), 400
 
-        elif request.values.get("order_by") == "price_low_high":
-            wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
-                                           .any(CoWishUser.co_wish_user_id == user_id))
-                                       ).order_by(Wish.price.asc()).all()
+    order_by = request.values.get("order_by", "")
 
-        else:
-            wishes = Wish.query.filter(or_(Wish.user_id == user_id, Wish.co_wishers
-                                           .any(CoWishUser.co_wish_user_id == user_id))
-                                       ).order_by(Wish.desired.desc(), Wish.date_created.desc()).all()
-        return wishes_to_json(wishes)
+    order_map = {
+        "price_high_low": [Wish.price.desc()],
+        "price_low_high": [Wish.price.asc()],
+    }
+    ordering = order_map.get(order_by) or [Wish.desired.desc(), Wish.date_created.desc()]
+
+    base_filter = or_(
+        Wish.user_id == user_id,
+        Wish.co_wishers.any(CoWishUser.co_wish_user_id == user_id)
+    )
+    
+    wishes = Wish.query.filter(base_filter).order_by(*ordering).all()
+
+    return wishes_to_json(wishes)
 
 
 @api_bp.post("/wish/new")
@@ -279,10 +312,10 @@ def new_wish():
 @api_bp.get("/wish/<int:wish_id>")
 @api_login_required
 def return_modal(wish_id):
-    form = AjaxForm()
     claim_form = AjaxForm()
-    # if form.validate():
-    wish = Wish.query.filter(Wish.id == wish_id).first()
+    wish = db.session.get(Wish, wish_id)
+    if wish is None:
+        abort(404)
 
     # Returnere redigerbart ønske
     if wish.user_id == current_user.id:
@@ -303,7 +336,7 @@ def return_modal(wish_id):
 @api_bp.post("/cowisher")
 @api_login_required
 def cowisher():
-    user_id = User.query.get(request.values.get("user_id"))
+    user_id = db.session.get(User, request.values.get("user_id"))
     if user_id:
         return jsonify(success=True)
     else:
@@ -311,12 +344,14 @@ def cowisher():
 
 
 def wishes_to_json(wishes):
+    # TODO: N+1 query problem — each wish accesses whs.user.first_name, whs.get_co_wishers(), etc. via lazy loading.
+    #   Use joinedload/selectinload in the calling queries to eager-load relationships.
     wishes_json_string = []
-    co_wishers = []
+    show_claims = current_user.preferences.show_claims if current_user.preferences else True
     for whs in wishes:
         wishes_json_string.append({
             "id": whs.id,
-            "claimed": True if whs.claims and whs.user_id != current_user.id and current_user.preferences.show_claims else False,
+            "claimed": True if whs.claims and whs.user_id != current_user.id and show_claims else False,
             "img_url": whs.img_url,
             "first_name": whs.user.first_name,
             "co_wisher": whs.get_co_wishers(),
@@ -333,34 +368,37 @@ def wishes_to_json(wishes):
         return jsonify({}), 200, {'ContentType': 'application/json'}
 
 
-from .prisjakt import make_request
-
-
 @api_bp.post("/prisjakt")
 @api_login_required
 def prisjakt():
-    json_data = request.get_json()
+    json_data = request.get_json() or {}
     product_code = json_data.get('product_code')
+    if not product_code:
+        abort(400)
 
+    from .prisjakt import make_request
     response = make_request(product_code)
-    response_data = response.json()
 
-    if response.status_code == 200:
+    if response.status_code == 404:
+        abort(404)
+
+    if response.status_code != 200:
+        return Response(response.text, status=500)
+
+    try:
+        response_data = response.json()
         product_name = response_data["items"][0]["name"]
         product_price = response_data["items"][0]["price"]["regular"]
         product_image = response_data["items"][0]["media"]["product_images"]["first"]["800"]
-        return jsonify({
-            "product_name": product_name,
-            "product_price": product_price,
-            "product_image": product_image
-        })
-
-    elif response.status_code == 404:
+    except (KeyError, IndexError, ValueError) as e:
+        logging.error(f"Unexpected Prisjakt response structure: {e}")
         abort(404)
 
-    else:
-        error_message = response.text
-        return Response(error_message, status=500)
+    return jsonify({
+        "product_name": product_name,
+        "product_price": product_price,
+        "product_image": product_image
+    })
 
 
 @api_bp.get("/wish/lists")
@@ -373,7 +411,7 @@ def get_lists_modal_content():
                            lists=lists, form=form, title_placeholder=title_placeholder)
 
 
-@api_bp.get("/wish-list/<int:list_id>")
+""" @api_bp.get("/wish-list/<int:list_id>")
 @api_login_required
 def get_list_details(list_id):
     abort(500)
@@ -389,7 +427,7 @@ def get_list_details(list_id):
         "title": list_obj.title,
         "expires_at": list_obj.expires_at.strftime("%Y-%m-%d"),
         "private": bool(list_obj.private)
-    }
+    } """
 
 
 @api_bp.post("/wish-list/update")

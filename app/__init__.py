@@ -1,28 +1,47 @@
 import os
-from flask import Flask, abort
-from flask_login import current_user
-from flask_wtf.csrf import CSRFProtect
-from threading import Thread
 from functools import wraps
 
+from flask import Flask, abort
+from flask_login import current_user,LoginManager
+from flask_wtf.csrf import CSRFProtect
+from flask_bcrypt import Bcrypt
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
+
+
+class Base(DeclarativeBase):
+  pass
+
+db = SQLAlchemy(model_class=Base)
+login_manager = LoginManager()
+bcrypt = Bcrypt()
 csrf = CSRFProtect()
 
 
 def create_app():
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_object('app.config.Config')
+    config_name = os.getenv("FLASK_ENV", "development")
+    config_map = {
+        "production": "app.config.ProductionConfig",
+        "development": "app.config.DevelopmentConfig",
+        "testing": "app.config.TestingConfig",
+    }
+    app.config.from_object(config_map.get(config_name, "app.config.DevelopmentConfig"))
+    
+    login_manager.login_view = "auth.login"
+    login_manager.init_app(app)
     csrf.init_app(app)
-
-    from app.database.database import db
+    bcrypt.init_app(app)
+    from app import db
     db.init_app(app)
 
     # Blueprint import
-    from app.auth.controllers import auth_bp
-    from app.wishlist.controllers import wishlist_bp
+    from app.auth import auth_bp
+    from app.wishlist import wishlist_bp
     from app.wishlist.api import api_bp
-    from app.telegram.controllers import telegram_bp
-    from app.webauthn.controllers import webauthn_bp
+    from app.telegram import telegram_bp
+    from app.webauthn import webauthn_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(wishlist_bp)
@@ -31,23 +50,12 @@ def create_app():
     app.register_blueprint(webauthn_bp)
 
     with app.app_context():
-        db.create_all()
-    
-    from app.auth import controllers as auth
-    # from app.telegram.controllers import run_bot
-    auth.init_auth(app)
-    # Thread(target=run_bot).start()
+        db.create_all()  # TODO: Replace db.create_all() with Alembic/Flask-Migrate for proper database migrations
+
+    from app.telegram.bot import start_bot
+    start_bot(app)
 
     return app
-
-
-def read_secret(secret_name):
-    try:
-        with open(f"/run/secrets/{secret_name}", "r") as secret_file:
-            return secret_file.read().strip()
-    except IOError:
-        print(f"Secret '{secret_name}' not found.")
-
 
 def api_login_required(view_function):
     @wraps(view_function)

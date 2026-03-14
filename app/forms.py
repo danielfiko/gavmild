@@ -6,13 +6,16 @@ from wtforms import StringField, PasswordField, EmailField, DateField, SubmitFie
     HiddenField, SelectField, IntegerField, URLField, FieldList, RadioField
 from wtforms.validators import InputRequired, Length, ValidationError, Email, NumberRange, Optional
 
-from app.auth.models import User
+from app import db
+from app.auth.models import User  # TODO: Direct import of User model creates tight coupling between forms and models. Consider moving DB-dependent validation to the view layer.
 
 
 def validate_username(username):
-    existing_user_username = User.query.filter_by(username=username.data).first()
+    existing_user = db.session.execute(
+        db.select(User).where(User.username == username.data)
+    ).scalar_one_or_none()
 
-    if existing_user_username:
+    if existing_user:
         raise ValidationError("Brukernavet finnes fra før. Velg et annet brukernavn")
 
 
@@ -111,7 +114,7 @@ class TelegramConnectForm(FlaskForm):
 
 
 class APIform(FlaskForm):
-    pass
+    pass #TODO: Implementer
 
 
 class CredentialForm(FlaskForm):
