@@ -31,8 +31,17 @@ $(document).ready(function() {
         checkPathAndLoadWishContent();
     });
 
+    var lastWindowWidth = $(window).width();
+    var resizeTimer;
     $(window).resize(function(){
-        calculateColumnsAndAppendWishes(user_wishes)
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function(){
+            var currentWidth = $(window).width();
+            if (currentWidth !== lastWindowWidth) {
+                lastWindowWidth = currentWidth;
+                calculateColumnsAndAppendWishes(user_wishes);
+            }
+        }, 150);
     });
 });
 
