@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+<h1>Koble sammen Gavmild- og Telegram-konto</h1>
+<form id="pw-form">
+    {% if form %}{{ form.hidden_tag() }}{% endif %}
+</form>
+{% if e %}
+<p>Det oppstod en feil: {{ e }}</p>
+{% elif already_connected %}
+<p>Telegram-kontoen din er allerede koblet til Gavmild. Du trenger ikke gjøre noe mer.</p>
+{% elif bot_url %}
+<p><a href="{{ bot_url }}">Trykk her for å åpne en samtale med Gavmild bot i Telegram</a>, trykk deretter på "Start" i appen.</p>
+{% endif %}
+</body>
+</html>
+
+

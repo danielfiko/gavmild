@@ -2,19 +2,14 @@ services:
   webapp:
     build:
       target: production
+    restart: always
     environment:
-      - WEBAUTHN_RP_ID=gavmild.dfiko.no
-      - WEBAUTHN_ORIGIN=https://gavmild.dfiko.no
-      - WEBAUTHN_RP_NAME=Gavmild
+      - FLASK_ENV=production
     networks:
       - backend
       - nginx
 
-  telegram:
-    networks:
-      - backend
-      - nginx
-      
 networks:
   nginx:
-    external: false
+    external: true
+    name: www_nginx
