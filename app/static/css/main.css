@@ -28,7 +28,6 @@ img {
     margin: 0 auto;
     padding: 0;
     width: 100%;
-    height: 100vh;
     max-width: 1200px;
     display: grid;
     align-content: stretch;
@@ -123,6 +122,7 @@ header {
     place-self: stretch;
     grid-area: sidebar-nav;
     padding: 0 1.25em 0 1.25em;
+    padding-bottom: calc(12px + 26px + 26px + env(safe-area-inset-bottom));
 }
 .sidebar-nav button {
     max-width: 80%;
@@ -242,6 +242,8 @@ main {
 .wishes-list {
     display:flex;
     gap: 10px;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .wish-column {
@@ -250,6 +252,7 @@ main {
     flex-direction: column;
     gap: 25px;
     padding-bottom: 55px;
+    min-width: 0;
 }
 
 .wish-item {
@@ -384,11 +387,11 @@ input.chk-btn:checked + label {
     grid-area: footer;
     display: flex;
     justify-content: space-between;
+    width: 100dvw;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
-    bottom: env(safe-area-inset-bottom);
     flex-direction: row;
     align-items: center;
     background-color:#9d4045;
