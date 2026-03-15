@@ -30,6 +30,7 @@ class User(db.Model, UserMixin):
     first_name: Mapped[str] = mapped_column(db.String(50), nullable=False)
     last_name: Mapped[str] = mapped_column(db.String(50))
     force_pw_change: Mapped[int] = mapped_column(db.Integer, default=0)
+    is_admin: Mapped[bool] = mapped_column(db.Boolean, default=False)
 
     # Relationships
     wishes: Mapped[List["Wish"]] = relationship(back_populates="user")

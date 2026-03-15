@@ -1,0 +1,48 @@
+{% extends "layouts/logged_in_content.html" %}
+{% block content_header %}
+{{ super() }}
+<div class="breadcrumb">
+    <a href="{{ url_for('admin.index') }}"><i class="fa-solid fa-arrow-left"></i><span>Adminpanel</span></a>
+</div>
+{% endblock %}
+{% block main_content %}
+<div class="dashboard-element">
+    <div>
+        <div class="dashboard-element-description">
+            <h2><i class="fa-solid fa-users"></i> Brukere</h2>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Navn</th>
+                <th>Brukernavn</th>
+                <th>E-post</th>
+                <th>Admin</th>
+                <th>Telegram</th>
+                <th>Nøkler</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in admin_users %}
+            <tr>
+                <td>{{ user.first_name }} {{ user.last_name }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{% if user.is_admin %}<span class="label-green">Admin</span>{% endif %}</td>
+                <td>{% if user.chat_user and user.chat_user.user_id %}
+                    <span class="label-green">Koblet</span>
+                {% else %}
+                    –
+                {% endif %}</td>
+                <td>{{ user.webauthn_credentials | length }}</td>
+                <td><a href="{{ url_for('admin.user_detail', user_id=user.id) }}">Detaljer <i class="fa-solid fa-caret-right"></i></a></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">Ingen brukere funnet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

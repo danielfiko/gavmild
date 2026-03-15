@@ -1,0 +1,141 @@
+{% extends "layouts/logged_in_content.html" %}
+{% block content_header %}
+{{ super() }}
+<div class="breadcrumb">
+    <a href="{{ url_for('admin.users') }}"><i class="fa-solid fa-arrow-left"></i><span>Brukere</span></a>
+</div>
+{% endblock %}
+{% block main_content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        {% if category == "reset_url" %}
+        <div class="message-box message-box-info">
+            <strong>Tilbakestillingslenke (gyldig i 15 min):</strong><br>
+            <code style="word-break:break-all;">{{ message }}</code>
+        </div>
+        {% elif category == "success" %}
+        <div class="message-box message-box-success">{{ message }}</div>
+        {% else %}
+        <div class="message-box message-box-error">{{ message }}</div>
+        {% endif %}
+    {% endfor %}
+{% endwith %}
+
+<div class="dashboard-element" style="margin-bottom:1.5rem;">
+    <div>
+        <div class="dashboard-element-description">
+            <h2>{{ admin_user.first_name }} {{ admin_user.last_name }}</h2>
+            <p>Opprettet: {{ admin_user.date_created.strftime('%d.%m.%Y') }}</p>
+        </div>
+        <div>
+            {% if admin_user.is_admin %}<span class="label-green">Admin</span>{% endif %}
+            {% if admin_user.force_pw_change %}<span class="label-yellow">Må bytte passord</span>{% endif %}
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.user_update', user_id=admin_user.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <table>
+            <tbody>
+                <tr>
+                    <td><label for="first_name">Fornavn</label></td>
+                    <td><input type="text" id="first_name" name="first_name" value="{{ admin_user.first_name }}" required></td>
+                </tr>
+                <tr>
+                    <td><label for="last_name">Etternavn</label></td>
+                    <td><input type="text" id="last_name" name="last_name" value="{{ admin_user.last_name or '' }}"></td>
+                </tr>
+                <tr>
+                    <td><label for="email">E-post</label></td>
+                    <td><input type="email" id="email" name="email" value="{{ admin_user.email }}" required></td>
+                </tr>
+                <tr>
+                    <td><label for="is_admin">Admin</label></td>
+                    <td><input type="checkbox" id="is_admin" name="is_admin" {{ 'checked' if admin_user.is_admin }}></td>
+                </tr>
+                <tr>
+                    <td><label for="force_pw_change">Tving passordbytte</label></td>
+                    <td><input type="checkbox" id="force_pw_change" name="force_pw_change" {{ 'checked' if admin_user.force_pw_change }}></td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="padding:1rem 2rem;">
+            <button type="submit" class="blue-button" style="padding:0.5rem 1rem;border:none;cursor:pointer;border-radius:4px;">Lagre endringer</button>
+        </div>
+    </form>
+</div>
+
+<div class="dashboard-element" style="margin-bottom:1.5rem;">
+    <div>
+        <div class="dashboard-element-description">
+            <h2>Tilbakestill passord</h2>
+            <p>Generer en engangslenkle brukeren kan bruke for å sette nytt passord. Lenken er gyldig i 15 minutter.</p>
+        </div>
+        <div>
+            <form method="POST" action="{{ url_for('admin.user_reset_password', user_id=admin_user.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="blue-button" style="padding:0.5rem 1rem;border:none;cursor:pointer;border-radius:4px;">Generer lenke</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if admin_user.webauthn_credentials %}
+<div class="dashboard-element" style="margin-bottom:1.5rem;">
+    <div>
+        <div class="dashboard-element-description">
+            <h2>Sikkerhetsnøkler</h2>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Navn</th>
+                <th>Lagt til</th>
+                <th>Sist brukt</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cred in admin_user.webauthn_credentials %}
+            <tr>
+                <td>{{ cred.label or 'Ukjent' }}</td>
+                <td>{{ cred.created_at_string() }}</td>
+                <td>{{ cred.last_used_time() }}{% if cred.last_used_os() %} fra {{ cred.last_used_os() }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if admin_user.logins %}
+<div class="dashboard-element">
+    <div>
+        <div class="dashboard-element-description">
+            <h2>Siste innlogginger</h2>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Tidspunkt</th>
+                <th>Metode</th>
+                <th>IP-adresse</th>
+                <th>Enhet</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for login in admin_user.logins | sort(attribute='login_time', reverse=True) | list %}
+            <tr>
+                <td>{{ login.login_time.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td>{{ 'Sikkerhetsnøkkel' if login.login_type == 'security_key' else 'Passord' }}</td>
+                <td>{{ login.ip_address }}</td>
+                <td>{{ login.user_agent[:60] }}{% if login.user_agent | length > 60 %}…{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

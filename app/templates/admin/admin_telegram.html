@@ -1,0 +1,60 @@
+{% extends "layouts/logged_in_content.html" %}
+{% block content_header %}
+{{ super() }}
+<div class="breadcrumb">
+    <a href="{{ url_for('admin.index') }}"><i class="fa-solid fa-arrow-left"></i><span>Adminpanel</span></a>
+</div>
+{% endblock %}
+{% block main_content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="message-box {{ 'message-box-error' if category == 'error' else 'message-box-success' }}">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
+
+<div class="dashboard-element">
+    <div>
+        <div class="dashboard-element-description">
+            <h2><i class="fa-brands fa-telegram"></i> Telegram-brukere</h2>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Chat-ID</th>
+                <th>Telegram-brukernavn</th>
+                <th>Koblet til bruker</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tg in tg_users %}
+            <tr>
+                <td>{{ tg.id }}</td>
+                <td>{{ tg.chat_username or '–' }}</td>
+                <td>
+                    {% if tg.user %}
+                        <a href="{{ url_for('admin.user_detail', user_id=tg.user.id) }}">
+                            {{ tg.user.first_name }} {{ tg.user.last_name }} ({{ tg.user.username }})
+                        </a>
+                    {% else %}
+                        <span style="color:#888;">Ikke koblet</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if tg.user %}
+                    <form method="POST" action="{{ url_for('admin.telegram_unlink', telegram_id=tg.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="button-red" style="padding:0.3rem 0.7rem;border:none;cursor:pointer;border-radius:4px;font-size:0.85rem;">Koble fra</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4">Ingen Telegram-brukere funnet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

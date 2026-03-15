@@ -32,10 +32,23 @@ def openai_api(flask_app, prompt, system_message=sys_msg, temp=1.0):
 def admin_only(view_function):
     @wraps(view_function)
     async def decorated_function(*args, **kwargs):
+        '''Checks if the Telegram user is an admin before allowing access to the command.
+        Admin status is determined by checking if the Telegram user is linked to a Gavmild user with is_admin=True.'''
         update = args[0]
         context = args[1]
         flask_app = context.bot_data["flask_app"]
-        if str(update.message.from_user.id) != flask_app.config["TELEGRAM_ADMIN_ID"]:
+        telegram_user_id = update.message.from_user.id
+
+        from app.telegram.models import TelegramUser as _TGUser
+        with flask_app.app_context():
+            tg_user = flask_app.extensions["sqlalchemy"].session.get(_TGUser, telegram_user_id)
+            admin_by_role = (
+                tg_user is not None
+                and tg_user.user is not None
+                and tg_user.user.is_admin
+            )
+
+        if not (admin_by_role):
             await context.bot.send_chat_action(
                 chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING
             )
@@ -45,7 +58,7 @@ def admin_only(view_function):
             )
             response = openai_api(flask_app, content)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
-            logging.warning(f"Unauthorized access to Telegram handler attempt by user {update.message.from_user.id} ({update.message.from_user.username})")
+            logging.warning(f"Unauthorized Telegram access attempt by user {telegram_user_id} ({update.message.from_user.username})")
             return
         return await view_function(*args, **kwargs)
 

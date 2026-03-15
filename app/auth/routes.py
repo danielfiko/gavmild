@@ -12,6 +12,7 @@ from app.auth.models import User
 from app.auth.decorators import token_required
 from app.wishlist.controllers import get_users_ordered_by_settings, logged_in_content #TODO: Denne må i et felles område
 from app.auth.controllers import generate_unique_code, hash_password_to_string, register_user, log_user_login, handle_valid_token, authenticate_user
+from app.admin.decorators import admin_required
 
 
 @auth_bp.route("/dashboard")
@@ -158,9 +159,8 @@ def set_order_by():
 
 @auth_bp.get("/auth/reset-password")
 @login_required
+@admin_required
 def forgot_password():
-    if current_user.id != 1:  # TODO: SECURITY - Admin check by hardcoded user ID is fragile. Use a role/permission system or config flag instead.
-        abort(401)
     users = db.session.execute(db.select(User.first_name, User.id)).mappings()
 
     return render_template("reset-password.html", users=users)
@@ -168,10 +168,8 @@ def forgot_password():
 
 @auth_bp.post("/api/reset-password/")
 @login_required
-def reset_password():  # TODO: Typo in function name — should be "reset_password"
-    if current_user.id != 1:  # TODO: SECURITY - Same hardcoded admin check as forgot_password
-        abort(401)
-
+@admin_required
+def reset_password():
     user = db.session.get(User, request.form.get("user_id"))
     if user is None:
         abort(404)

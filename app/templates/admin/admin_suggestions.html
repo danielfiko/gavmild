@@ -1,0 +1,77 @@
+{% extends "layouts/logged_in_content.html" %}
+{% block content_header %}
+{{ super() }}
+<div class="breadcrumb">
+    <a href="{{ url_for('admin.index') }}"><i class="fa-solid fa-arrow-left"></i><span>Adminpanel</span></a>
+</div>
+{% endblock %}
+{% block main_content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="message-box {{ 'message-box-error' if category == 'error' else 'message-box-success' }}">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
+
+<div class="dashboard-element">
+    <div>
+        <div class="dashboard-element-description">
+            <h2><i class="fa-solid fa-lightbulb"></i> Forslag</h2>
+        </div>
+        <div>
+            <div class="admin-filter-buttons">
+                <a href="{{ url_for('admin.suggestions', filter='open') }}" class="{{ 'blue-button' if active_filter == 'open' else '' }}" style="padding:0.4rem 0.8rem;border-radius:4px;text-decoration:none;">Åpne</a>
+                <a href="{{ url_for('admin.suggestions', filter='solved') }}" class="{{ 'blue-button' if active_filter == 'solved' else '' }}" style="padding:0.4rem 0.8rem;border-radius:4px;text-decoration:none;">Løste</a>
+                <a href="{{ url_for('admin.suggestions', filter='all') }}" class="{{ 'blue-button' if active_filter == 'all' else '' }}" style="padding:0.4rem 0.8rem;border-radius:4px;text-decoration:none;">Alle</a>
+            </div>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Dato</th>
+                <th>Telegram-bruker</th>
+                <th>Forslag</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in suggestion_list %}
+            <tr>
+                <td>{{ s.id }}</td>
+                <td>{{ s.date.strftime('%d.%m.%Y') }}</td>
+                <td>{{ s.chat_user.chat_username or s.chat_user.id }}</td>
+                <td>{{ s.suggestion }}</td>
+                <td>
+                    {% if s.deleted_at %}
+                        <span class="label-red">Slettet</span>
+                    {% elif s.solved_at %}
+                        <span class="label-green">Løst</span>
+                    {% else %}
+                        <span class="label-yellow">Åpen</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not s.solved_at and not s.deleted_at %}
+                    <div style="display:flex;gap:0.5rem;justify-content:flex-end;">
+                        <form method="POST" action="{{ url_for('admin.suggestion_solve', suggestion_id=s.id, filter=active_filter) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="blue-button" style="padding:0.3rem 0.7rem;border:none;cursor:pointer;border-radius:4px;font-size:0.85rem;">Løs</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.suggestion_delete', suggestion_id=s.id, filter=active_filter) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="button-red" style="padding:0.3rem 0.7rem;border:none;cursor:pointer;border-radius:4px;font-size:0.85rem;">Slett</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6">Ingen forslag funnet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

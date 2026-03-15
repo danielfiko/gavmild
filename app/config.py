@@ -22,6 +22,7 @@ class Config:
 
 class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True
+    TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME")
     TELEGRAM_TOKEN = read_secret("telegram-token")
     CHAT_GROUP_ID = os.getenv("TELEGRAM_GROUP_ID")
     WEBAUTHN_RP_ID = os.getenv("WEBAUTHN_RP_ID", "")
@@ -34,6 +35,7 @@ class DevelopmentConfig(Config):
     WEBAUTHN_RP_ID = os.getenv("WEBAUTHN_RP_ID_DEV", "")
     WEBAUTHN_ORIGIN = os.getenv("WEBAUTHN_ORIGIN_DEV", "")
     WEBAUTHN_RP_NAME = os.getenv("WEBAUTHN_RP_NAME_DEV", "")
+    TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME_DEV")
     CHAT_GROUP_ID = os.getenv("TELEGRAM_GROUP_ID_DEV")
     TELEGRAM_TOKEN: str | None = _safe_read_secret("nei-bot-token")
     

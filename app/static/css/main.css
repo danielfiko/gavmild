@@ -799,6 +799,52 @@ a.blue-text {
     margin: 1em 0;
     border-radius: 4px;
 }
+.message-box-success {
+    background-color: #a8e9c0;
+    border: 1px solid #55d584;
+    color: #0a2614;
+}
+.message-box-error {
+    background-color: #f9c4c5;
+    border: 1px solid #c6606e;
+    color: #6f050d;
+}
+.message-box-info {
+    background-color: #d0e4ff;
+    border: 1px solid #6fa8dc;
+    color: #0c2540;
+}
+.label-yellow {
+    background-color: #fff3b0;
+    color: #5a4000;
+    padding: 0.3rem 0.5rem;
+    border-radius: 50px;
+    font-weight: 400;
+    font-size: 0.75rem;
+}
+.label-red {
+    background-color: #f9c4c5;
+    color: #6f050d;
+    padding: 0.3rem 0.5rem;
+    border-radius: 50px;
+    font-weight: 400;
+    font-size: 0.75rem;
+}
+.admin-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.admin-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+.admin-filter-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
 .error-message {
     display: none;
     background-color: #f9c4c5;

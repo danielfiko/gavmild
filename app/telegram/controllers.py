@@ -99,6 +99,7 @@ def svc_connect_user(chat_user_id, chat_username, identifier):
     Returns dict with ok/username, or ok=False with not_found key."""
     connect_id = db.session.get(TelegramUserConnection, identifier)
     if not connect_id:
+        logging.getLogger(__name__).warning(f"Failed to connect user: {identifier} not found")
         return {"ok": False, "not_found": True}
     telegram_user = db.session.get(TelegramUser, chat_user_id)
     if telegram_user:
@@ -202,10 +203,11 @@ def connect_code():
         db.session.add(connect_id)
     
     form = TelegramConnectForm()
-
+    bot_username = current_app.config.get("TELEGRAM_BOT_USERNAME")
+    
     try:
         db.session.commit()
-        bot_url=f"https://t.me/onske_bot?start={connect_id.identifier}"
+        bot_url=f"https://t.me/{bot_username}?start={connect_id.identifier}"
         return render_template("connect-user.html", form=form, bot_url=bot_url)
     
     except SQLAlchemyError as e:
