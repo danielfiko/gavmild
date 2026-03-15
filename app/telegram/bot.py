@@ -35,7 +35,7 @@ def admin_only(view_function):
         update = args[0]
         context = args[1]
         flask_app = context.bot_data["flask_app"]
-        if update.message.from_user.id != flask_app.config["TELEGRAM_ADMIN_ID"]:
+        if str(update.message.from_user.id) != flask_app.config["TELEGRAM_ADMIN_ID"]:
             await context.bot.send_chat_action(
                 chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING
             )
@@ -124,7 +124,6 @@ async def suggestion(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=update.effective_chat.id, text="Noe gikk dessverre galt."
         )
-
 
 @admin_only
 async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):

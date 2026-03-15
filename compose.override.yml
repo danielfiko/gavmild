@@ -6,8 +6,14 @@ services:
       - FLASK_ENV=development
     volumes:
       - ./app:/usr/src/code/app
+    secrets:
+      - nei-bot-token
 
 volumes:
   db-data:
     external: true
     name: gavmild_db-data
+
+secrets:
+  nei-bot-token:
+    file: ./secrets/nei-bot-token.txt
