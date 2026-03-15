@@ -3,6 +3,13 @@ import os
 from app.utils import read_secret
 
 
+def _safe_read_secret(name: str) -> str | None:
+    try:
+        return read_secret(name)
+    except Exception:
+        return None
+
+
 class Config:
     SECRET_KEY = read_secret("flask-secret-key")
     db_host = os.getenv("DATABASE_HOST")
@@ -10,12 +17,13 @@ class Config:
     db_password = read_secret('dba-password')
     SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{db_user}:{db_password}@{db_host}"
     OPENAI_TOKEN = read_secret("openai-token")
-    CHAT_GROUP_ID = os.getenv("TELEGRAM_GROUP_ID")
     TELEGRAM_ADMIN_ID = os.getenv("TELEGRAM_ADMIN_ID")
+
 
 class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True
     TELEGRAM_TOKEN = read_secret("telegram-token")
+    CHAT_GROUP_ID = os.getenv("TELEGRAM_GROUP_ID")
     WEBAUTHN_RP_ID = os.getenv("WEBAUTHN_RP_ID", "")
     WEBAUTHN_ORIGIN = os.getenv("WEBAUTHN_ORIGIN", "")
     WEBAUTHN_RP_NAME = os.getenv("WEBAUTHN_RP_NAME", "")
@@ -26,10 +34,9 @@ class DevelopmentConfig(Config):
     WEBAUTHN_RP_ID = os.getenv("WEBAUTHN_RP_ID_DEV", "")
     WEBAUTHN_ORIGIN = os.getenv("WEBAUTHN_ORIGIN_DEV", "")
     WEBAUTHN_RP_NAME = os.getenv("WEBAUTHN_RP_NAME_DEV", "")
+    CHAT_GROUP_ID = os.getenv("TELEGRAM_GROUP_ID_DEV")
+    TELEGRAM_TOKEN: str | None = _safe_read_secret("nei-bot-token")
     
-    @property
-    def TELEGRAM_TOKEN(self):
-        return read_secret("nei-bot-token")
 
 
 class TestingConfig(Config):

@@ -8,6 +8,7 @@ from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 
+from app.config import ProductionConfig, DevelopmentConfig, TestingConfig
 
 class Base(DeclarativeBase):
   pass
@@ -23,12 +24,12 @@ def create_app():
     app = Flask(__name__, instance_relative_config=True)
     config_name = os.getenv("FLASK_ENV", "development")
     config_map = {
-        "production": "app.config.ProductionConfig",
-        "development": "app.config.DevelopmentConfig",
-        "testing": "app.config.TestingConfig",
+        "production": ProductionConfig,
+        "development": DevelopmentConfig,
+        "testing": TestingConfig,
     }
-    app.config.from_object(config_map.get(config_name, "app.config.DevelopmentConfig"))
-    
+    app.config.from_object(config_map.get(config_name, DevelopmentConfig))
+
     login_manager.login_view = "auth.login"
     login_manager.init_app(app)
     csrf.init_app(app)
@@ -53,7 +54,11 @@ def create_app():
         db.create_all()  # TODO: Replace db.create_all() with Alembic/Flask-Migrate for proper database migrations
 
     from app.telegram.bot import start_bot
-    start_bot(app)
+    # Flask's debug reloader spawns two processes; only start the bot in the
+    # actual server process (WERKZEUG_RUN_MAIN=true) to avoid two instances
+    # polling Telegram at the same time.
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
+        start_bot(app)
 
     return app
 

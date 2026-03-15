@@ -45,6 +45,7 @@ def admin_only(view_function):
             )
             response = openai_api(flask_app, content)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+            logging.warning(f"Unauthorized access to Telegram handler attempt by user {update.message.from_user.id} ({update.message.from_user.username})")
             return
         return await view_function(*args, **kwargs)
 
