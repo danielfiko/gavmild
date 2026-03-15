@@ -5,7 +5,7 @@ import string
 from datetime import datetime, timedelta, timezone
 
 import requests
-from flask import current_app, render_template, request
+from flask import current_app, redirect, flash, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
@@ -13,7 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app import api_login_required, db
 from app.auth.controllers import hash_password_to_string
 from app.auth.models import PasswordResetToken, User
-from app.forms import APIform, TelegramConnectForm
+from app.forms import APIform
 from app.telegram import telegram_bp
 from app.telegram.models import (
     ReportedLink,
@@ -185,34 +185,32 @@ def generate_unique_code(model, length=None):
         if is_unique_primary_key(model, unique_code):
             return unique_code
 
+def unlink_telegram_user(telegram_id: int) -> dict:
+    tg_user = db.session.get(TelegramUser, telegram_id)
+    if tg_user is None:
+        return {"ok": False, "error": "Ikke funnet"}
+    tg_user.user_id = None
+    try:
+        db.session.commit()
+        return {"ok": True}
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {"ok": False, "error": "Databasefeil"}
 
 @telegram_bp.get("/connect")
 @login_required
 def connect_code():
-    if current_user.chat_user:
-        return render_template("connect-user.html", already_connected=True)
+    return redirect(url_for("auth.dashboard"))
 
-    connect_id = db.session.scalars(
-        db.select(TelegramUserConnection)
-        .where(TelegramUserConnection.user_id == current_user.id)
-        ).first()
-
-    if not connect_id:
-        identifier = generate_unique_code(TelegramUserConnection)
-        connect_id = TelegramUserConnection.create(identifier=identifier, user_id=current_user.id)
-        db.session.add(connect_id)
-    
-    form = TelegramConnectForm()
-    bot_username = current_app.config.get("TELEGRAM_BOT_USERNAME")
-    
-    try:
-        db.session.commit()
-        bot_url=f"https://t.me/{bot_username}?start={connect_id.identifier}"
-        return render_template("connect-user.html", form=form, bot_url=bot_url)
-    
-    except SQLAlchemyError as e:
-        return render_template("connect-user.html", e=e)
-
+@telegram_bp.post("/disconnect")
+@login_required
+def disconnect():
+    result = unlink_telegram_user(current_user.chat_user.id)
+    if result["ok"]:
+        flash("Telegram-bruker koblet fra.", "success")
+    else:
+        flash(result.get("error", "Noe gikk galt."), "error")
+    return redirect(url_for("auth.dashboard"))
 
 def telegram_escape_text(input_string):
     escaped_string = input_string.replace("_", "\\_").replace("*", "\\*").replace("`", "\\`").replace("[", "\\[")

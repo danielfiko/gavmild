@@ -5,6 +5,7 @@ from app.admin import admin_bp
 from app.admin import controllers
 from app.admin.decorators import admin_required
 from app.wishlist.controllers import logged_in_content
+from app.telegram.controllers import unlink_telegram_user
 
 
 @admin_bp.get("/")
@@ -132,7 +133,7 @@ def telegram():
 @login_required
 @admin_required
 def telegram_unlink(telegram_id):
-    result = controllers.unlink_telegram_user(telegram_id)
+    result = unlink_telegram_user(telegram_id)
     if result["ok"]:
         flash("Telegram-bruker koblet fra.", "success")
     else:

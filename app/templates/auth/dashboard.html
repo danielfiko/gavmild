@@ -1,11 +1,18 @@
 {% extends "layouts/logged_in_content.html" %}
 {% block content_header %}
 {{ super() }}
-{#    <div class="breadcrumb">#}
-{#        <a href="{{ breadcrumb_path }}"><i class="fa-solid fa-arrow-left"></i><span>Tilbake</span></a>#}
-{#    </div>#}
+    <div class="breadcrumb">
+        <a href="{{ previous_site }}"><i class="fa-solid fa-arrow-left"></i><span>Tilbake</span></a>
+    </div>
 {% endblock %}
 {% block main_content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        <div class="message-box message-box-{{ category }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endwith %}
     <div class="dashboard-element">
         <div>
             <div class="dashboard-element-description">
@@ -34,8 +41,6 @@
                     {% for credential in credentials %}
                     <tr>
                         <td>{{ credential.label if credential.label else "Ukjent" }}</td>
-{#                        {% set month_number = credential.created_at.month %} .strftime('%H:%M %d. ' + month_name + ', %Y')#}
-{#                        {% set month_name = norwegian_months[month_number] %} .strftime('%H:%M %d. ' + month_name + ', %Y') #}
                         <td>{{ credential.created_at_string() }}</td>
                         <td>{{ credential.last_used_time() }} {{ " fra " + credential.last_used_os() if credential.last_used_os() }}</td>
                         <td class="edit-item" data-entry-id="{{ credential.entry_id }}"><a>Endre <i class="fa-solid fa-caret-right"></i></a></td>
@@ -44,5 +49,28 @@
                 </tbody>
             </table>
         {% endif %}
+    </div>
+
+    <div class="dashboard-element" style="margin-top:1rem;">
+        <div>
+            <div class="dashboard-element-description">
+                <h2><i class="fa-brands fa-telegram"></i> Telegram {{ '<span class="label-green">Tilkoblet</span>'|safe if telegram_connected }}</h2>
+                {% if telegram_connected %}
+                <p>Telegram-kontoen din er koblet til Gavmild.</p>
+                {% else %}
+                <p>Koble til Telegram-kontoen din.</p>
+                {% endif %}
+            </div>
+            <div>
+                {% if telegram_connected %}
+                <form method="POST" action="{{ url_for('telegram_bot.disconnect') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Fjern tilkobling</button>
+                </form>
+                {% elif telegram_bot_url %}
+                <a href="{{ telegram_bot_url }}" target="_blank" class="linkbutton">Koble til</a>
+                {% endif %}
+            </div>
+        </div>
     </div>
 {% endblock %}

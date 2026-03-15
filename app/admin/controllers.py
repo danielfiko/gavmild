@@ -119,16 +119,3 @@ def delete_suggestion(suggestion_id: int) -> dict:
 
 def get_all_telegram_users():
     return db.session.execute(db.select(TelegramUser).order_by(TelegramUser.id)).scalars().all()
-
-
-def unlink_telegram_user(telegram_id: int) -> dict:
-    tg_user = db.session.get(TelegramUser, telegram_id)
-    if tg_user is None:
-        return {"ok": False, "error": "Ikke funnet"}
-    tg_user.user_id = None
-    try:
-        db.session.commit()
-        return {"ok": True}
-    except SQLAlchemyError:
-        db.session.rollback()
-        return {"ok": False, "error": "Databasefeil"}

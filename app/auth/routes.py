@@ -18,19 +18,48 @@ from app.admin.decorators import admin_required
 @auth_bp.route("/dashboard")
 @login_required
 def dashboard():
+    from app.telegram.controllers import generate_unique_code as tg_generate_unique_code
+    from app.telegram.models import TelegramUserConnection
+
     template_name = "dashboard.html"
     page_title = "Dashboard"
     credentials = None
     if len(current_user.webauthn_credentials) > 0:
         credentials = current_user.webauthn_credentials
 
+    # Telegram connect section
+    telegram_bot_url = None
+    if not current_user.chat_user:
+        connect_id = db.session.scalars(
+            db.select(TelegramUserConnection)
+            .where(TelegramUserConnection.user_id == current_user.id)
+        ).first()
+        if not connect_id:
+            identifier = tg_generate_unique_code(TelegramUserConnection)
+            connect_id = TelegramUserConnection.create(identifier=identifier, user_id=current_user.id)
+            db.session.add(connect_id)
+            try:
+                db.session.commit()
+            except SQLAlchemyError:
+                db.session.rollback()
+                connect_id = None
+        if connect_id:
+            from flask import current_app
+            bot_username = current_app.config.get("TELEGRAM_BOT_USERNAME")
+            telegram_bot_url = f"https://t.me/{bot_username}?start={connect_id.identifier}"
+
+    previous_site = request.referrer
+    
+    if not previous_site or previous_site == request.url:
+        previous_site = url_for('index')
+
     return logged_in_content(
         template_name,
         page_title=page_title,
         credentials=credentials,
-        # norwegian_months=norwegian_months,
-        # last_login_time=last_login_time,
-        # operating_system=operating_system
+        telegram_connected=bool(current_user.chat_user),
+        telegram_bot_url=telegram_bot_url,
+        previous_site=previous_site,
     )
 
 

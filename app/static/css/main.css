@@ -39,6 +39,7 @@ img {
         "sidebar-nav    main    main"
         "sidebar-nav    main    main"
         "footer         footer  footer";
+    padding-bottom: calc(12px + 26px + 26px + env(safe-area-inset-bottom));
 }
 
 .background-white {
@@ -122,7 +123,6 @@ header {
     place-self: stretch;
     grid-area: sidebar-nav;
     padding: 0 1.25em 0 1.25em;
-    padding-bottom: calc(12px + 26px + 26px + env(safe-area-inset-bottom));
 }
 .sidebar-nav button {
     max-width: 80%;
@@ -183,7 +183,7 @@ header {
 /*
 */
 
-select, input, textarea, button {
+select, input, textarea, button, .linkbutton {
   padding: 0.5rem 0.63rem;
   display: block;
   border: 1px solid #ccc;
@@ -601,10 +601,11 @@ a.blue-text {
         "sidebar-nav    main    main"
         "sidebar-nav    main    main"
         "footer         footer  footer";
+        padding-bottom: 0;
     }
     .background-white {
         background-color: transparent;
-}
+    }
     .display-none {
         display: block;
     }
@@ -711,6 +712,7 @@ a.blue-text {
 }
 .dashboard-element h2 {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.3em;
     margin-bottom: 0.5em;
@@ -723,10 +725,12 @@ a.blue-text {
 }
 .dashboard-element > div:first-child div:first-child {
     flex-grow: 2;
+    flex-basis: 0;
 }
 .dashboard-element > div:first-child div:last-child {
     background-color: #ececec;
     flex-grow: 1;
+    flex-basis: 0;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -779,7 +783,7 @@ a.blue-text {
     background-color: #3060c0;
     color: #fff;
 }
-.dashboard-element > div:first-child button {
+.dashboard-element > div:first-child button, a.linkbutton {
     margin: auto auto;
     padding: 0.5rem 1rem;
     background-color: #3060c0;
