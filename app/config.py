@@ -23,10 +23,13 @@ class ProductionConfig(Config):
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    TELEGRAM_TOKEN = read_secret("nei-bot-token")
     WEBAUTHN_RP_ID = os.getenv("WEBAUTHN_RP_ID_DEV", "")
     WEBAUTHN_ORIGIN = os.getenv("WEBAUTHN_ORIGIN_DEV", "")
     WEBAUTHN_RP_NAME = os.getenv("WEBAUTHN_RP_NAME_DEV", "")
+    
+    @property
+    def TELEGRAM_TOKEN(self):
+        return read_secret("nei-bot-token")
 
 
 class TestingConfig(Config):
