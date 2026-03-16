@@ -25,6 +25,13 @@ You must review code related to your request to understand preferred style: for 
 - `secrets/`: Local secret files mounted into containers (never expose values).
 - `compose.yml`: Primary local orchestration definition.
 
+## Dependency Management
+```bash
+uv add package_name # Add a new package dependency
+uv add --group dev package_name # Add a dev dependency
+uv remove package_name # Remove a package dependency
+```
+
 ## Local Development Commands
 
 - Docker:
@@ -39,7 +46,7 @@ docker compose ps # List running services and their status
 docker compose exec service_name bash # Open a bash shell in a running service container
 ```
 
-## Coding Conventions
+## Coding Standards
 
 - Keep changes minimal and focused; do not refactor unrelated code.
 - Follow existing Flask blueprint pattern used across modules.
@@ -51,6 +58,8 @@ docker compose exec service_name bash # Open a bash shell in a running service c
 - Use keyword arguments instead of positional arguments when calling functions and methods.
 - Do not put import statements inside functions unless necessary to prevent circular imports. Imports must be at the top of the file.
 - Most caught exceptions must be logged with logger.exception.
+- Always format and check Python files with ruff immediately after writing or editing them: uv run ruff format <file_path> and uv run ruff check --fix <file_path>. Do this for every Python file you create or modify, before moving on to the next step.
+- No assert in production code.
 
 ## Typing
 
