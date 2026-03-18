@@ -11,7 +11,7 @@ from app.auth.models import PasswordResetToken
 def is_valid_token(token_entry: PasswordResetToken, token_string: str) -> bool:
     return (
             token_entry is not None
-            and token_entry.expires_at > datetime.now(timezone.utc)
+            and token_entry.expires_at.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc)
             and not token_entry.used_at
             and bcrypt.check_password_hash(token_entry.token, token_string)
     )
