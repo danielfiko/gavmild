@@ -19,8 +19,14 @@ def get_user_details(user_id: int):
     return db.session.get(User, user_id)
 
 
-def update_user(user_id: int, first_name: str, last_name: str, email: str,
-                is_admin: bool, force_pw_change: bool) -> dict:
+def update_user(
+    user_id: int,
+    first_name: str,
+    last_name: str,
+    email: str,
+    is_admin: bool,
+    force_pw_change: bool,
+) -> dict:
     user = db.session.get(User, user_id)
     if user is None:
         return {"ok": False, "error": "Bruker ikke funnet"}
@@ -28,7 +34,7 @@ def update_user(user_id: int, first_name: str, last_name: str, email: str,
     user.last_name = last_name.title()
     user.email = email.casefold()
     user.is_admin = is_admin
-    user.force_pw_change = 1 if force_pw_change else 0
+    user.force_pw_change = force_pw_change
     try:
         db.session.commit()
         return {"ok": True}
@@ -66,7 +72,7 @@ def generate_reset_link(user_id: int) -> dict:
         expires_at=time_now + timedelta(minutes=15),
     )
     db.session.add(reset_token)
-    user.force_pw_change = 1
+    user.force_pw_change = True
     try:
         db.session.commit()
         url = url_for(
@@ -85,7 +91,9 @@ def get_all_suggestions(filter: str = "open"):
     """Return suggestions. filter: 'open', 'solved', 'all'."""
     query = db.select(Suggestion).order_by(Suggestion.id.desc())
     if filter == "open":
-        query = query.where(Suggestion.solved_at.is_(None), Suggestion.deleted_at.is_(None))
+        query = query.where(
+            Suggestion.solved_at.is_(None), Suggestion.deleted_at.is_(None)
+        )
     elif filter == "solved":
         query = query.where(Suggestion.solved_at.isnot(None))
     return db.session.execute(query).scalars().all()
@@ -118,4 +126,8 @@ def delete_suggestion(suggestion_id: int) -> dict:
 
 
 def get_all_telegram_users():
-    return db.session.execute(db.select(TelegramUser).order_by(TelegramUser.id)).scalars().all()
+    return (
+        db.session.execute(db.select(TelegramUser).order_by(TelegramUser.id))
+        .scalars()
+        .all()
+    )

@@ -10,8 +10,18 @@ from app.forms import RegisterForm, LoginForm, ChangePasswordForm
 from app.auth import auth_bp
 from app.auth.models import User
 from app.auth.decorators import token_required
-from app.wishlist.controllers import get_users_ordered_by_settings, logged_in_content #TODO: Denne må i et felles område
-from app.auth.controllers import generate_unique_code, hash_password_to_string, register_user, log_user_login, handle_valid_token, authenticate_user
+from app.wishlist.controllers import (
+    get_users_ordered_by_settings,
+    logged_in_content,
+)  # TODO: Denne må i et felles område
+from app.auth.controllers import (
+    generate_unique_code,
+    hash_password_to_string,
+    register_user,
+    log_user_login,
+    handle_valid_token,
+    authenticate_user,
+)
 from app.admin.decorators import admin_required
 
 
@@ -31,12 +41,15 @@ def dashboard():
     telegram_bot_url = None
     if not current_user.chat_user:
         connect_id = db.session.scalars(
-            db.select(TelegramUserConnection)
-            .where(TelegramUserConnection.user_id == current_user.id)
+            db.select(TelegramUserConnection).where(
+                TelegramUserConnection.user_id == current_user.id
+            )
         ).first()
         if not connect_id:
             identifier = tg_generate_unique_code(TelegramUserConnection)
-            connect_id = TelegramUserConnection.create(identifier=identifier, user_id=current_user.id)
+            connect_id = TelegramUserConnection.create(
+                identifier=identifier, user_id=current_user.id
+            )
             db.session.add(connect_id)
             try:
                 db.session.commit()
@@ -45,13 +58,16 @@ def dashboard():
                 connect_id = None
         if connect_id:
             from flask import current_app
+
             bot_username = current_app.config.get("TELEGRAM_BOT_USERNAME")
-            telegram_bot_url = f"https://t.me/{bot_username}?start={connect_id.identifier}"
+            telegram_bot_url = (
+                f"https://t.me/{bot_username}?start={connect_id.identifier}"
+            )
 
     previous_site = request.referrer
-    
+
     if not previous_site or previous_site == request.url:
-        previous_site = url_for('index')
+        previous_site = url_for("index")
 
     return logged_in_content(
         template_name,
@@ -72,10 +88,12 @@ def handler_add_security_key():
         breadcrumb_path = url_for("auth.dashboard")
         credentials = current_user.webauthn_credentials
 
-        return render_template(template_name,
-                               page_title=page_title,
-                               breadcrumb_path=breadcrumb_path,
-                               credentials=credentials)
+        return render_template(
+            template_name,
+            page_title=page_title,
+            breadcrumb_path=breadcrumb_path,
+            credentials=credentials,
+        )
     if request.method == "POST":
         return "OK", 200
     abort(405)
@@ -106,8 +124,12 @@ def login_api():
         return redirect(url_for("auth.login"))
 
     if user.force_pw_change:
-        return render_template("change_pw.html", form=form, email=form.email.data,
-                                temp_password_required=True)
+        return render_template(
+            "change_pw.html",
+            form=form,
+            email=form.email.data,
+            temp_password_required=True,
+        )
     login_user(user, remember=form.remember_me.data)
     log_user_login(user.id, "password")
     return redirect(url_for("wishlist.index"))
@@ -129,12 +151,12 @@ def change_pw():
         return "Gammelt passord er feil"
     if len(form.new_password.data) < 8:
         return "Passordet er for kort"
-    
+
     hashed_password = hash_password_to_string(form.new_password.data)
     user.password = hashed_password
-    user.force_pw_change = 0
+    user.force_pw_change = False
     db.session.commit()
-    
+
     login_user(user)  # Login AFTER successful DB commit
     return "Passordet ble endret, videresender til forsiden..."
 
@@ -145,9 +167,10 @@ def logout_api():
     logout_user()
     if "token" in request.args:
         name = request.args["name"] if "name" in request.args else None
-        return redirect(url_for("auth.user_reset_password", token=request.args["token"], name=name))
+        return redirect(
+            url_for("auth.user_reset_password", token=request.args["token"], name=name)
+        )
     return redirect(url_for("wishlist.index"))
-
 
 
 @auth_bp.route("/api/register", methods=["POST"])
@@ -161,7 +184,7 @@ def register_api():
     except ValueError as e:
         db.session.rollback()
         return str(e)
-    
+
     return redirect(url_for("auth.login"))
 
 
@@ -175,14 +198,16 @@ def set_order_by():
     if user is None:
         abort(404, "Bruker ikke funnet")
     user.preferences.order_users_by = order_by_value
-    users: list[dict[str, str]] = [{"first_name": u.first_name, "path": url_for('wishlist.user', user_id=u.id)} for u in
-             get_users_ordered_by_settings()]
+    users: list[dict[str, str]] = [
+        {"first_name": u.first_name, "path": url_for("wishlist.user", user_id=u.id)}
+        for u in get_users_ordered_by_settings()
+    ]
     try:
         db.session.commit()
     except SQLAlchemyError:
         db.session.rollback()
         abort(500, "Database error")
-    
+
     return jsonify(users)
 
 
@@ -205,7 +230,7 @@ def reset_password():
     temp_password = generate_unique_code()
     hashed_password = hash_password_to_string(temp_password)
     user.password = hashed_password
-    user.force_pw_change = 1
+    user.force_pw_change = True
     db.session.commit()
 
     return {"first_name": user.first_name, "password": temp_password}
@@ -230,7 +255,7 @@ def user_change_password(token_entry):
         new_password = form.new_password.data
         hashed_password = hash_password_to_string(new_password)
         user.password = hashed_password
-        user.force_pw_change = 0
+        user.force_pw_change = False
         token_entry.used_at = datetime.now(timezone.utc)
         db.session.commit()
         flash("Passordet ble endret, vennligst logg inn på nytt.")

@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 
 from flask_login import current_user
 from sqlalchemy import ForeignKey
@@ -10,7 +10,6 @@ from app import db
 if TYPE_CHECKING:
     from app.auth.models import User
     from app.telegram.models import ReportedLink
-    from app.wishlist.models import ClaimedWish, Wish
 
 # wishes_in_list = db.Table(
 #     "wishes_in_list",
@@ -26,55 +25,78 @@ if TYPE_CHECKING:
 
 
 class ClaimedWish(db.Model):
-    wish_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("wish.id"), primary_key=True)
-    user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"), primary_key=True)
+    wish_id: Mapped[int] = mapped_column(
+        db.Integer, ForeignKey("wish.id"), primary_key=True
+    )
+    user_id: Mapped[int] = mapped_column(
+        db.Integer, ForeignKey("user.id"), primary_key=True
+    )
     quantity: Mapped[int] = mapped_column(db.Integer, nullable=False)
-    date: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    date: Mapped[datetime] = mapped_column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="claimed_wishes")
     wish: Mapped["Wish"] = relationship(back_populates="claims")
 
+    def __repr__(self) -> str:
+        return f"<ClaimedWish wish_id={self.wish_id} user_id={self.user_id}>"
+
 
 class Wish(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"))
+    date_created: Mapped[datetime] = mapped_column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+    user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"), index=True)
     title: Mapped[str] = mapped_column(db.String(90), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(db.String(255))
+    description: Mapped[str | None] = mapped_column(db.String(255))
     quantity: Mapped[int] = mapped_column(db.Integer, nullable=False, default=1)
-    url: Mapped[Optional[str]] = mapped_column(db.String(255))
-    img_url: Mapped[Optional[str]] = mapped_column(db.String(255))
+    url: Mapped[str | None] = mapped_column(db.String(255))
+    img_url: Mapped[str | None] = mapped_column(db.String(255))
     desired: Mapped[bool] = mapped_column(db.Boolean, default=0)
-    price: Mapped[Optional[int]] = mapped_column(db.Integer)
-    
+    price: Mapped[int | None] = mapped_column(db.Integer)
+    # State tracking: both NULL = active; archived_at set = archived; deleted_at set = soft-deleted
+    archived_at: Mapped[datetime | None] = mapped_column(db.DateTime)
+    deleted_at: Mapped[datetime | None] = mapped_column(db.DateTime)
+
     # Relationships
     user: Mapped["User"] = relationship(back_populates="wishes")
-    claims: Mapped[List["ClaimedWish"]] = relationship(back_populates="wish", cascade="delete")
-    co_wishers: Mapped[List["CoWishUser"]] = relationship("CoWishUser", cascade="delete")
+    claims: Mapped[List["ClaimedWish"]] = relationship(
+        back_populates="wish", cascade="all, delete-orphan"
+    )
+    co_wishers: Mapped[List["CoWishUser"]] = relationship(
+        "CoWishUser", cascade="delete"
+    )
     reported_link: Mapped["ReportedLink"] = relationship(back_populates="wish")
     # lists: Mapped[List["WishList"]] = relationship(
     #     secondary=wishes_in_list, back_populates="wishes"
     # )
 
-
     def is_claimed_by_user(self, user_id):
         """Check if the wish is claimed by the specified user."""
         return any(claim.user.id == user_id for claim in self.claims)
-    
+
     # TODO: Viser "i dag", dagen etter. Bør stå "i dag" og "1 dag siden"
     def time_since_creation(self):
         today = datetime.now(timezone.utc)
-        difference_in_years = (today - self.date_created.replace(tzinfo=timezone.utc)).days / 365
+        difference_in_years = (
+            today - self.date_created.replace(tzinfo=timezone.utc)
+        ).days / 365
         difference = str(round(difference_in_years, 1)) + " år siden"
         if difference_in_years < 1:
-            difference_in_months = round((today - self.date_created.replace(tzinfo=timezone.utc)).days / 30)
+            difference_in_months = round(
+                (today - self.date_created.replace(tzinfo=timezone.utc)).days / 30
+            )
             if difference_in_months == 1:
                 difference = str(difference_in_months) + " måned siden"
             else:
                 difference = str(difference_in_months) + " måneder siden"
             if difference_in_months < 1:
-                difference_in_days = (today - self.date_created.replace(tzinfo=timezone.utc)).days
+                difference_in_days = (
+                    today - self.date_created.replace(tzinfo=timezone.utc)
+                ).days
                 if difference_in_days == 1:
                     difference = str(difference_in_days) + " dag siden"
                 else:
@@ -84,16 +106,24 @@ class Wish(db.Model):
         return difference
 
     def get_claimers(self):
-        return {int(claimer.user_id): claimer.user.first_name for claimer in self.claims} if self.claims else None
+        return (
+            {int(claimer.user_id): claimer.user.first_name for claimer in self.claims}
+            if self.claims
+            else None
+        )
 
-    def get_co_wishers(self):
-        return {int(co_wisher.co_wish_user_id): co_wisher.user.first_name for co_wisher in self.co_wishers} if self.co_wishers else None
+    def get_co_wishers(self) -> dict | None:
+        return (
+            {
+                int(co_wisher.co_wish_user_id): co_wisher.user.first_name
+                for co_wisher in self.co_wishers
+            }
+            if self.co_wishers
+            else None
+        )
 
-    def co_wisher(self):
-        return db.session.query(User.first_name, User.id).join(CoWishUser).filter(CoWishUser.id == self.id).all()
-
-    def user_name(self):
-        return db.session.query(User.first_name).filter(User.id == self.user_id).one()
+    def __repr__(self) -> str:
+        return f"<Wish id={self.id} title={self.title!r}>"
 
     def tojson(self):
         if self.user_id == current_user.id:
@@ -106,7 +136,9 @@ class Wish(db.Model):
             claimed = 3  # Andres ønske, ingen har claimet
 
         date_now = datetime.now(timezone.utc)
-        num_months = (date_now.year - self.date_created.replace(tzinfo=timezone.utc).year) * 12 + (date_now.month - self.date_created.replace(tzinfo=timezone.utc).month)
+        num_months = (
+            date_now.year - self.date_created.replace(tzinfo=timezone.utc).year
+        ) * 12 + (date_now.month - self.date_created.replace(tzinfo=timezone.utc).month)
         if not num_months:
             time_ago = str(date_now - self.date_created.replace(tzinfo=timezone.utc))
         else:
@@ -121,57 +153,63 @@ class Wish(db.Model):
             "url": self.url,
             "img_url": self.img_url,
             "claimed": claimed,
-            "desired": self.desired
+            "desired": self.desired,
         }
-
-    # def __repr__(self):
-    #    return "<Task %r>" % self.id
-
-
-class ArchivedWish(db.Model):
-    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime)
-    user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"))
-    title: Mapped[str] = mapped_column(db.String(90), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(db.String(255))
-    quantity: Mapped[int] = mapped_column(db.Integer, nullable=False)
-    url: Mapped[Optional[str]] = mapped_column(db.String(255))
-    img_url: Mapped[Optional[str]] = mapped_column(db.String(255))
-    desired: Mapped[bool] = mapped_column(db.Boolean, default=0)
-    price: Mapped[Optional[int]] = mapped_column(db.Integer)
-    deleted_at: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class WishInGroup(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    wish_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("wish.id"))
-    group_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("group.id"))
+    date_created: Mapped[datetime] = mapped_column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+    wish_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("wish.id"), index=True)
+    group_id: Mapped[int] = mapped_column(
+        db.Integer, ForeignKey("group.id"), index=True
+    )
+
+    def __repr__(self) -> str:
+        return f"<WishInGroup id={self.id} wish_id={self.wish_id}>"
 
 
 class CoWishUser(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, ForeignKey("wish.id"), primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    co_wish_user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"), primary_key=True)
-    
+    date_created: Mapped[datetime] = mapped_column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+    co_wish_user_id: Mapped[int] = mapped_column(
+        db.Integer, ForeignKey("user.id"), primary_key=True
+    )
+
     user: Mapped["User"] = relationship("User")
 
-    def get_id(self):
-        return self.id
+    def __repr__(self) -> str:
+        return f"<CoWishUser wish_id={self.id} co_wish_user_id={self.co_wish_user_id}>"
 
 
 class GroupMember(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"))
-    group_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("group.id"))
+    date_created: Mapped[datetime] = mapped_column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+    user_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("user.id"), index=True)
+    group_id: Mapped[int] = mapped_column(
+        db.Integer, ForeignKey("group.id"), index=True
+    )
+
+    def __repr__(self) -> str:
+        return f"<GroupMember id={self.id} user_id={self.user_id} group_id={self.group_id}>"
 
 
 class Group(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    date_created: Mapped[datetime] = mapped_column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
     title: Mapped[str] = mapped_column(db.String(30), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(db.String(255))
+    description: Mapped[str | None] = mapped_column(db.String(255))
+
+    def __repr__(self) -> str:
+        return f"<Group id={self.id} title={self.title!r}>"
 
 
 # TODO: Remove all commented-out WishList code below — either implement it or clean it up to reduce noise.
