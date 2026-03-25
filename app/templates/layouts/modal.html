@@ -1,0 +1,6 @@
+<div id="{% block modal_id %}modal{% endblock %}" class="{% block modal_class %}modal{% endblock %}" {% block div_attributes %}{% endblock %}>
+    <div id="{% block modal_content_id %}modal-content{% endblock %}" class="{% block modal_content_class %}modal-content{% endblock %}">
+        <span class="close close-modal-btn"><i class="far fa-times-circle"></i></span>
+        {% block modal_content %}{% endblock %}
+    </div>
+</div>

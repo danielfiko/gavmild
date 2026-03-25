@@ -55,4 +55,16 @@
             <!--<a href="{{url_for('auth.register')}}">Har du ikke en konto? Opprett en konto her.</a>-->
         </main>
     </div>
+    <script type="text/javascript">
+        $(".toggle-password").click(togglePasswordVisibility);
+        function togglePasswordVisibility() {
+            $(this).toggleClass("fa-eye fa-eye-slash");
+            var input = $($(this).data("toggle-target"));
+            if (input.attr("type") == "password") {
+                input.attr("type", "text");
+            } else {
+                input.attr("type", "password");
+            }
+        }
+    </script>
 {% endblock %}

@@ -17,9 +17,8 @@
     <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/jquery.typeahead.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    <script type="text/javascript">
-        var csrf_token = "{{ csrf_token() }}";
-    </script>
+    <script src="{{ url_for('static', filename='js/click_handlers.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     <title>{{ page_title if page_title else "Gavmild" }}</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
     {% block head %}{% endblock %}

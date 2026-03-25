@@ -1,0 +1,41 @@
+{% extends "wishlist/modal/wish_modal.html" %}
+{% block modal_content %}
+<div class="list-create-section">
+    <h2>Opprett liste</h2>
+    <form id="list_form" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="template-picker">
+            {% for error in form.template.errors %}
+            <span style="color:#9d4045; margin-top:8px;">{{ error }}</span>
+            {% endfor %}
+            {% for subfield in form.template %}{{ subfield(class_="template-radio") }}{{ subfield.label(class_="template-pill") }}{% endfor %}
+        </div>
+
+        <p id="auto-title-hint" style="display:none; font-size:0.8em; color:#666; margin: 0 0 0.75rem 0;">Tittel genereres automatisk</p>
+
+        <div id="list-title-wrapper">
+            {{ form.title.label }}
+            {% for error in form.title.errors %}
+            <span style="color:#9d4045; margin-top:8px;">{{ error }}</span>
+            {% endfor %}
+            {{ form.title(placeholder=title_placeholder) }}
+        </div>
+
+        <div id="custom-date-wrapper" style="display:none;">
+            {{ form.expires_at.label }}
+            {% for error in form.expires_at.errors %}
+            <span style="color:#9d4045; margin-top:8px;">{{ error }}</span>
+            {% endfor %}
+            {{ form.expires_at }}
+        </div>
+
+        <button id="list-submit" class="button-red button" type="submit">
+            <span>Opprett liste</span>
+            <i class="fa fa-spinner" style="display:none;"></i>
+            <i class="fa fa-check" style="display:none;"></i>
+        </button>
+        <p id="list-form-error" style="display:none; color:#9d4045; margin-top:8px;"></p>
+    </form>
+</div>
+{% endblock %}

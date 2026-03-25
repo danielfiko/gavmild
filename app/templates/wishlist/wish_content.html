@@ -1,5 +1,6 @@
 {% extends "layouts/logged_in_content.html" %}
 {% block content_header %}
+<script src="{{ url_for('static', filename='js/wish_pages.js') }}"></script>
     {{ super() }}
     {% if "user" in filter %}
         <label>Sorter etter:</label>
@@ -12,11 +13,17 @@
 {% endblock %}
 {% block main_content %}
 {% if lists %}
-    <div class="list-filters">
-    {% for list in lists %}
-        <input type="checkbox" id='c{{ loop.index }}' class='chk-btn' checked />
-        <label for='c{{ loop.index }}'>{{ list.title }}</label>
-    {% endfor %}
+{#    <div class="list-filters">#}
+{#    {% for list in lists %}#}
+{#        <input type="checkbox" id='c{{ loop.index }}' class='chk-btn' checked />#}
+{#        <label for='c{{ loop.index }}'>{{ list.title }}</label>#}
+{#    {% endfor %}#}
+{#    </div>#}
+    <div class="list-filter-pills">
+        <button class="list-filter-pill active" data-list-id="all">Alle</button>
+        {% for list in lists %}
+        <button class="list-filter-pill" data-list-id="{{ list.id }}">{{ list.title }}</button>
+        {% endfor %}
     </div>
 {% endif %}
     <div class="wishes-list">

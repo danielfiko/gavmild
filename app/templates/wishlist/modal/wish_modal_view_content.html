@@ -1,4 +1,7 @@
 {% extends "wishlist/modal/wish_modal.html" %}
+{% block div_attributes %}
+data-path-open="/wish/{{ wish.id }}"
+{% endblock %}
 {% block modal_left %}{% endblock %}
 {% block modal_right %}
     <!--{% if wish.desired %}

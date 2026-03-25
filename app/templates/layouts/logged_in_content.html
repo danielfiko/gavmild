@@ -1,16 +1,11 @@
 {% extends "layouts/base.html" %}
+{% block head %}
+<script type="text/javascript">
+    var csrf_token = "{{ csrf_token() }}";
+</script>
+{% endblock %}
 {% block body %}
 {{ ajaxform.filter(value=filter) if ajaxform }}
-
-<div id="modal" class="modal">
-    <div class="modal-content" id="modal-content">
-    </div>
-</div>
-<div id="modal-confirm" class="modal">
-    <div class="confirm-action modal-content" id="modal-content">
-    </div>
-</div>
-
 <div class="container">
     <header>
         <a href="/"><img src="{{ url_for('static', filename='img/logo.png') }}" class="site-logo" alt="Gavmild logo"></a>

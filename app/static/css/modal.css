@@ -11,7 +11,6 @@
   width: 100%; /* Full width */
   height: 100%; /* Full height */
   overflow: auto; /* Enable scroll if needed */
-  background-color: rgb(0,0,0); /* Fallback color */
   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
 
@@ -360,7 +359,7 @@ label[for="co_wisher"] {
 @media only screen and (min-width: 980px) {
   .modal-content {
     flex-wrap: nowrap;
-    max-width: 35%;
+    max-width: 50%;
   }
   .modal-left {
     max-width: 45%;
@@ -526,4 +525,163 @@ h2.wish-list span {
 	font: inherit;
 	cursor: pointer;
 	outline: inherit;
+}
+
+/*
+/*
+/*    List creation modal
+/*
+*/
+
+.list-create-section {
+  padding: 10px 20px;
+  width: 100%;
+}
+
+.list-create-section h2 {
+  margin: 0 0 12px 0;
+  font-size: 1.6em;
+  font-family: 'Merriweather', serif;
+  font-weight: 400;
+}
+
+.list-create-section input[type="text"],
+.list-create-section input[type="date"],
+.list-create-section label:not(.template-pill):not(.move-option) {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0.6rem;
+}
+
+.list-create-section #list-submit {
+  margin-top: 0.75rem;
+}
+
+.template-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+  align-items: center;
+}
+
+.template-radio {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.template-pill {
+  cursor: pointer;
+  padding: 5px 14px;
+  border: 2px solid #ccc;
+  border-radius: 20px;
+  font-size: 0.85em;
+  white-space: nowrap;
+  user-select: none;
+  display: inline-block;
+  transition: border-color 0.1s ease, background-color 0.1s ease;
+}
+
+.template-pill:hover {
+  border-color: #888;
+}
+
+.template-radio:checked + .template-pill {
+  border-color: #9d4045;
+  background-color: #9d4045;
+  color: white;
+}
+
+/*
+/*
+/*    Move wish modal
+/*
+*/
+
+.move-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.move-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 2px solid #d0d0d0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  font-size: 0.9em;
+}
+
+.move-option input[type="radio"] {
+  margin-top: 3px;
+  flex-shrink: 0;
+  width: auto;
+  display: inline;
+}
+
+.move-option:has(input:checked) {
+  border-color: #9d4045;
+  background-color: #fdf2f2;
+}
+
+.move-option-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.move-option-label strong {
+  font-weight: 600;
+  color: #212121;
+}
+
+.move-option-label span {
+  color: #555;
+  font-size: 0.85em;
+}
+
+.destination-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.destination-selector select {
+  width: 100%;
+}
+
+#new-list-inline {
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 0.75rem;
+  background-color: #fafafa;
+}
+
+#new-list-inline input,
+#new-list-inline .template-selector {
+  width: 100%;
+}
+
+#new-list-inline input[type="text"] {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+#move-new-list-date-wrapper {
+  margin-top: 0.25rem;
+}
+
+#move-new-list-date-wrapper input {
+  width: 100%;
 }

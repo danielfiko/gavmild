@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Dict, List
 
 from flask import current_app
 from flask_login import UserMixin
@@ -13,7 +13,7 @@ from app.constants import ABBREVIATED_NORWEGIAN_MONTHS
 if TYPE_CHECKING:
     from app.telegram.models import ReportedLink, TelegramUser
     from app.webauthn.models import WebauthnCredential
-    from app.wishlist.models import ClaimedWish, Wish
+    from app.wishlist.models import ClaimedWish, Wish, WishList
 
 
 @login_manager.user_loader
@@ -44,7 +44,7 @@ class User(db.Model, UserMixin):
     password_reset_tokens: Mapped[List["PasswordResetToken"]] = relationship(
         back_populates="user"
     )
-    # lists: Mapped[List["WishList"]] = relationship(back_populates="user")
+    lists: Mapped[List["WishList"]] = relationship(back_populates="user")
     webauthn_credentials: Mapped[List["WebauthnCredential"]] = relationship(
         back_populates="user"
     )
@@ -79,23 +79,22 @@ class User(db.Model, UserMixin):
         return user
 
     @staticmethod
-    def upcoming_birthdays():
-        # Get users with birthday next 60 days
+    def upcoming_birthdays() -> List[Dict[str, str | int]]:
         month_mappings = ABBREVIATED_NORWEGIAN_MONTHS
         start = datetime.now(timezone.utc)
         end = start + timedelta(days=60)
-        turn_of_year_days = 0
-        if start.year != end.year:
-            turn_of_year_days = 365
+
+        bday_mmdd = func.month(User.date_of_birth) * 100 + func.day(User.date_of_birth)
+        start_mmdd = start.month * 100 + start.day
+        end_mmdd = end.month * 100 + end.day
+
+        if start.year == end.year:
+            date_condition = (bday_mmdd >= start_mmdd) & (bday_mmdd <= end_mmdd)
+        else:
+            date_condition = (bday_mmdd >= start_mmdd) | (bday_mmdd <= end_mmdd)
 
         user_birthdays = db.session.execute(
-            db.select(User)
-            .where(func.dayofyear(User.date_of_birth) >= func.dayofyear(start))
-            .where(
-                func.dayofyear(User.date_of_birth)
-                <= func.dayofyear(end) + turn_of_year_days
-            )
-            .order_by(func.dayofyear(User.date_of_birth))
+            db.select(User).where(date_condition).order_by(bday_mmdd)
         ).all()
 
         if len(user_birthdays) == 0:
@@ -103,18 +102,14 @@ class User(db.Model, UserMixin):
                 "No upcoming birthdays found in the next 60 days. Finding the next closest birthday."
             )
             user = db.session.execute(
-                db.select(User)
-                .where(func.dayofyear(User.date_of_birth) >= func.dayofyear(start))
-                .order_by(func.dayofyear(User.date_of_birth))
+                db.select(User).where(bday_mmdd >= start_mmdd).order_by(bday_mmdd)
             ).first()
 
             if user is None:
                 current_app.logger.debug(
                     "No birthdays found later this year. Finding the first birthday next year."
                 )
-                user = db.session.execute(
-                    db.select(User).order_by(func.dayofyear(User.date_of_birth))
-                ).first()
+                user = db.session.execute(db.select(User).order_by(bday_mmdd)).first()
 
             if user is None:
                 return []

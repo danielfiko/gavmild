@@ -1,5 +1,5 @@
 <div class="nav-add-wish-button display-none">
-    <button class="new-wish-button button-red">
+    <button id="new-wish-button" class="new-wish-button button-red">
         Nytt ønske
             <span> <!-- class="fa-stack small add-wish-icon" -->
 {#                <i class="fa-solid fa-gift fa-stack-2x"></i>#}
@@ -14,6 +14,7 @@
 </div>
 <ul class="list-no-style">
     <li><a href="{{ url_for('wishlist.user', user_id=current_user.id) }}">Min ønskeliste</a></li>
+    <li><a href="{{ url_for('wishlist.archived_lists') }}">Arkiverte lister</a></li>
     {% if current_user.preferences.show_claims %}
     <li><a href="{{ url_for('wishlist.claimed') }}">Ønsker jeg har tatt</a></li>
     {% endif %}

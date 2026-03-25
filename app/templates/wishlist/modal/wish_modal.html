@@ -1,8 +1,15 @@
-{% extends "wishlist/modal/modal.html" %}
-{% block left %}
-<img src="{{ wish.img_url }}">
-    {% block modal_left %}{% endblock %}
-{% endblock %}
-{% block right %}
-    {% block modal_right %}{% endblock %}
+{% extends "layouts/modal.html" %}
+{% block modal_id %}modal{% endblock %}
+{% block modal_class %}modal{% endblock %}
+{% block modal_content_id %}modal-content{% endblock %}
+{% block modal_content_class %}modal-content{% endblock %}
+{% block modal_content %}
+    <script src="{{ url_for('static', filename='js/wish_modal.js') }}"></script>
+    <section class="modal-left">
+        <img src="{{ wish.img_url }}">
+        {% block modal_left %}{% endblock %}
+    </section>
+    <section class="modal-right">
+        {% block modal_right %}{% endblock %}
+    </section>
 {% endblock %}

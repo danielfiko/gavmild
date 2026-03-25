@@ -139,3 +139,14 @@ def telegram_unlink(telegram_id):
     else:
         flash(result.get("error", "Noe gikk galt."), "error")
     return redirect(url_for("admin.telegram"))
+
+@admin_bp.get("/msg/<int:user_id>/<string:msg>")
+@login_required
+@admin_required
+def msg(user_id, msg):
+    from app.telegram.controllers import telegram_bot_sendtext
+    try:
+        telegram_bot_sendtext(user_id, msg)
+        return "ok"
+    except Exception as e:
+        return f"Error sending Telegram message to user {user_id}: {e}"

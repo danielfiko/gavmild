@@ -1,0 +1,72 @@
+{% extends "layouts/modal.html" %}
+{% block modal_content %}
+    <span class="close close-modal-btn"><i class="far fa-times-circle"></i></span>
+    <section class="modal-left">
+        <img src="{{ wish.img_url }}" alt="{{ wish.title }}">
+    </section>
+    <section class="modal-right">
+        <h2>{{ wish.title }}</h2>
+        {% if wish.description %}
+        <p class="wish-description">{{ wish.description }}</p>
+        {% endif %}
+
+        <form id="move-wish-form" data-wish-id="{{ wish.id }}">
+            <fieldset class="move-action-selector">
+                <legend>Hva vil du gjøre?</legend>
+                <label class="move-option" for="action-copy">
+                    <input type="radio" name="move_action" id="action-copy" value="copy" checked>
+                    <div>
+                        <strong>Jeg fikk det - men vil ha en til</strong>
+                        <span>Lager et nytt ønske i listen du velger</span>
+                    </div>
+                </label>
+                <label class="move-option" for="action-move">
+                    <input type="radio" name="move_action" id="action-move" value="move">
+                    <div>
+                        <strong>Jeg fikk det ikke - flytt det</strong>
+                        <span>Flytter ønsket til en ny liste. Folk som har tatt det følger med.</span>
+                    </div>
+                </label>
+            </fieldset>
+
+            <div class="destination-selector">
+                <label for="dest-list-select">Destinasjonsliste</label>
+                <select id="dest-list-select" name="destination_list_id">
+                    {% for list in active_lists %}
+                    <option value="{{ list.id }}">{{ list.title }}</option>
+                    {% endfor %}
+                    {#<option value="new">+ Opprett ny liste</option>#}
+                </select>
+            </div>
+
+            <div id="new-list-inline" style="display:none;">
+                <label for="new-list-title">Navn på ny liste</label>
+                <input type="text" id="new-list-title" placeholder="Listenavn" style="width:100%;">
+
+                <fieldset class="template-selector" style="margin-top:8px;">
+                    <legend>Mal</legend>
+                    <div class="template-option">
+                        <input type="radio" name="new_list_template" id="move-tmpl-christmas" value="christmas">
+                        <label for="move-tmpl-christmas">Jul</label>
+                    </div>
+                    <div class="template-option">
+                        <input type="radio" name="new_list_template" id="move-tmpl-birthday" value="birthday">
+                        <label for="move-tmpl-birthday">Bursdag</label>
+                    </div>
+                    <div class="template-option">
+                        <input type="radio" name="new_list_template" id="move-tmpl-custom" value="custom" checked>
+                        <label for="move-tmpl-custom">Egendefinert</label>
+                    </div>
+                </fieldset>
+
+                <div id="move-new-list-date-wrapper">
+                    <label for="move-new-list-expires">Utløpsdato</label>
+                    <input type="date" id="move-new-list-expires" style="width:100%;">
+                </div>
+            </div>
+
+            <button type="submit" class="button-red button" style="width:100%; margin-top:16px;">Flytt ønske</button>
+            <p id="move-form-error" style="display:none; color:#9d4045; margin-top:8px;"></p>
+        </form>
+    </section>
+{% endblock %}

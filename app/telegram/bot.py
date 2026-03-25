@@ -1,9 +1,11 @@
+import re
 import logging
 from threading import Thread
 from functools import wraps
 
 from openai import OpenAI
 from telegram import Update, constants
+from telegram.helpers import escape_markdown
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
 logger = logging.getLogger(__name__)
@@ -12,36 +14,47 @@ sys_msg = (
     "You are a chatbot that reluctantly answers with a sarcastic responses, "
     "helping users with the correct use of chat commands. "
     "You do not ask if they need any further assistance."
+    "Rules:"
+    "- Always address the user by the exact name provided in the request"
+    '- Always use second person ("you/your") — never refer to the user as "he", "she", "they", or by name in third person'
+    '- Never start with confirmations, acknowledgments, or meta-commentary (e.g. never begin with "Sure!", "Of course!", "I\'ll write...", "Here\'s a message:", etc.)'
+    "- Begin the message immediately — the first word must be part of the message itself"
+    "- Keep messages concise"
+    "- Match the tone to the context (celebratory, helpful, gentle reminder, etc.)"
+    "- Use Telegram's HTML markdown formatting where appropriate (e.g. for usernames, commands, or to add emphasis)."
+    #Do NOT escape any characters. Do NOT add backslashes before *, _, `, [, ], (, ), #, +, -, =, |, {, }, ., !"
 )
 
 
-def openai_api(flask_app, prompt, system_message=sys_msg, temp=1.0):
+def openai_api(flask_app, prompt, system_message=sys_msg, reasoning_effort="low"):
     client = OpenAI(api_key=flask_app.config["OPENAI_TOKEN"])
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=temp,
-        max_tokens=512,
+    response = client.responses.create(
+        model="gpt-5.4-mini",
+        instructions=system_message,
+        input=prompt,
+        reasoning={"effort": reasoning_effort},
+        max_output_tokens=512,
     )
-    return response.choices[0].message.content
+    logger.info(f"OpenAI API response: {response.output_text}")
+    return response.output_text
 
 
 def admin_only(view_function):
     @wraps(view_function)
     async def decorated_function(*args, **kwargs):
-        '''Checks if the Telegram user is an admin before allowing access to the command.
-        Admin status is determined by checking if the Telegram user is linked to a Gavmild user with is_admin=True.'''
+        """Checks if the Telegram user is an admin before allowing access to the command.
+        Admin status is determined by checking if the Telegram user is linked to a Gavmild user with is_admin=True."""
         update = args[0]
         context = args[1]
         flask_app = context.bot_data["flask_app"]
         telegram_user_id = update.message.from_user.id
 
         from app.telegram.models import TelegramUser as _TGUser
+
         with flask_app.app_context():
-            tg_user = flask_app.extensions["sqlalchemy"].session.get(_TGUser, telegram_user_id)
+            tg_user = flask_app.extensions["sqlalchemy"].session.get(
+                _TGUser, telegram_user_id
+            )
             admin_by_role = (
                 tg_user is not None
                 and tg_user.user is not None
@@ -57,8 +70,10 @@ def admin_only(view_function):
                 f"vedkommende ikke har tilstrekkelige rettigheter til å utføre handlingen."
             )
             response = openai_api(flask_app, content)
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
-            logging.warning(f"Unauthorized Telegram access attempt by user {telegram_user_id} ({update.message.from_user.username})")
+            await send_markdown_message(context.bot, update.effective_chat.id, response)
+            logger.warning(
+                f"Unauthorized Telegram access attempt by user {telegram_user_id} ({update.message.from_user.username})"
+            )
             return
         return await view_function(*args, **kwargs)
 
@@ -69,14 +84,29 @@ def message_from_command(context):
     return " ".join(context.args)
 
 
+
+def strip_markdown_escapes(text: str) -> str:
+    return re.sub(r'\\([_*\[\]()#`>+\-=|{}.!])', r'\1', text)
+
+
+async def send_markdown_message(bot, chat_id, text):
+    #text = strip_markdown_escapes(text)
+    #text = escape_markdown(text, version=2)
+    await bot.send_message(
+        chat_id=chat_id, text=text, parse_mode="HTML"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Command handlers
 # ---------------------------------------------------------------------------
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     flask_app = context.bot_data["flask_app"]
     if context.args:
         from app.telegram.controllers import svc_connect_user
+
         with flask_app.app_context():
             result = svc_connect_user(
                 chat_user_id=update.message.from_user.id,
@@ -103,7 +133,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
     else:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text="Greetings! 🌟 Welcome to our virtual space."
+            chat_id=update.effective_chat.id,
+            text="Greetings! 🌟 Welcome to our virtual space.",
         )
 
 
@@ -119,10 +150,11 @@ async def suggestion(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"Forklar brukeren i korthet at riktig bruk er /forslag Dette er mitt forslag."
         )
         response = openai_api(flask_app, content)
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+        await send_markdown_message(context.bot, update.effective_chat.id, response)
         return
 
     from app.telegram.controllers import svc_add_suggestion
+
     with flask_app.app_context():
         ok = svc_add_suggestion(
             username=update.message.from_user.username,
@@ -139,6 +171,7 @@ async def suggestion(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id, text="Noe gikk dessverre galt."
         )
 
+
 @admin_only
 async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
     flask_app = context.bot_data["flask_app"]
@@ -146,26 +179,28 @@ async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING
     )
     if not context.args:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="/slett <id>")
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text="/slett <id>"
+        )
         return
 
     from app.telegram.controllers import svc_delete_suggestion
+
     with flask_app.app_context():
         result = svc_delete_suggestion(context.args[0])
 
     if result["ok"]:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f'Forslaget "{result["message"]}" har blitt utført og fjernet fra listen.',
-        )
+        content = f'Skriv en kort melding om at forslaget "{result["message"]}" ble slettet fordi det var idiotisk (vær ekstra spydig og sarkastisk).'
+        response = openai_api(flask_app, content)
+        await send_markdown_message(context.bot, update.effective_chat.id, response)
     elif result.get("not_found"):
-        content = "Skriv en kort feilmelding om at ønsket med det id-nummeret brukeren sendte inn ikke eksisterer."
-        msg = openai_api(flask_app, content, "You are a friendly chat bot")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+        content = "Skriv en kort feilmelding om at forslaget med det id-nummeret brukeren sendte inn ikke eksisterer."
+        response = openai_api(flask_app, content)
+        await send_markdown_message(context.bot, update.effective_chat.id, response)
     else:
         content = "Skriv en kort feilmelding om at du ikke fikk kontakt med tjenesten, Gavmild, og handlingen derfor ikke kunne utføres."
-        msg = openai_api(flask_app, content, "You are a friendly chat bot")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+        response = openai_api(flask_app, content)
+        await send_markdown_message(context.bot, update.effective_chat.id, response)
 
 
 @admin_only
@@ -175,26 +210,36 @@ async def solve(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING
     )
     if not context.args:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="/solve <id>")
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text="/solve <id>"
+        )
         return
 
     from app.telegram.controllers import svc_solve_suggestion
+
     with flask_app.app_context():
         result = svc_solve_suggestion(context.args[0])
 
     if result["ok"]:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f'Forslaget "{result["message"]}" har blitt utført og fjernet fra listen.',
-        )
+        content = f"Skriv en kort melding om at forslaget {result['message']} har blitt implementert."
+        chat_id=update.effective_chat.id
+
+        if len(context.args) > 1:
+            content += f" {' '.join(context.args[1:])}"
+            chat_id = flask_app.config["CHAT_GROUP_ID"]
+        
+        text = openai_api(flask_app, content)
+        
+        await send_markdown_message(context.bot, chat_id, text)
+
     elif result.get("not_found"):
-        content = "Skriv en kort feilmelding om at ønsket med det id-nummeret brukeren sendte inn ikke eksisterer."
-        msg = openai_api(flask_app, content, "You are a friendly chat bot")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+        content = "Skriv en kort feilmelding om at forslaget med det id-nummeret brukeren sendte inn ikke eksisterer."
+        response = openai_api(flask_app, content)
+        await send_markdown_message(context.bot, update.effective_chat.id, response)
     else:
         content = "Skriv en kort feilmelding om at du ikke fikk kontakt med tjenesten, Gavmild, og handlingen derfor ikke kunne utføres."
-        msg = openai_api(flask_app, content, "You are a friendly chat bot")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+        response = openai_api(flask_app, content)
+        await send_markdown_message(context.bot, update.effective_chat.id, response)
 
 
 @admin_only
@@ -204,6 +249,7 @@ async def list_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING
     )
     from app.telegram.controllers import svc_get_users
+
     with flask_app.app_context():
         users = svc_get_users()
 
@@ -232,6 +278,7 @@ async def get_reset_password_token(update: Update, context: ContextTypes.DEFAULT
         return
 
     from app.telegram.controllers import svc_get_reset_token
+
     with flask_app.app_context():
         result = svc_get_reset_token(update.effective_chat.id)
 
@@ -271,31 +318,38 @@ async def gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_chat_action(
         chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING
     )
-    response = openai_api(flask_app, message_from_command(context), "Du er en vennlig chatbot")
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+    response = openai_api(
+        flask_app, message_from_command(context), "Du er en vennlig chatbot"
+    )
+
+    await send_markdown_message(context.bot, update.effective_chat.id, response)
 
 
 @admin_only
 async def gpt_to_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
     flask_app = context.bot_data["flask_app"]
-    response = openai_api(flask_app, message_from_command(context), "Du er en vennlig chatbot")
-    await context.bot.send_message(
-        chat_id=flask_app.config["CHAT_GROUP_ID"], text=response
+    response = openai_api(
+        flask_app, message_from_command(context), "Du er en vennlig chatbot"
+    )
+
+    await send_markdown_message(
+        context.bot, flask_app.config["CHAT_GROUP_ID"], response
     )
 
 
 @admin_only
 async def message_to_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
     flask_app = context.bot_data["flask_app"]
-    await context.bot.send_message(
-        chat_id=flask_app.config["CHAT_GROUP_ID"],
-        text=message_from_command(context),
+
+    await send_markdown_message(
+        context.bot, flask_app.config["CHAT_GROUP_ID"], message_from_command(context)
     )
 
 
 # ---------------------------------------------------------------------------
 # Startup
 # ---------------------------------------------------------------------------
+
 
 def start_bot(flask_app):
     token = flask_app.config.get("TELEGRAM_TOKEN")

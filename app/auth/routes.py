@@ -67,7 +67,7 @@ def dashboard():
     previous_site = request.referrer
 
     if not previous_site or previous_site == request.url:
-        previous_site = url_for("index")
+        previous_site = url_for("auth.dashboard")
 
     return logged_in_content(
         template_name,

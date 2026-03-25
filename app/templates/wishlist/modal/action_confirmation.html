@@ -1,4 +1,12 @@
-{#{% block content %}{% endblock %}#}
+{% extends "layouts/modal.html" %}
+{% block modal_id %}modal-confirm{% endblock %}
+{% block modal_class %}modal{% endblock %}
+
+{% block div_attributes %}{{ 'data-close=all' if close_all }}{% endblock %}
+
+{% block modal_content_id %}modal-content{% endblock %}
+{% block modal_content_class %}confirm-action modal-content{% endblock %}
+{% block modal_content %}
 <div class="confirm-action content">
   {% if title %}
     <h2>{{ title }}</h2>
@@ -10,11 +18,12 @@
   {% endif %}
   <div class="actions">
     {% if buttons == "confirm" %}
-      <button class="button send">Send</button>
-      <button class="button abort">Avbryt</button>
+      <button id="confirm-btn" class="button send">Send</button>
+      <button class="button abort close-modal-btn">Avbryt</button>
     {% endif %}
     {% if buttons == "close" %}
-    <button class="button abort" {{ 'data-close-all=true' if close_all }}>Lukk</button>
+    <button class="button abort close-modal-btn">Lukk</button>
   {% endif %}
   </div>
 </div>
+{% endblock %}

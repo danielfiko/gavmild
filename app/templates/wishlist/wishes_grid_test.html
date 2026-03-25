@@ -1,0 +1,60 @@
+{% extends "layouts/logged_in_content.html" %}
+{% block content_header %}
+    {{ super() }}
+    {% if "user" in filter %}
+        <label>Sorter etter:</label>
+        <select name="order_by" id="order_by">
+            <option value="newest_first">Nyeste først</option>
+            <option value="price_low_high">Pris (lav-høy)</option>
+            <option value="price_high_low">Pris (høy-lav)</option>
+        </select>
+    {% endif %}
+{% endblock %}
+{% block main_content %}
+{% if lists %}
+{#    <div class="list-filters">#}
+{#    {% for list in lists %}#}
+{#        <input type="checkbox" id='c{{ loop.index }}' class='chk-btn' checked />#}
+{#        <label for='c{{ loop.index }}'>{{ list.title }}</label>#}
+{#    {% endfor %}#}
+{#    </div>#}
+    <div class="list-filter-pills">
+        <button class="list-filter-pill active" data-list-id="all">Alle</button>
+        {% for list in lists %}
+        <button class="list-filter-pill" data-list-id="{{ list.id }}">{{ list.title }}</button>
+        {% endfor %}
+    </div>
+{% endif %}
+    <div class="grid-container">
+        {% for wish in wishes %}
+            <div class="wish-item" id="{{ wish.id }}">
+                {% if wish.list_title %}
+                <span class="wish-list-badge">{{ wish.list_title }}</span>
+                {% endif %}
+                
+                <div class="wish-icons">
+                    {% if wish.claimed %}
+                    <i class="fa fa-check-circle icon-green"></i>
+                    {% endif %}
+                    {% if wish.desired %}
+                    <i class="fa-solid fa-star icon-gold"></i>
+                    {% endif %}
+                </div>
+                <img src="{% if wish.img_url %}{{ wish.img_url }}{% else %}/static/img/gift-default.png{% endif %}" alt="Produktbilde av ønsket">
+                <ul class="co-wisher-list list-no-style">
+                    <li>{{ wish.first_name }}</li>
+                    {% for co_wisher in wish.co_wisher %}
+                    <li>{{ co_wisher }}</li>
+                    {% endfor %}
+                </ul>
+                <p class="wish-item-age">
+                    {% if wish.price %}kr. {{ wish.price }},-{% endif %}{{ wish.age }}</p>
+                <a class="wish-item-url" href="{{ wish.url }}" target="_blank">{{ wish.base_url }}</a>
+                <h3 class="wish-item-title">{{ wish.title }}</h3>
+            </div>
+        {% endfor %}
+    </div>
+{% if filter == "user/" ~ current_user.id %}
+    <section id="archived-lists-section" class="archived-lists-section"></section>
+{% endif %}
+{% endblock %}
