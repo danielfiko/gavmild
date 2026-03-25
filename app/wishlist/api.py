@@ -8,7 +8,6 @@ from flask import (
     Blueprint,
     Response,
     abort,
-    flash,
     jsonify,
     redirect,
     render_template,
@@ -101,12 +100,10 @@ def add():
 
         if new_wish:
             try:
-                flash("Ønsket ble lagt til")
                 db.session.add(new_wish)
                 db.session.commit()
             except SQLAlchemyError:
-                flash("Det oppstod en feil, gi Daniel beskjed")
-                return "Det oppstod en feil ved oppretting av ønsket", 500
+                return "Det oppstod en feil, gi Daniel beskjed", 500
 
             if form.co_wisher.data:
                 for co_user_id in form.co_wisher.data.split(","):
