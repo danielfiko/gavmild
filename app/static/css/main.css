@@ -282,6 +282,14 @@ main {
     border-radius: 10px;
 }
 
+.wish-item--claimed {
+    opacity: 0.45;
+}
+
+.wish-item--claimed:hover {
+    opacity: 0.7;
+}
+
 .wish-item img {
     width: 100%;
     border-radius: 10px;

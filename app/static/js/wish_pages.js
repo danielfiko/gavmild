@@ -81,7 +81,7 @@ function appendWishesToMain(wishes, columns) {
         $(".wishes-list").append('<div class="wish-column" />')
     }
     $.each(wishes, function(index, wish){
-        let $div = $("<div>").attr({"class":"wish-item", "id": wish.id}).appendTo(".wish-column:nth-child("+current_column+")");
+        let $div = $("<div>").attr({"class":"wish-item" + (wish.claimed ? " wish-item--claimed" : ""), "id": wish.id}).appendTo(".wish-column:nth-child("+current_column+")");
         let $icons = $("<div>").addClass("wish-icons").appendTo($div);
         if (wish.claimed) {
             $icons.append('<i class="fa fa-check-circle icon-green"></i>')
