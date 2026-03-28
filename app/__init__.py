@@ -94,6 +94,13 @@ def create_app(config_class: type | None = None):
                 )
                 conn.commit()
 
+        if "img_broken_since" not in existing_wish_columns:
+            with db.engine.connect() as conn:
+                conn.execute(
+                    text("ALTER TABLE wish ADD COLUMN img_broken_since DATETIME NULL")
+                )
+                conn.commit()
+
         # Ensure the first registered user (id=1) has admin access
         from app.auth.models import User as _User
 
@@ -154,10 +161,19 @@ def create_app(config_class: type | None = None):
         os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug
     ):
         from apscheduler.schedulers.background import BackgroundScheduler
-        from app.wishlist.jobs import archive_expired_lists
+        from app.wishlist.jobs import (
+            archive_expired_lists,
+            generate_missing_wish_images,
+        )
 
         scheduler = BackgroundScheduler()
         scheduler.add_job(archive_expired_lists, "interval", minutes=5, args=[app])
+        scheduler.add_job(
+            generate_missing_wish_images,
+            "interval",
+            minutes=1,
+            args=[app],
+        )
         scheduler.start()
         atexit.register(scheduler.shutdown)
 

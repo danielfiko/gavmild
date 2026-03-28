@@ -109,7 +109,13 @@ function appendWishesToMain(wishes, columns) {
         $div.append('<img src="'+wish.img_url+'" alt="Produktbilde av ønsket">')
         $div.find("img").on("error", function() {
             $(this).attr("src", "/static/img/gift-default.png");
-        });
+            var wishId = $div.attr("id");
+            if (wishId) {
+                ajaxCallCsrf("/api/wishes/" + wishId + "/report-broken-image", {
+                    csrf_token: $("#csrf_token").val()
+                });
+            }
+        }); 
         let $ul = $("<ul>").addClass("co-wisher-list list-no-style").appendTo($div);
         $ul.append('<li>'+ wish.first_name +'</li>');
         $.each(wish.co_wisher, function(i, co_wisher){

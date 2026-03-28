@@ -76,9 +76,12 @@ class Wish(db.Model):
     quantity: Mapped[int] = mapped_column(db.Integer, nullable=False, default=1)
     url: Mapped[str | None] = mapped_column(db.String(255))
     img_url: Mapped[str | None] = mapped_column(db.String(255))
+    img_broken_since: Mapped[datetime | None] = mapped_column(db.DateTime)
     desired: Mapped[bool] = mapped_column(db.Boolean, default=0)
     price: Mapped[int | None] = mapped_column(db.Integer)
-    deleted_at: Mapped[datetime | None] = mapped_column(db.DateTime) # set = soft-deleted
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        db.DateTime
+    )  # set = soft-deleted
     list_id: Mapped[int | None] = mapped_column(
         db.Integer, ForeignKey("wish_list.id"), index=True
     )

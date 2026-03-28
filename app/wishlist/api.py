@@ -806,6 +806,18 @@ def _archived_wish_to_json(wish: Wish) -> dict:
     }
 
 
+@api_bp.post("/wishes/<int:wish_id>/report-broken-image")
+@api_login_required
+def report_broken_image(wish_id: int) -> Response:
+    wish = db.session.get(Wish, wish_id)
+    if wish is None or wish.deleted_at is not None:
+        abort(404)
+    if wish.img_broken_since is None:
+        wish.img_broken_since = datetime.now(timezone.utc)
+        db.session.commit()
+    return Response(status=204)
+
+
 @api_bp.post("/wishes/<int:wish_id>/move")
 @api_login_required
 def move_wish(wish_id: int):

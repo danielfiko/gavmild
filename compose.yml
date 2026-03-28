@@ -26,6 +26,8 @@ services:
     build:
       context: .
       target: development
+    volumes:
+      - generated-images:/usr/src/code/app/static/img/generated_images
     env_file:
       - .env
     secrets:
@@ -49,6 +51,7 @@ volumes:
   db-data:
     external: true
     name: www_db-data
+  generated-images:
 
 secrets:
   db-password:
