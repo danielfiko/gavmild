@@ -14,6 +14,18 @@ $(document).ready(function() {
 
     $("#order_by").on("change", requestWishes);
 
+    // Restore hide-claimed-icons toggle from localStorage
+    if (localStorage.getItem('hideClaimed') === 'true') {
+        $('body').addClass('hide-claimed-icons');
+        $('#toggle-claimed-icons i').removeClass('fa-eye').addClass('fa-eye-slash');
+    }
+    $('#toggle-claimed-icons').on('click', function() {
+        $('body').toggleClass('hide-claimed-icons');
+        var isHidden = $('body').hasClass('hide-claimed-icons');
+        localStorage.setItem('hideClaimed', isHidden);
+        $('#toggle-claimed-icons i').toggleClass('fa-eye', !isHidden).toggleClass('fa-eye-slash', isHidden);
+    });
+
     // If the archived lists section exists on the page (own wish list page only),
     // fetch and render the user's archived lists on load.
     if ($('#archived-lists-section').length) {
