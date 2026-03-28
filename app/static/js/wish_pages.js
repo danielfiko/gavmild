@@ -4,6 +4,12 @@
 
 let user_wishes;
 $(document).ready(function() {
+    // Restore order_by from localStorage before the initial fetch.
+    var savedOrderBy = localStorage.getItem('orderBy');
+    if (savedOrderBy) {
+        $('#order_by').val(savedOrderBy);
+    }
+
     if ($('.wishes-list').length) {
         requestWishes();
     }
@@ -12,7 +18,10 @@ $(document).ready(function() {
         checkPathAndLoadWishModal();
     });
 
-    $("#order_by").on("change", requestWishes);
+    $("#order_by").on("change", function() {
+        localStorage.setItem('orderBy', $(this).val());
+        requestWishes();
+    });
 
     // Restore hide-claimed-icons toggle from localStorage
     if (localStorage.getItem('hideClaimed') === 'true') {
