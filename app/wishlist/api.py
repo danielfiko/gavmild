@@ -806,6 +806,29 @@ def _archived_wish_to_json(wish: Wish) -> dict:
     }
 
 
+@api_bp.post("/wishes/<int:wish_id>/generate-image")
+@api_login_required
+def generate_wish_image(wish_id: int) -> Response:
+    if not current_user.is_admin:
+        abort(403)
+    wish = db.session.get(Wish, wish_id)
+    if wish is None or wish.deleted_at is not None:
+        abort(404)
+    json_data = request.get_json() or {}
+    product_name: str = json_data.get("product_name") or wish.title
+    from app.wishlist.image_generation import generate_image
+
+    file_path = generate_image(
+        product_name=product_name,
+        description=wish.description or "",
+    )
+    filename = os.path.basename(file_path)
+    wish.img_url = f"/static/img/generated_images/{filename}"
+    wish.img_broken_since = None
+    db.session.commit()
+    return jsonify({"img_url": wish.img_url})
+
+
 @api_bp.post("/wishes/<int:wish_id>/report-broken-image")
 @api_login_required
 def report_broken_image(wish_id: int) -> Response:

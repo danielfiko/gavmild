@@ -27,6 +27,31 @@ if ($(".modal .co-wisher-list li:first").length) {
 $(".delete-wish").click( function(){deleteWish(this.id)} )
 $(".icon-dead-link").click( function(){ reportDeadLink(this.id) });
 
+$("#admin-generate-image-btn").on("click", function() {
+    var $btn = $(this);
+    var $input = $("#admin-product-name");
+    var $error = $("#admin-generate-error");
+    var wishId = $input.data("wish-id");
+    var productName = $input.val().trim();
+    $error.hide();
+    $btn.prop("disabled", true).text("Genererer...");
+    $.ajax({
+        url: "/api/wishes/" + wishId + "/generate-image",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ product_name: productName }),
+    }).done(function(response) {
+        $(".modal-left img").attr("src", response.img_url);
+        $btn.prop("disabled", false).text("Generer");
+    }).fail(function(xhr) {
+        var msg = xhr.responseJSON && xhr.responseJSON.error
+            ? xhr.responseJSON.error
+            : "Noe gikk galt.";
+        $error.text(msg).show();
+        $btn.prop("disabled", false).text("Generer");
+    });
+});
+
 function get_prisjakt_details() {
     var productUrl = $("#url").val();
 

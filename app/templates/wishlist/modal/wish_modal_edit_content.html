@@ -7,6 +7,16 @@
             <i class="fa fa-pencil-square-o"></i>
         </button>
     </fieldset>
+    {% if current_user.is_admin %}
+    <details class="admin-generate-image">
+        <summary>Generer bilde</summary>
+        <div class="admin-generate-image-row">
+            <input type="text" id="admin-product-name" data-wish-id="{{ wish.id }}" value="{{ wish.title }}">
+            <button type="button" id="admin-generate-image-btn" class="button button-red">Generer</button>
+        </div>
+        <p id="admin-generate-error" class="error-text" style="display:none"></p>
+    </details>
+    {% endif %}
 {% endblock %}
 {% block modal_right %}
     <h2>Ønskedetaljer</h2>

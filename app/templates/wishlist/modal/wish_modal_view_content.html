@@ -2,7 +2,17 @@
 {% block div_attributes %}
 data-path-open="/wish/{{ wish.id }}"
 {% endblock %}
-{% block modal_left %}{% endblock %}
+{% block modal_left %}
+    {% if current_user.is_admin %}
+    <details class="admin-generate-image">
+        <summary>Generer bilde</summary>
+        <div class="admin-generate-image-row">
+            <input type="text" id="admin-product-name" data-wish-id="{{ wish.id }}" value="{{ wish.title }}">
+            <button type="button" id="admin-generate-image-btn" class="button button-red">Generer</button>
+        </div>
+        <p id="admin-generate-error" class="error-text" style="display:none"></p>
+    </details>
+    {% endif %}{% endblock %}
 {% block modal_right %}
     <!--{% if wish.desired %}
         <p class="desired">&#9733; Mest ønsket</p>
