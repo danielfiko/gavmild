@@ -40,9 +40,29 @@ $("#admin-generate-image-btn").on("click", function() {
         method: "POST",
         contentType: "application/json",
         data: JSON.stringify({ product_name: productName }),
-    }).done(function(response) {
-        $(".modal-left img").attr("src", response.img_url);
-        $btn.prop("disabled", false).text("Generer");
+    }).done(function(response, status, xhr) {
+        if (xhr.status === 202) {
+            $btn.text("Genererer...");
+            var currentSrc = $(".modal-left img").attr("src");
+            var maxPolls = 40;
+            var polls = 0;
+            var poller = setInterval(function() {
+                polls++;
+                if (polls > maxPolls) {
+                    clearInterval(poller);
+                    $btn.prop("disabled", false).text("Generer");
+                    $error.text("Tidsavbrudd – prøv igjen.").show();
+                    return;
+                }
+                $.get("/api/wishes/" + wishId + "/img-url", function(data) {
+                    if (data.img_url && data.img_url !== currentSrc) {
+                        clearInterval(poller);
+                        $(".modal-left img").attr("src", data.img_url);
+                        $btn.prop("disabled", false).text("Generer");
+                    }
+                });
+            }, 3000);
+        }
     }).fail(function(xhr) {
         var msg = xhr.responseJSON && xhr.responseJSON.error
             ? xhr.responseJSON.error

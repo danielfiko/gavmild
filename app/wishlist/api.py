@@ -809,6 +809,8 @@ def _archived_wish_to_json(wish: Wish) -> dict:
 @api_bp.post("/wishes/<int:wish_id>/generate-image")
 @api_login_required
 def generate_wish_image(wish_id: int) -> Response:
+    import threading
+
     if not current_user.is_admin:
         abort(403)
     wish = db.session.get(Wish, wish_id)
@@ -816,16 +818,42 @@ def generate_wish_image(wish_id: int) -> Response:
         abort(404)
     json_data = request.get_json() or {}
     product_name: str = json_data.get("product_name") or wish.title
+    description: str = wish.description or ""
+
+    from flask import current_app
+
     from app.wishlist.image_generation import generate_image
 
-    file_path = generate_image(
-        product_name=product_name,
-        description=wish.description or "",
-    )
-    filename = os.path.basename(file_path)
-    wish.img_url = f"/static/img/generated_images/{filename}"
-    wish.img_broken_since = None
-    db.session.commit()
+    app = current_app._get_current_object()
+
+    def _run() -> None:
+        with app.app_context():
+            try:
+                file_path = generate_image(
+                    product_name=product_name,
+                    description=description,
+                )
+                filename = os.path.basename(file_path)
+                _wish = db.session.get(Wish, wish_id)
+                if _wish is not None:
+                    _wish.img_url = f"/static/img/generated_images/{filename}"
+                    _wish.img_broken_since = None
+                    db.session.commit()
+            except Exception:
+                logging.exception(
+                    "Background image generation failed for wish id=%d.", wish_id
+                )
+
+    threading.Thread(target=_run, daemon=True).start()
+    return Response(status=202)
+
+
+@api_bp.get("/wishes/<int:wish_id>/img-url")
+@api_login_required
+def get_wish_img_url(wish_id: int) -> Response:
+    wish = db.session.get(Wish, wish_id)
+    if wish is None or wish.deleted_at is not None:
+        abort(404)
     return jsonify({"img_url": wish.img_url})
 
 
