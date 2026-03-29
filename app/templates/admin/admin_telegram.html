@@ -39,14 +39,14 @@
                             {{ tg.user.first_name }} {{ tg.user.last_name }} ({{ tg.user.username }})
                         </a>
                     {% else %}
-                        <span style="color:#888;">Ikke koblet</span>
+                        <span class="text-muted">Ikke koblet</span>
                     {% endif %}
                 </td>
                 <td>
                     {% if tg.user %}
                     <form method="POST" action="{{ url_for('admin.telegram_unlink', telegram_id=tg.id) }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="button-red" style="padding:0.3rem 0.7rem;border:none;cursor:pointer;border-radius:4px;font-size:0.85rem;">Koble fra</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Koble fra</button>
                     </form>
                     {% endif %}
                 </td>

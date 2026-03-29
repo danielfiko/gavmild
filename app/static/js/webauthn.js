@@ -12,8 +12,8 @@ async function handleRegistration() {
     const {startRegistration} = SimpleWebAuthnBrowser;
     const elemSuccess = document.getElementById('success');
     const elemError = document.getElementById('error');
-    const successContainer = $(".success-message")
-    const errorContainer = $(".error-message")
+    const successContainer = $(".status-message-success")
+    const errorContainer = $(".status-message-error")
 
     // Reset success/error messages
     elemSuccess.innerHTML = '';

@@ -3,7 +3,7 @@
     <fieldset>
         {{ wish_form.wish_img_url.label }}
         {{ wish_form.wish_img_url(value=wish.img_url) }}
-        <button type="button" class="add-wish-image-from-url-button button-red button">
+        <button type="button" class="add-wish-image-from-url-button btn btn-primary button">
             <i class="fa fa-pencil-square-o"></i>
         </button>
     </fieldset>
@@ -12,9 +12,9 @@
         <summary>Generer bilde</summary>
         <div class="admin-generate-image-row">
             <input type="text" id="admin-product-name" data-wish-id="{{ wish.id }}" value="{{ wish.title }}">
-            <button type="button" id="admin-generate-image-btn" class="button button-red">Generer</button>
+            <button type="button" id="admin-generate-image-btn" class="button btn btn-primary">Generer</button>
         </div>
-        <p id="admin-generate-error" class="error-text" style="display:none"></p>
+        <p id="admin-generate-error" class="error-text initially-hidden"></p>
     </details>
     {% endif %}
 {% endblock %}
@@ -34,7 +34,7 @@
             {{ wish_form.quantity }}
             {{ wish_form.price(value=wish.price) }}
             {#<div class="add-co-wisher-button-wrapper">
-                <button class="add-co-wisher-button button-red .js-typeahead" form="none" type="button">
+                <button class="add-co-wisher-button btn btn-primary .js-typeahead" form="none" type="button">
                     <i class="fa fa-user-plus"></i>
                 </button>
             </div>#}
@@ -97,7 +97,7 @@
             {{ wish_form.desired.label }}
             <div class="form-actions">
                 {{ '<a id="%s" class="delete-wish">Slett</a>'|safe % wish.id if wish.user_id == current_user.id }}
-                {{ wish_form.submit(class_="button-red button") }}
+                {{ wish_form.submit(class_="btn btn-primary button") }}
             </div>
         </div>
     </form>

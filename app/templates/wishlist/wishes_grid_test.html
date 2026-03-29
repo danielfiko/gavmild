@@ -47,9 +47,9 @@
                     <li>{{ co_wisher }}</li>
                     {% endfor %}
                 </ul>
-                <p class="wish-item-age">
+                <p class="wish-item-meta">
                     {% if wish.price %}kr. {{ wish.price }},-{% endif %}{{ wish.age }}</p>
-                <a class="wish-item-url" href="{{ wish.url }}" target="_blank">{{ wish.base_url }}</a>
+                <a class="wish-item-meta" href="{{ wish.url }}" target="_blank">{{ wish.base_url }}</a>
                 <h3 class="wish-item-title">{{ wish.title }}</h3>
             </div>
         {% endfor %}

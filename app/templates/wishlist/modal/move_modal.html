@@ -39,11 +39,11 @@
                 </select>
             </div>
 
-            <div id="new-list-inline" style="display:none;">
+            <div id="new-list-inline" class="initially-hidden">
                 <label for="new-list-title">Navn på ny liste</label>
-                <input type="text" id="new-list-title" placeholder="Listenavn" style="width:100%;">
+                <input type="text" id="new-list-title" placeholder="Listenavn">
 
-                <fieldset class="template-selector" style="margin-top:8px;">
+                <fieldset class="template-selector">
                     <legend>Mal</legend>
                     <div class="template-option">
                         <input type="radio" name="new_list_template" id="move-tmpl-christmas" value="christmas">
@@ -61,12 +61,12 @@
 
                 <div id="move-new-list-date-wrapper">
                     <label for="move-new-list-expires">Utløpsdato</label>
-                    <input type="date" id="move-new-list-expires" style="width:100%;">
+                    <input type="date" id="move-new-list-expires">
                 </div>
             </div>
 
-            <button type="submit" class="button-red button" style="width:100%; margin-top:16px;">Flytt ønske</button>
-            <p id="move-form-error" style="display:none; color:#9d4045; margin-top:8px;"></p>
+            <button type="submit" class="btn btn-primary button move-submit-btn">Flytt ønske</button>
+            <p id="move-form-error" class="form-error-text initially-hidden"></p>
         </form>
     </section>
 {% endblock %}

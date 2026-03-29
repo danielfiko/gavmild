@@ -130,8 +130,8 @@ function appendWishesToMain(wishes, columns) {
         $.each(wish.co_wisher, function(i, co_wisher){
             $ul.append("<li>"+co_wisher+"</li>");
         });
-        $div.append('<p class="wish-item-age">' + ((wish.price) ? 'kr. ' + wish.price + ',- / ' : "") + wish.age + '</p>')
-        $div.append('<a class="wish-item-url", href="' + wish.url + '" target="_blank">' + wish.base_url + '</a>')
+        $div.append('<p class="wish-item-meta">' + ((wish.price) ? 'kr. ' + wish.price + ',- / ' : "") + wish.age + '</p>')
+        $div.append('<a class="wish-item-meta", href="' + wish.url + '" target="_blank">' + wish.base_url + '</a>')
         let $h3 = $("<h3>").addClass("wish-item-title").appendTo($div);
         /*if (wish.desired) {
             $h3.append('<span>&#9733; </span>')
@@ -202,7 +202,7 @@ function loadArchivedListWishes(list_id, $container) {
             var safeTitle = $('<span>').text(wish.title).html();
             $card.append('<img src="' + wish.img_url + '" alt="' + safeTitle + '">');
             $card.append($('<h4>').text(wish.title));
-            var $btn = $('<button class="button-red button move-wish-btn">').text('Flytt ønske');
+            var $btn = $('<button class="btn btn-primary button move-wish-btn">').text('Flytt ønske');
             $btn.on('click', function() { openMoveWishModal(wish.id); });
             $card.append($btn);
             $grid.append($card);

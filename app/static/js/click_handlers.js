@@ -84,7 +84,7 @@ function editListItem() {
             });
 
         var $saveButton = $($(document.createElement('button')))
-            .addClass('save blue-button')
+            .addClass('save btn btn-accent')
             .text('Lagre')
             .on("click", function () {
                 updateCredentialName(

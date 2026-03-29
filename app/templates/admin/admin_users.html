@@ -30,9 +30,9 @@
                 <td>{{ user.first_name }} {{ user.last_name }}</td>
                 <td>{{ user.username }}</td>
                 <td>{{ user.email }}</td>
-                <td>{% if user.is_admin %}<span class="label-green">Admin</span>{% endif %}</td>
+                <td>{% if user.is_admin %}<span class="label label-green">Admin</span>{% endif %}</td>
                 <td>{% if user.chat_user and user.chat_user.user_id %}
-                    <span class="label-green">Koblet</span>
+                    <span class="label label-green">Koblet</span>
                 {% else %}
                     –
                 {% endif %}</td>

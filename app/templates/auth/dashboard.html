@@ -16,7 +16,7 @@
     <div class="dashboard-element">
         <div>
             <div class="dashboard-element-description">
-                <h2>Sikkerhetsnøkler {{ '<span class="label-green">Aktivert</span>'|safe if credentials }}</h2>
+                <h2>Sikkerhetsnøkler {{ '<span class="label label-green">Aktivert</span>'|safe if credentials }}</h2>
                 {% if credentials %}
                 <p>Innlogging med sikkerhetsnøkkel er aktivert.</p>
                 {% else %}
@@ -24,7 +24,7 @@
                 {% endif %}
             </div>
             <div>
-                <button id="add-new-key" class="blue-button">Legg til</button>
+                <button id="add-new-key" class="btn btn-accent">Legg til</button>
             </div>
         </div>
         {% if credentials %}
@@ -51,10 +51,10 @@
         {% endif %}
     </div>
 
-    <div class="dashboard-element" style="margin-top:1rem;">
+    <div class="dashboard-element mt-4">
         <div>
             <div class="dashboard-element-description">
-                <h2><i class="fa-brands fa-telegram"></i> Telegram {{ '<span class="label-green">Tilkoblet</span>'|safe if telegram_connected }}</h2>
+                <h2><i class="fa-brands fa-telegram"></i> Telegram {{ '<span class="label label-green">Tilkoblet</span>'|safe if telegram_connected }}</h2>
                 {% if telegram_connected %}
                 <p>Telegram-kontoen din er koblet til Gavmild.</p>
                 {% else %}

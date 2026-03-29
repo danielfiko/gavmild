@@ -7,35 +7,35 @@
 
         <div class="template-picker">
             {% for error in form.template.errors %}
-            <span style="color:#9d4045; margin-top:8px;">{{ error }}</span>
+            <span class="form-error-text">{{ error }}</span>
             {% endfor %}
             {% for subfield in form.template %}{{ subfield(class_="template-radio") }}{{ subfield.label(class_="template-pill") }}{% endfor %}
         </div>
 
-        <p id="auto-title-hint" style="display:none; font-size:0.8em; color:#666; margin: 0 0 0.75rem 0;">Tittel genereres automatisk</p>
+        <p id="auto-title-hint" class="form-hint-text initially-hidden">Tittel genereres automatisk</p>
 
         <div id="list-title-wrapper">
             {{ form.title.label }}
             {% for error in form.title.errors %}
-            <span style="color:#9d4045; margin-top:8px;">{{ error }}</span>
+            <span class="form-error-text">{{ error }}</span>
             {% endfor %}
             {{ form.title(placeholder=title_placeholder) }}
         </div>
 
-        <div id="custom-date-wrapper" style="display:none;">
+        <div id="custom-date-wrapper" class="initially-hidden">
             {{ form.expires_at.label }}
             {% for error in form.expires_at.errors %}
-            <span style="color:#9d4045; margin-top:8px;">{{ error }}</span>
+            <span class="form-error-text">{{ error }}</span>
             {% endfor %}
             {{ form.expires_at }}
         </div>
 
-        <button id="list-submit" class="button-red button" type="submit">
+        <button id="list-submit" class="btn btn-primary button" type="submit">
             <span>Opprett liste</span>
-            <i class="fa fa-spinner" style="display:none;"></i>
-            <i class="fa fa-check" style="display:none;"></i>
+            <i class="fa fa-spinner initially-hidden"></i>
+            <i class="fa fa-check initially-hidden"></i>
         </button>
-        <p id="list-form-error" style="display:none; color:#9d4045; margin-top:8px;"></p>
+        <p id="list-form-error" class="form-error-text initially-hidden"></p>
     </form>
 </div>
 {% endblock %}

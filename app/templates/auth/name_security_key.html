@@ -1,11 +1,11 @@
-<h3 class="content-subtitle">Sikkerhetsnøkkelen ble lagt til</h3>
-<div class="message-box success-message"><p id="success"></p></div>
-<div class="message-box error-message"><p id="error"></p></div>
+<h3 class="mb-4">Sikkerhetsnøkkelen ble lagt til</h3>
+<div class="message-box status-message status-message-success"><p id="success"></p></div>
+<div class="message-box status-message status-message-error"><p id="error"></p></div>
 <form method="POST" action="/webauthn/update">
     <input type="hidden" name="redirect" value="true">
     <input type="hidden" name="entry_id" value="{{ entry_id }}">
 {{ form.hidden_tag() }}
 {{ form.label.label(text="Gi sikkerhetsnøkkelen et navn") }}
 {{ form.label(**{ "data-entry-id": entry_id }) }}
-{{ form.submit(**{ "class": "blue-button" }) }}
+{{ form.submit(**{ "class": "btn btn-accent" }) }}
 </form>

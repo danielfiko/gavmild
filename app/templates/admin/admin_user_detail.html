@@ -12,7 +12,7 @@
         {% if category == "reset_url" %}
         <div class="message-box message-box-info">
             <strong>Tilbakestillingslenke (gyldig i 15 min):</strong><br>
-            <code style="word-break:break-all;">{{ message }}</code>
+            <code class="break-all">{{ message }}</code>
         </div>
         {% elif category == "success" %}
         <div class="message-box message-box-success">{{ message }}</div>
@@ -22,15 +22,15 @@
     {% endfor %}
 {% endwith %}
 
-<div class="dashboard-element" style="margin-bottom:1.5rem;">
+<div class="dashboard-element mb-6">
     <div>
         <div class="dashboard-element-description">
             <h2>{{ admin_user.first_name }} {{ admin_user.last_name }}</h2>
             <p>Opprettet: {{ admin_user.date_created.strftime('%d.%m.%Y') }}</p>
         </div>
         <div>
-            {% if admin_user.is_admin %}<span class="label-green">Admin</span>{% endif %}
-            {% if admin_user.force_pw_change %}<span class="label-yellow">Må bytte passord</span>{% endif %}
+            {% if admin_user.is_admin %}<span class="label label-green">Admin</span>{% endif %}
+            {% if admin_user.force_pw_change %}<span class="label label-yellow">Må bytte passord</span>{% endif %}
         </div>
     </div>
 
@@ -60,13 +60,13 @@
                 </tr>
             </tbody>
         </table>
-        <div style="padding:1rem 2rem;">
-            <button type="submit" class="blue-button" style="padding:0.5rem 1rem;border:none;cursor:pointer;border-radius:4px;">Lagre endringer</button>
+        <div class="dashboard-element-description">
+            <button type="submit" class="btn btn-accent btn-sm">Lagre endringer</button>
         </div>
     </form>
 </div>
 
-<div class="dashboard-element" style="margin-bottom:1.5rem;">
+<div class="dashboard-element mb-6">
     <div>
         <div class="dashboard-element-description">
             <h2>Tilbakestill passord</h2>
@@ -75,14 +75,14 @@
         <div>
             <form method="POST" action="{{ url_for('admin.user_reset_password', user_id=admin_user.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="blue-button" style="padding:0.5rem 1rem;border:none;cursor:pointer;border-radius:4px;">Generer lenke</button>
+                <button type="submit" class="btn btn-accent btn-sm">Generer lenke</button>
             </form>
         </div>
     </div>
 </div>
 
 {% if admin_user.webauthn_credentials %}
-<div class="dashboard-element" style="margin-bottom:1.5rem;">
+<div class="dashboard-element mb-6">
     <div>
         <div class="dashboard-element-description">
             <h2>Sikkerhetsnøkler</h2>

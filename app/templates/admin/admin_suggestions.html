@@ -20,9 +20,9 @@
         </div>
         <div>
             <div class="admin-filter-buttons">
-                <a href="{{ url_for('admin.suggestions', filter='open') }}" class="{{ 'blue-button' if active_filter == 'open' else '' }}" style="padding:0.4rem 0.8rem;border-radius:4px;text-decoration:none;">Åpne</a>
-                <a href="{{ url_for('admin.suggestions', filter='solved') }}" class="{{ 'blue-button' if active_filter == 'solved' else '' }}" style="padding:0.4rem 0.8rem;border-radius:4px;text-decoration:none;">Løste</a>
-                <a href="{{ url_for('admin.suggestions', filter='all') }}" class="{{ 'blue-button' if active_filter == 'all' else '' }}" style="padding:0.4rem 0.8rem;border-radius:4px;text-decoration:none;">Alle</a>
+                <a href="{{ url_for('admin.suggestions', filter='open') }}" class="{{ 'btn btn-accent' if active_filter == 'open' else '' }}">Åpne</a>
+                <a href="{{ url_for('admin.suggestions', filter='solved') }}" class="{{ 'btn btn-accent' if active_filter == 'solved' else '' }}">Løste</a>
+                <a href="{{ url_for('admin.suggestions', filter='all') }}" class="{{ 'btn btn-accent' if active_filter == 'all' else '' }}">Alle</a>
             </div>
         </div>
     </div>
@@ -46,23 +46,23 @@
                 <td>{{ s.suggestion }}</td>
                 <td>
                     {% if s.deleted_at %}
-                        <span class="label-red">Slettet</span>
+                        <span class="label label-red">Slettet</span>
                     {% elif s.solved_at %}
-                        <span class="label-green">Løst</span>
+                        <span class="label label-green">Løst</span>
                     {% else %}
-                        <span class="label-yellow">Åpen</span>
+                        <span class="label label-yellow">Åpen</span>
                     {% endif %}
                 </td>
                 <td>
                     {% if not s.solved_at and not s.deleted_at %}
-                    <div style="display:flex;gap:0.5rem;justify-content:flex-end;">
+                    <div class="admin-actions">
                         <form method="POST" action="{{ url_for('admin.suggestion_solve', suggestion_id=s.id, filter=active_filter) }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="blue-button" style="padding:0.3rem 0.7rem;border:none;cursor:pointer;border-radius:4px;font-size:0.85rem;">Løs</button>
+                            <button type="submit" class="btn btn-accent btn-sm">Løs</button>
                         </form>
                         <form method="POST" action="{{ url_for('admin.suggestion_delete', suggestion_id=s.id, filter=active_filter) }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="button-red" style="padding:0.3rem 0.7rem;border:none;cursor:pointer;border-radius:4px;font-size:0.85rem;">Slett</button>
+                            <button type="submit" class="btn btn-primary btn-sm">Slett</button>
                         </form>
                     </div>
                     {% endif %}

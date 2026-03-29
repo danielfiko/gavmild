@@ -8,9 +8,9 @@ data-path-open="/wish/{{ wish.id }}"
         <summary>Generer bilde</summary>
         <div class="admin-generate-image-row">
             <input type="text" id="admin-product-name" data-wish-id="{{ wish.id }}" value="{{ wish.title }}">
-            <button type="button" id="admin-generate-image-btn" class="button button-red">Generer</button>
+            <button type="button" id="admin-generate-image-btn" class="btn btn-primary">Generer</button>
         </div>
-        <p id="admin-generate-error" class="error-text" style="display:none"></p>
+        <p id="admin-generate-error" class="error-text initially-hidden"></p>
     </details>
     {% endif %}{% endblock %}
 {% block modal_right %}
@@ -45,7 +45,7 @@ data-path-open="/wish/{{ wish.id }}"
             <button class="claim-button unclaim" id="claim_btn" name="claim_btn" type="submit">
                 <i class="fa-regular fa-circle-check icon-blue"></i><span>Ikke ta ønsket</span>
             </button><!--
-            <button class="claim-button unclaim button-red" id="claim_btn" name="claim_btn" type="submit">
+            <button class="claim-button unclaim btn btn-primary" id="claim_btn" name="claim_btn" type="submit">
                 <i class="fas fa-gift"></i><span>Ikke ta ønske</span>
             </button>-->
         {% endif %}
@@ -62,7 +62,7 @@ data-path-open="/wish/{{ wish.id }}"
             <button class="claim-button" id="claim_btn" name="claim_btn" type="submit">
                 <i class="fa-regular fa-circle-check icon-blue"></i><span>Ta ønsket</span>
             </button><!--
-            <button class="claim-button button-red" id="claim_btn" name="claim_btn" type="submit">
+            <button class="claim-button btn btn-primary" id="claim_btn" name="claim_btn" type="submit">
                 <i class="fas fa-gift"></i><span>Ta ønske</span>
             </button>-->
         {% endif %}

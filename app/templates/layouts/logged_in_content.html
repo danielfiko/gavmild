@@ -11,17 +11,17 @@
         <a href="/"><img src="{{ url_for('static', filename='img/logo.png') }}" class="site-logo" alt="Gavmild logo"></a>
     </header>
 
-    <div class="header-nav-container nav-toggle-item background-white display-none">
+    <div class="header-nav-container nav-toggle-item background-white">
         <ul class="header-nav list-no-style">
             <li><i class="fas fa-user"></i> <a href="/dashboard">{{ current_user.username }}</a></li>
             {% if current_user.is_admin %}
             <li><a href="{{ url_for('admin.index') }}"><i class="fas fa-shield-halved"></i> Admin</a></li>
             {% endif %}
-            <li><button type="button" class="logout-button button-red"><i class="fas fa-sign-out-alt"></i> Logg ut</button></li>
+            <li><button type="button" class="logout-button btn btn-primary"><i class="fas fa-sign-out-alt"></i> Logg ut</button></li>
         </ul>
     </div>
 
-    <nav class="sidebar-nav nav-toggle-item background-white display-none">
+    <nav class="sidebar-nav nav-toggle-item background-white">
         {% include "nav_logged_in.html" %}
     </nav>
 
