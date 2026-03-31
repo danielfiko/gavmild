@@ -9,6 +9,8 @@
   --color-primary: #9d4045;
   --color-primary-hover: #863539;
   --color-primary-light: #fdf2f2;          /* light tint for selected radio cards */
+  --color-new-blue: #1b3b6f;
+  --color-new-blue-shimmer: #8ab6fd;
 
   /* Brand: Accent (blue — links, secondary buttons, dashboard actions) */
   --color-accent: #3060c0;
@@ -40,13 +42,13 @@
 
   /* Neutrals: 7-step gray scale (light → dark) */
   --color-white: #ffffff;
-  --color-gray-100: #f5f5f5;              /* page background, muted card bg */
+  --color-gray-100: #FFFEF9;  /*f5f5f5*/            /* page background, muted card bg */
   --color-gray-200: #e2e2e2;              /* hover backgrounds, table header bg */
   --color-gray-300: #ccc;                 /* input borders, pill borders */
   --color-gray-400: #b6b6b6;             /* dividers, card borders, table cell borders */
   --color-gray-500: #888;                 /* muted text, meta, placeholders */
   --color-gray-700: #3c3c3c;             /* secondary text, co-wisher names */
-  --color-gray-900: #212121;             /* headings, primary body text */
+  --color-gray-900: #1e212b; /*212121*/            /* headings, primary body text */
   --color-overlay: rgba(0, 0, 0, 0.4);   /* modal backdrop */
 
   /* Spacing scale (4px base) */
@@ -98,7 +100,36 @@
   --focus-ring-offset: 2px;
 }
 
+.nav-button {
+  color: var(--color-new-blue);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  margin-bottom: var(--space-2);
 
+  &:hover {
+    background: linear-gradient(-45deg, var(--color-accent-hover) 40%, var( --color-new-blue-shimmer) 50%, var(--color-accent-hover) 60%);
+    background-size: 300%;
+    background-position-x: 100%;
+    animation: shimmer 1s infinite linear;
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent; /* fallback */
+  }
+  &:visited, &:active {
+    color: var(--color-new-blue);
+  }
+  & span {
+    font-size: var(--text-md);
+  }
+}
+@keyframes shimmer {
+  to {
+    background-position-x: 0%;
+  }
+}
+  
 /* --- Reset & Base --- */
 
 *,
@@ -190,7 +221,10 @@ header {
 }
 
 .site-logo {
-  width: 100%;
+  width: 90%;
+  &.logged-in {
+    margin: var(--space-4) 0;
+  }
 }
 
 .header-nav-container {
@@ -1158,6 +1192,7 @@ body.hide-claimed-icons .wish-item--claimed {
 
 .initially-hidden {
   display: none;
+  --fa-display: none;
 }
 
 .list-no-style {
@@ -1190,7 +1225,7 @@ body.hide-claimed-icons .wish-item--claimed {
 }
 
 .mb-4 {
-  margin-block-end: 1em;
+  margin-block-end: 1rem;
 }
 
 .mb-6 {
@@ -1250,7 +1285,7 @@ body.hide-claimed-icons .wish-item--claimed {
   }
 
   .sidebar-nav {
-    margin-block-start: 40px;
+    margin-block-start: 2rem;
   }
 
   footer {
