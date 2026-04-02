@@ -1,0 +1,8 @@
+{% extends "layouts/logged_in_content.html" %}
+{% block content_header %}
+<script src="{{ url_for('static', filename='js/wish_pages.js') }}"></script>
+    {{ super() }}
+{% endblock %}
+{% block main_content %}
+<a href="#" onclick="loadModal('/new-wish-test');">Nytt ønske</a>
+{% endblock %}

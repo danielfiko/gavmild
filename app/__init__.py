@@ -50,6 +50,7 @@ def create_app(config_class: type | None = None):
     # Blueprint import
     from app.auth import auth_bp
     from app.wishlist import wishlist_bp
+    from app.wishlist.product_extractor import extractor_bp
     from app.wishlist.api import api_bp
     from app.telegram import telegram_bp
     from app.webauthn import webauthn_bp
@@ -57,6 +58,7 @@ def create_app(config_class: type | None = None):
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(wishlist_bp)
+    app.register_blueprint(extractor_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(telegram_bp)
     app.register_blueprint(webauthn_bp)

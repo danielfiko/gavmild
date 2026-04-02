@@ -137,6 +137,16 @@ class WishForm(FlaskForm):
     submit = SubmitField("Lagre", render_kw={"form": "wishform"})
 
 
+class ProductForm(FlaskForm):
+    product = StringField(
+        "Ønske",
+        validators=[InputRequired(), Length(min=2, max=255)],
+        render_kw={"placeholder": "Lim inn en lenke eller skriv hva du ønsker deg", "form": "productform"},
+    )
+    submit = SubmitField("Videre", render_kw={"form": "productform"}) 
+    
+
+
 class MyBaseForm(FlaskForm):
     class Meta:
         locales = ["nb"]

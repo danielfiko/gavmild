@@ -1,0 +1,23 @@
+{% extends "layouts/modal.html" %}
+{% block modal_id %}modal{% endblock %}
+{% block modal_class %}modal{% endblock %}
+{% block modal_content_id %}modal-content{% endblock %}
+{% block modal_content_class %}modal-content{% endblock %}
+{% block modal_content %}
+    <script src="{{ url_for('static', filename='js/wish_modal.js') }}"></script>
+    <div class="m-8">
+        <h2 style="margin-top:20px">Hva ønsker du deg?</h2>
+        <form id="productform" class="full-width-form" action="{{ url_for('product_extractor.extract') }}" method="GET">
+            {{ productform.product.label }}
+            {{ productform.product }}
+            {{ productform.submit(class_="btn btn-primary button") }}
+        </form>
+        <script>
+            document.getElementById("productform").addEventListener("submit", function(event) {
+                event.preventDefault();
+                const form = $(this);
+                loadModal(form.attr("action") + "?" + form.serialize());
+            });
+        </script>
+    </div>
+{% endblock %}
