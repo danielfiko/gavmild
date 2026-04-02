@@ -4,7 +4,8 @@ $(".typeahead__container").hide();
 $("#add-user-field").show();
 $(".add-co-wisher-button").click(function(){addWishUser()});
 $(".add-wish-image-from-url-button").click(function() {
-    $(this).hide();$("#img_url").show().select()
+    $(this).hide();
+    $("#img_url").show().select();
 });
 $('img').on("error", function() {
     $(this).attr('src', '/static/img/gift-default.png');

@@ -147,15 +147,7 @@ def get_user_page(user_id):
     else:
         page_title = "Min ønskeliste"
 
-    target_user_lists = (
-        db.session.execute(
-            db.select(WishList)
-            .where(WishList.user_id == user_id, WishList.archived_at.is_(None))
-            .order_by(WishList.created_at.desc())
-        )
-        .scalars()
-        .all()
-    )
+    target_user_lists = WishList.get_active_lists(user_id)
 
     return logged_in_content(
         "wish_content.html",

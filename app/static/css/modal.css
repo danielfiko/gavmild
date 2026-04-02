@@ -40,6 +40,14 @@
     max-height: 100%;
     border-radius: var(--radius-lg);
   }
+
+  & h2 {
+    margin: 0 0 5px 0;
+    font-size: var(--text-3xl);
+    font-family: var(--font-heading);
+    font-weight: 400;
+    line-height: 1.15;
+  }
 }
 
 @keyframes animatetop {
@@ -107,14 +115,6 @@ details.admin-generate-image {
   justify-content: center;
   max-width: 100%;
   padding: var(--space-3) var(--space-5);
-
-  & h2 {
-    margin: 0 0 5px 0;
-    font-size: var(--text-3xl);
-    font-family: var(--font-heading);
-    font-weight: 400;
-    line-height: 1.15;
-  }
 
   & p {
     margin: 0;
@@ -264,7 +264,7 @@ button.co-wish-search-field {
     content: "\f004";
   }
 
-  & input[type='checkbox'], & ~ #img_url {
+  & input[type='checkbox'] {
     display: none;
   }
 
@@ -293,6 +293,10 @@ label[for="co_wisher"] {
   list-style: none;
   display: flex;
   gap: 0.2em;
+}
+
+#modal #img_url {
+  display: none;
 }
 
 .form-actions {

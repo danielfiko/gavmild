@@ -43,6 +43,18 @@ class WishList(db.Model):
 
     def __repr__(self) -> str:
         return f"<WishList id={self.id} title={self.title!r}>"
+    
+    @staticmethod
+    def get_active_lists(user_id: int) -> List["WishList"]:
+        return list(
+            db.session.execute(
+                db.select(WishList)
+                .where(WishList.user_id == user_id, WishList.archived_at.is_(None))
+                .order_by(WishList.created_at.desc())
+            )
+            .scalars()
+            .all()
+        )
 
 
 class ClaimedWish(db.Model):

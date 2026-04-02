@@ -1158,6 +1158,7 @@ body.hide-claimed-icons .wish-item--claimed {
 
 .initially-hidden {
   display: none;
+  --fa-display: none;
 }
 
 .list-no-style {
@@ -1195,6 +1196,10 @@ body.hide-claimed-icons .wish-item--claimed {
 
 .mb-6 {
   margin-block-end: 1.5rem;
+}
+
+.m-8 {
+  margin: 2rem;
 }
 
 
