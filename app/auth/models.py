@@ -101,15 +101,23 @@ class User(db.Model, UserMixin):
             current_app.logger.debug(
                 "No upcoming birthdays found in the next 60 days. Finding the next closest birthday."
             )
-            user = db.session.execute(
-                db.select(User).where(bday_mmdd >= start_mmdd).order_by(bday_mmdd)
-            ).first()
+            user = (
+                db.session.execute(
+                    db.select(User).where(bday_mmdd >= start_mmdd).order_by(bday_mmdd)
+                )
+                .scalars()
+                .first()
+            )
 
             if user is None:
                 current_app.logger.debug(
                     "No birthdays found later this year. Finding the first birthday next year."
                 )
-                user = db.session.execute(db.select(User).order_by(bday_mmdd)).first()
+                user = (
+                    db.session.execute(db.select(User).order_by(bday_mmdd))
+                    .scalars()
+                    .first()
+                )
 
             if user is None:
                 return []
